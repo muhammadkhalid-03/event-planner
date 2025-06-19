@@ -17,6 +17,15 @@ interface LocationFormProps {
     locationData: LocationData;
     sourceData: LocationData;
     destinationData: LocationData;
+    filters: {
+      locationRange: number;
+      peopleCount: number;
+      timeRange: string;
+      budget: number;
+      transportation: string[];
+      vibe: string;
+      groupType: string
+    }
   }) => void;
 }
 
@@ -48,6 +57,14 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [selectedLocationText, setSelectedLocationText] = useState("");
   const [selectedSourceText, setSelectedSourceText] = useState("");
   const [selectedDestinationText, setSelectedDestinationText] = useState("");
+  const [locationRange, setLocationRange] = useState(10);
+  const [peopleCount, setPeopleCount] = useState(2);
+  const [timeRange, setTimeRange] = useState("Evening");
+  const [budget, setBudget] = useState(50);
+  const [transportation, setTransportation] = useState<string[]>([]);
+  const [vibe, setVibe] = useState("Chill");
+  const [groupType, setGroupType] = useState("Friends");
+
 
   // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const { name, value } = e.target;
@@ -64,7 +81,12 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       sourceData,
       destinationData,
     });
-    onSubmit({ locationData, sourceData, destinationData });
+    onSubmit({ locationData, sourceData, destinationData,
+      filters: {
+      locationRange, peopleCount, timeRange, budget, transportation, vibe, groupType,
+      },
+
+    });
   };
 
   const {
@@ -229,6 +251,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
+
         {/* <div>
           <label
             htmlFor="country"
@@ -346,13 +369,23 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
               </ul>
             )}
         </div>
-
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Location Range (miles)
+          </label>
+        <input
+            type="number"
+            min="1"
+            value={locationRange}
+                onChange={(e) => setLocationRange(+e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        />
         <button
           type="submit"
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium"
         >
           Show Street View
         </button>
+
       </form>
     </div>
   );
