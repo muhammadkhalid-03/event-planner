@@ -51,12 +51,12 @@ export default function MapView({
 
   const waypoints = [
     {
-      id: 1,
+      // id: 1,
       location: origin,
       stopover: true,
     },
     {
-      id: 2,
+      // id: 2,
       location: {
         lat: 41.741349,
         lng: -92.728344,
@@ -64,7 +64,7 @@ export default function MapView({
       stopover: true,
     },
     {
-      id: 3,
+      // id: 3,
       location: destination,
       stopover: true,
     },
@@ -210,9 +210,9 @@ export default function MapView({
               }}
             />
           )}
-          {waypoints.map((waypoint) => (
+          {waypoints.map((waypoint, index) => (
             <Marker
-              key={waypoint.id}
+              key={index} // need an index here for React to keep track of array element
               position={waypoint.location || center}
               onClick={() => {
                 setSelectedLocation({
