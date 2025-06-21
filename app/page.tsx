@@ -4,6 +4,7 @@ import { useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
 import { useGoogleMaps } from "./contexts/GoogleMapsContext";
+import Link from "next/link";
 
 interface LocationData {
   country: string;
@@ -51,6 +52,9 @@ export default function Home() {
             <p className="text-gray-600">
               Enter your location to view the street view
             </p>
+            <Link href="/places" className="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                PLACES API
+            </Link>
           </div>
           {isLoaded && <LocationForm onSubmit={handleLocationSubmit} />}
         </div>

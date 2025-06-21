@@ -1,8 +1,3 @@
-# Update June 21st 2025
-Working Search Nearby Places API request with restaurants.
-It's put on another page: /places
-
-
 # Location Finder App
 
 A Next.js web application with TailwindCSS that allows users to enter their country, city, and specific location within that city, and view the location in Google Street View.
