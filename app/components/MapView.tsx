@@ -4,23 +4,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGoogleMaps } from "../contexts/GoogleMapsContext";
-import { LocationData } from "../types/location";
 import { getRoute } from "../api/mapServices";
 import {
   GoogleMap,
-  Polyline,
   Marker,
   DirectionsService,
   DirectionsRenderer,
   InfoWindow,
   StreetViewPanorama,
 } from "@react-google-maps/api";
+import businessData from "../../api_logs/places-api-1750535962558.json";
+import { Business, LatLng, Waypoint } from "../types/businesses";
 
-interface MapViewProps {
-  locationData: LocationData | null;
-  sourceData: LocationData | null;
-  destinationData: LocationData | null;
-}
 const polylineOptions = {
   strokeColor: "#FF0000",
   strokeOpacity: 0.8,
@@ -29,11 +24,7 @@ const polylineOptions = {
 
 const AnyReactComponent = ({ text }: { text: string }) => <div>{text}</div>;
 
-export default function MapView({
-  locationData,
-  sourceData,
-  destinationData,
-}: MapViewProps) {
+export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,50 +32,36 @@ export default function MapView({
   const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // Default to NYC
   const [path, setPath] = useState<{ lat: number; lng: number }[]>([]);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(
-    null
-  );
+  const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
   const [streetViewVisible, setStreetViewVisible] = useState(false);
-
-  const origin = sourceData?.location;
-  const destination = destinationData?.location;
-
-  const waypoints = [
-    {
-      // id: 1,
-      location: origin,
-      stopover: true,
-    },
-    {
-      // id: 2,
-      location: {
-        lat: 41.741349,
-        lng: -92.728344,
-      },
-      stopover: true,
-    },
-    {
-      // id: 3,
-      location: destination,
-      stopover: true,
-    },
-  ];
+  const [businessesData, setBusinessesData] = useState<Business[]>([]);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
 
   useEffect(() => {
-    if (isLoaded && sourceData && destinationData) {
+    if (businessData.results) {
+      const waypoints = businessData.results.slice(0, 3).map((business) => ({
+        location: business.geometry.location,
+        stopover: true,
+      }));
+      setWaypoints(waypoints);
+      setBusinessesData(businessData.results);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded && sourceData && waypoints) {
       const fetchRoute = async () => {
-        const path = await getRoute(sourceData, destinationData);
+        const path = await getRoute(sourceData, waypoints);
         setCenter(path ? path[0] : { lat: 40.7128, lng: -74.006 });
         setPath(path || []);
       };
       fetchRoute();
     }
-  }, [isLoaded, sourceData, destinationData]);
+  }, [isLoaded, sourceData, waypoints]);
 
   const directionsCallback = useCallback((response: any) => {
     if (response !== null && response.status === "OK") {
       setDirectionsResponse(response);
-      console.log("Directions response:", response.data);
     } else {
       console.error("Directions request failed:", response);
     }
@@ -177,7 +154,6 @@ export default function MapView({
 
   return (
     <>
-      {/* <div ref={mapRef} className="absolute inset-0" /> */}
       {isLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
@@ -189,18 +165,20 @@ export default function MapView({
             map.fitBounds(bounds);
           }}
         >
-          {!directionsResponse && origin && destination && (
-            // get the directions using waypoints
-            <DirectionsService
-              options={{
-                origin: origin,
-                destination: destination,
-                travelMode: google.maps.TravelMode.DRIVING,
-                waypoints,
-              }}
-              callback={directionsCallback}
-            />
-          )}
+          {!directionsResponse &&
+            sourceData &&
+            waypoints &&
+            waypoints.length > 0 && (
+              <DirectionsService
+                options={{
+                  origin: sourceData,
+                  destination: waypoints[waypoints.length - 1].location,
+                  travelMode: google.maps.TravelMode.DRIVING,
+                  waypoints: waypoints.slice(0, -1),
+                }}
+                callback={directionsCallback}
+              />
+            )}
           {directionsResponse && (
             <DirectionsRenderer
               options={{
@@ -215,20 +193,13 @@ export default function MapView({
               key={index} // need an index here for React to keep track of array element
               position={waypoint.location || center}
               onClick={() => {
-                setSelectedLocation({
-                  country: "",
-                  city: "",
-                  location: waypoint.location || center,
-                });
+                setSelectedLocation(waypoint.location);
                 setStreetViewVisible(false);
               }}
             />
           ))}
           {selectedLocation && (
-            <InfoWindow
-              position={selectedLocation.location}
-              onCloseClick={() => setSelectedLocation(null)}
-            >
+            <InfoWindow position={selectedLocation}>
               <div>
                 <button onClick={() => setStreetViewVisible(true)}>
                   Enter Street View
@@ -239,14 +210,13 @@ export default function MapView({
           {streetViewVisible && selectedLocation && (
             <StreetViewPanorama
               options={{
-                position: selectedLocation.location,
+                position: selectedLocation,
                 pov: { heading: 165, pitch: 0 },
                 visible: true,
                 zoom: 1,
               }}
             />
           )}
-          {/* <Polyline path={path} options={polylineOptions} /> */}
         </GoogleMap>
       )}
       {(!isLoaded || isLoading) && (
