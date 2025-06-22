@@ -1,0 +1,1063 @@
+{
+  "html_attributions": [],
+  "next_page_token": "AXQCQNSapl8eY1pjjEiY7Br8JMCb0Y7BlkVu9WkMMG5k8j1Jp3cbdd7Sw2dljcY9vM0hv_4Tw5QFk2H73Z542BDC_8AWpYRFrGi_dtcmw8ckYvwo6MRo1VqAK7dGeMaitJzyVIbrszJNkOidjQDnc6kiBb5zu8s3zaSOaJyWpMYjTWOpVR50BqU_qu_D5DLwLyGwkgAGVCvCHqBvVXwBcvJP2NoWOOq40ttOOvdPCtvm6fAHZ7rYq7rmQkSESCGw5wKRTVF_H2s0RpxXgcwk0i-TK7AIZK8tgjV6SaTgq5DBXHGFF48jxQEOUndNstm00IVGFbbGQX1P5VyPxpGWNC1YaLmR7IIOSjSV-e0H-OSdKdRnQoMrpUKDM9XQet3917wObq-9G7B9b-eIgVUsXs8gXuumzapTGSyiHqfZ47_nkNtnMf5gfGQJZp2eT0Se4xrAxg",
+  "results": [
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "95 W Broadway, New York, NY 10007, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7155048,
+          "lng": -74.00894509999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71695102989272,
+            "lng": -74.00771802010728
+          },
+          "southwest": {
+            "lat": 40.71425137010728,
+            "lng": -74.01041767989273
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Serafina Tribeca",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1200,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/102204475335257720981\">Serafina Tribeca</a>"
+          ],
+          "photo_reference": "AXQCQNRxOpfHjoa8AGVt7NQeBXvhWUpbVmiucjSKzHFNk50EQOY94HIZatiHU9-steg6xguG6pgtKOkq7HYwXDRPQYmZRBWgxy89UwYJuWtFb0KiBDD-IlQ3fpY_ughzpqiQQ2XaZZgzVFPEo9TCA1ZQ-LedmEQY7ud9-HO8YkgJGhAZJqtQJIMOxE3mx1I46dYQC8NSl4JeXn5mS18Vck0x3VosqfDUtjLUMS8VSpthIDBINaByiu2A8khfL2jelm6x5OmVmgmmgeXgbhf4JAbQoNsSzcFrB_O6oO5Zlok9wT0Ke6SVt1U",
+          "width": 1600
+        }
+      ],
+      "place_id": "ChIJ-0VhGB9awokRksxfZJBvigE",
+      "plus_code": {
+        "compound_code": "PX8R+6C New York",
+        "global_code": "87G7PX8R+6C"
+      },
+      "price_level": 2,
+      "rating": 4.3,
+      "reference": "ChIJ-0VhGB9awokRksxfZJBvigE",
+      "types": [
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1279
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "124 Fulton St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7100842,
+          "lng": -74.007677
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71148742989272,
+            "lng": -74.00632542010727
+          },
+          "southwest": {
+            "lat": 40.70878777010728,
+            "lng": -74.00902507989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Joe’s Pizza",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 2252,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/115994835577304328093\">Joe Jackson</a>"
+          ],
+          "photo_reference": "AXQCQNTTO6krwhqfyfIo4nH_qg7aZnHVvkeo6Ulj57wg_FQ8iffEbAy1nA6CEhE5xSfJecnhpknKDOfeZgAEmZagmac8OuCEtOk2DjonjXcAwMu4hc7n8L2ltfk0IrfQ0UdnllegG0ATYk2oKmdaGuBsS_qZ7rjGWFEAMfIlFw6QwMjkEYwuh09_1qpsY5v0SoYQxst_0eu9VXBBOARcfKT8-knXnepe1kv5d2lOVG6DpFsmXFW9TWN_aKVKb69dwtVtP4R6t5i6qjMtt2vxoF4PX0Hb4LZIB4yjfm5ZsXzL9JcX3V3SOOX3-3uUpy-ccv2vZo6Ju9h7T4F9YLtmpDmIiCrMYEXPSU9T5upDPfzYxSsCTaRilmDPRloU98MvFR5qpWs3sWsQQuW_65gfsv8MNcyQd5GVNQ8gMa8R9FOEDsT8rdaLO30c3E_scedH-K4TcP065tV7HGxA_W8Dw68spiZwWtEBPkTwCYatzmqdY1ADQN6bhSVMdyZVho8PiPzvBzr8OY2AeSANH8wq7l3wUB34MJkB9ysdfDCJ3Ki0PdpeX_VA59ccPh_57O8ROqKSvxPon-JyBrR0Qw",
+          "width": 4000
+        }
+      ],
+      "place_id": "ChIJqdNaaBVbwokRLTafYrQlZI8",
+      "plus_code": {
+        "compound_code": "PX6R+2W New York",
+        "global_code": "87G7PX6R+2W"
+      },
+      "price_level": 1,
+      "rating": 4.6,
+      "reference": "ChIJqdNaaBVbwokRLTafYrQlZI8",
+      "types": [
+        "meal_takeaway",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 5713
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "104 Greenwich St, New York, NY 10006, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7084781,
+          "lng": -74.01352500000002
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.70981862989272,
+            "lng": -74.01211037010728
+          },
+          "southwest": {
+            "lat": 40.70711897010727,
+            "lng": -74.01481002989273
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "ZAZA",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3468,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/100966100788162133135\">Miroslav Fulier</a>"
+          ],
+          "photo_reference": "AXQCQNRymAmzHaTlcs-196ZN9zUU4bG2yPBf35Dq5_Pw7IM9smcuTLsvf3oQ98NRYcZ5FQvye-iY_Ele07Lz3ChBVxJ4ZI7kXjuCUlZ56fxGIfThlJF8o2iZM6CFI6rqbyNRkOsVRQUEaPzQvaZMAbILuEe9FN3V4t4KcXpVDxdk_TLas1jPhFoGLyodtOtLT_XIV2WTZJqc3vV01nItrMa9_9nj_PfTaAJjvOTw3BqHEosFtP0N6s5e54t8tGchx4KkbX5tzJJdQhzppPfmFekwSJ-Y8oxYKMQBN2XjKHvmo-7rwLglID2DY8O5f-7ETKgMJV6vBjMs7u4WugNi9-5vZEzvGczC37aOazWKbM6ONoGW8QEmWDQBVXjfjWx6r0fpjYGLBbr-9TXTWoWmwCGIqmHcBtse1h7oupYYeJSNUp8Wpp2b4naDqdf9nVeuVrQMbXc17MLh1yzh632I1tKpVc8178tlA_4PXN6hPg1I0aNNVc7JzjbMQZzptL9HQ-d7aQWYlDHbSdrn4hstwkdu-AaJI2uJqxNJK9PGnx4t2knphwV79JvvPBP6Va1tqPvmcYIwgwtH",
+          "width": 4624
+        }
+      ],
+      "place_id": "ChIJRVYm7f1ZwokR2DcmGOSHUFc",
+      "plus_code": {
+        "compound_code": "PX5P+9H New York",
+        "global_code": "87G7PX5P+9H"
+      },
+      "price_level": 2,
+      "rating": 4.5,
+      "reference": "ChIJRVYm7f1ZwokR2DcmGOSHUFc",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1433
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "120 Cedar St, New York, NY 10006, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7095008,
+          "lng": -74.0126642
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71090387989272,
+            "lng": -74.01137602010728
+          },
+          "southwest": {
+            "lat": 40.70820422010728,
+            "lng": -74.01407567989271
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "O'Hara's Restaurant and Pub",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3036,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/100760346251154538200\">Laura G.</a>"
+          ],
+          "photo_reference": "AXQCQNRaJMmCqcmmWyL7RDymHww-siCsNIyZgtXNjo73SaXbuxLE0IkeydUTvcx_RInY-VIE2-0yDYi9uj1dqRoH0JSVKUdEEz95izIxxaHKX0VmXIOCl2YurmZ7FMQKmaUF20vbyxrsT6qoSDEqxhkkmI8We3voZV21DHUQJy1oeQMvLMZChVCW1UEuO3NsiuLkgtAY8qgTIRcKPji-OILBXgmOIxClQPXk0RcljwAWW2OU7wSWN3F-vgJmnuOY_1v-n1Bp_NUjRdJ1dl1uKgFMKNmysdZNlReKbiGgqz4GTlsJ2ct-8j4RqyVZJ87hb94g6rN2hQQbsWkPyT1X6QYeMcET0rhtJid3pI0zuNNC4zEZbGAr5zA2BNP3HtnzH567K37Zd0K2QnacUwmWDMPOP46ItcHNxALNI76Flr-Cm_Q0iZw1kIlBSXZougNotCGrXb7f5Ex_TJ5rvfwzXAbgQK3tF23b9T1MVgjDG7hlbbIXaA0WgqCGNiEMv1IQZh9qY52_QXDj4Sts9GARSG9wofgn6eiDtaFriwi26Gx3JGjVT5uH2IOuu1IuLc_Z2jmeqmEtFWVO",
+          "width": 4048
+        }
+      ],
+      "place_id": "ChIJueUCrBBawokRiw9LMJFm0_o",
+      "plus_code": {
+        "compound_code": "PX5P+RW New York",
+        "global_code": "87G7PX5P+RW"
+      },
+      "price_level": 2,
+      "rating": 4.6,
+      "reference": "ChIJueUCrBBawokRiw9LMJFm0_o",
+      "types": [
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 5319
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "101 Liberty St, New York, NY 10007, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.71027040000001,
+          "lng": -74.0117145
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71155967989272,
+            "lng": -74.01019492010728
+          },
+          "southwest": {
+            "lat": 40.70886002010728,
+            "lng": -74.01289457989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Eataly",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3500,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/105327178268208809872\">La Pizza &amp; La Pasta at Eataly NYC Downtown</a>"
+          ],
+          "photo_reference": "AXQCQNSgr0wSUq2vcR71wM6SmuOTkxjeIqPSfkVGsYIJV3fjU8PS5R81xLgLoKm8jTZftv_yjVhU8XewH0CTzeQX_7EW03_WCSKIeILASSeiGkC1yc4VKBPksPCXQaaRIkni0geXtuRKyHoYfStA9OZ8N_JH2fhrfQKAyOdO6pBF0Od7iRojmrXfq_BFs5zUEJ3DpNrXM_M7mbDihABU0fluE0kN30ivPRfbobKhNbbXpZIUk7veXwoufj49oNQeq9AhMAEue864KDQNM1oUXQO3gfczqQKx9s9T7Pi5IH3xdn2dNNSDUR4",
+          "width": 5250
+        }
+      ],
+      "place_id": "ChIJvx7i_BlawokRidb5WfdvqRM",
+      "plus_code": {
+        "compound_code": "PX6Q+48 New York",
+        "global_code": "87G7PX6Q+48"
+      },
+      "price_level": 2,
+      "rating": 4.2,
+      "reference": "ChIJvx7i_BlawokRidb5WfdvqRM",
+      "types": [
+        "bar",
+        "cafe",
+        "grocery_or_supermarket",
+        "restaurant",
+        "food",
+        "store",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 5920
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "77 Worth St, New York, NY 10013, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7168689,
+          "lng": -74.0055916
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71818847989272,
+            "lng": -74.00426912010727
+          },
+          "southwest": {
+            "lat": 40.71548882010728,
+            "lng": -74.00696877989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Atera",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 457,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/113719639442868633401\">Ashley Hughes</a>"
+          ],
+          "photo_reference": "AXQCQNTsXc92AohCJ62KlI82PH49DPYmgOAJWPAHHE9azy51caDnbHnV689ELi8HlSF9JFCt7fha2PRzHEcV8HDJ8HEUDnRycMb1Hyy2ngJvq-z-VPF0LJQK6gkCzxokkdXklbSTVIPmKHGXqyOHEgKMfNg39KuGxQfwMM3vWXHC-iCaTC-JEzPJ2Z1cEiDW6-oNwK0afc_X-fzjXeQf8A-sCgsQxeSkU3FE9gfIBEALbx0bfJq7wCHArlzvOND32l3QbONv7p83B7qDCThUVoRgCx11dRIyeK-r3QzIaEpbQOGUleP6mJKeUlstGL8nBjJtdcktKYiPCrSTdwoKYzZ7J-VqO1isscsaJeDjwBN0QKecSHZGrRI0d9HSH8oUVVy6YEf3em0I--QbAC3zRBZiahgJ-kIQ2QTaNcj0492rvMyvzwHaZMkOAdurhXYQIflKFwE5bqaUf7VUf6G4GeMkmToOuLIG8GdtIpIxkdSYKgm_-VLbIoABGUl0o882WVAlJr6fyL9lhicuki4EgT_MFuALrWSkuVffYucS-DIzS2XteM4TIJ6mTj7NqhRZFrPrZhPq7Zv6",
+          "width": 610
+        }
+      ],
+      "place_id": "ChIJ_Y7rMCBawokR0mnRmN5kL2o",
+      "plus_code": {
+        "compound_code": "PX8V+QQ New York",
+        "global_code": "87G7PX8V+QQ"
+      },
+      "price_level": 4,
+      "rating": 4.6,
+      "reference": "ChIJ_Y7rMCBawokR0mnRmN5kL2o",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 576
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "15 Gold St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7078509,
+          "lng": -74.007046
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.70916952989272,
+            "lng": -74.00561867010728
+          },
+          "southwest": {
+            "lat": 40.70646987010728,
+            "lng": -74.00831832989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Felice 15 Gold",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/111866758619027294737\">Helen Zhao</a>"
+          ],
+          "photo_reference": "AXQCQNQe_Iv1wDToFhhxcIpWIdpGu9gdBIzZQafdDWu5lZyTocz27ipF6zZKHUdjwIKj5dw7r8ijpkLqgz4J3K6RXUehtkdm48Z7Ny0t6CS7MYM71lCNzf9M6PK7IG_Ybal5wHTDuBx7rP79li24T66Tc1sEoqW3_sph5iTTH39f1LB6DC_GCUHTL7V1lKo6wHGq_ZKFCAe3Bv2bunt6QryXTjbWG7L7x9MinGoLOanDZcRaUccrGaSnifY_-ZL6MElRXVqDicPjnm1BY6bMRxlsYSrsND6OZMwW07yxI5ZgrkLv40M8N3lzstuTqfHjB-1ClhIJG9-nujXZzvLGfkVt5yvhCNv4IV0nmadpZkbIn2vRrt7BMzPZ29O8v2_XPPWK5FpHO2foGJ_M75dg1N49-6G_29lTxpGGXJ4WnHvTHnZcve4qSBJ3ofdeiFTasTKP13ISM9pWYzdbOnH_uRNWkhtMduXKE40pEyyHx_NIugNwvJYh-gLBty2NVGwcYfPVDK5PxJn0eKuIls5nqvvaoS9Dvx3kYGpF2i5zbmOBp2ZyOOXCkZs6mxjtCKfDrds86gjPmvvT5TAANA",
+          "width": 4032
+        }
+      ],
+      "place_id": "ChIJtb0E3RdawokRqLP-FNIxvf8",
+      "plus_code": {
+        "compound_code": "PX5V+45 New York",
+        "global_code": "87G7PX5V+45"
+      },
+      "price_level": 2,
+      "rating": 4.5,
+      "reference": "ChIJtb0E3RdawokRqLP-FNIxvf8",
+      "types": [
+        "bar",
+        "restaurant",
+        "food",
+        "store",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1030
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "28 Liberty St 60th floor, New York, NY 10005, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7079974,
+          "lng": -74.00888259999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.70937187989271,
+            "lng": -74.00742877010727
+          },
+          "southwest": {
+            "lat": 40.70667222010727,
+            "lng": -74.01012842989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Manhatta",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1318,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/100843555729741380380\">Manhatta</a>"
+          ],
+          "photo_reference": "AXQCQNRE0R8TyKvqSBFOIoFVTPwCvUZCvm7IhW6DH1tLLTxpVSoMduWEpqfxGzHNTN2w_z9EF0GfoNhwWSA_fIWNOWQjnmASgHPcqfsZ2aIb1d_eCRhAyRL7b5cW9R1fcILJSCJs88IXtj1cZp2vNWHC3RazTSDLBzlGI-dHdpZXFIA8E6xaJks2xat4pGc0VBJfRVwbR18RY-7l2HC0UkTPUoEzwaiaY9GFCf8IeEUMssb_eUeIBK7XbjzWXuCGLisbu_jIH6uLxEuVyvkwgm7ryq8pZBQ5YAl0ssBTJVfvv0N4lffX_iU",
+          "width": 1974
+        }
+      ],
+      "place_id": "ChIJoTXWl8dbwokRpKA2BJFVsGA",
+      "plus_code": {
+        "compound_code": "PX5R+5C New York",
+        "global_code": "87G7PX5R+5C"
+      },
+      "price_level": 4,
+      "rating": 4.7,
+      "reference": "ChIJoTXWl8dbwokRpKA2BJFVsGA",
+      "types": [
+        "restaurant",
+        "bar",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2920
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "133 Mulberry St, New York, NY 10013, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7186467,
+          "lng": -73.99792409999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71996042989272,
+            "lng": -73.99646872010727
+          },
+          "southwest": {
+            "lat": 40.71726077010727,
+            "lng": -73.99916837989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Osteria Barocca",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 5430,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/115387820202834775643\">Osteria Barocca</a>"
+          ],
+          "photo_reference": "AXQCQNSLj1qRlkkXRW3XZfx_apZ_fHsWDMnC8bTTMUFxpAN4x7Ns7zLXxYvm_pPNGq5yP-vUfnBFEwR42Fe95AW59rLszk4JQ-OeDZH-V2Z0SGKzLM2SE7Cuo5-G5axytNk6lBmZNWLV3XphHHbpdQvyv6YOMPkUomfJfH-9Y1IXnnsPS27EzL3iEwuTl6Z_9psQoeNRDLcAU0AhyUBFCX90Kdcs5as5D2FpNXBUM8M6f6VUOf4Jzx76vsQqxKU5-RyZ7j2TCDTpIkJFTQX3ZlxrO8s32iHl-MKGeYFpME6w3xjUtEgNgmM",
+          "width": 6920
+        }
+      ],
+      "place_id": "ChIJK0YQvsRZwokR9r2ubFZRd7E",
+      "plus_code": {
+        "compound_code": "P292+FR New York",
+        "global_code": "87G8P292+FR"
+      },
+      "price_level": 2,
+      "rating": 4.6,
+      "reference": "ChIJK0YQvsRZwokR9r2ubFZRd7E",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2088
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "97 Nassau St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.71055399999999,
+          "lng": -74.007593
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71186907989272,
+            "lng": -74.00619372010729
+          },
+          "southwest": {
+            "lat": 40.70916942010727,
+            "lng": -74.00889337989273
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Pisillo Italian Panini",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3456,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/116730565724785589475\">Brent</a>"
+          ],
+          "photo_reference": "AXQCQNSh7mnTLmrJTSNz2VhoKKfBa8MnfIEh6oFxlbkew9AGl3BUKTQNQuasPoSSRXEgyT0l3mgfuespNh-oC7xqRrsyRr9DYS177-4kFFAyTjbT90FZSeJuUNJLmQailGj9RWva4eLG3o_HVE-WK8JCCkRT0o6C7avBWUb4kKI1DeFxDb7Wa86J6F6eTwIC8Kxx8oPrePbrHMygvjnIzRvS8wxb4yfo_ELvqgwQHWa9VM7DcbYwemxOzlfC1Q80guzAPRhmV4eED26xMp1Ef77u9vOSLp9uTZeQIOeapBm8ZkaSVteEXZUKkDR0urhViBVjETeVz7-3QF7gZabPPvVLLpydmOZwES50L3KIlP7m_jp7b0_oNZd4dF5rbfHMSfUXZgID1bEaZgnogyNalWPzYDF-OM60JPH5T-wHJdV9EjWUrg7zCUESrryloQEVfKYvROQKAgodGwD42RCO5lQiRV49cXpt9hTDeieLoyBfRp5fz_-bvsCzhSwocac8rdTY3l8nuWMcuGbowuW7hNn5tkpPZOkt6Pd5S-xP09epvgv5DZKBp1sdGAVPOuOc1BeoBFboLmXG40oL-w",
+          "width": 4608
+        }
+      ],
+      "place_id": "ChIJ1-vKbRhawokRuh_krlCFDsQ",
+      "plus_code": {
+        "compound_code": "PX6R+6X New York",
+        "global_code": "87G7PX6R+6X"
+      },
+      "price_level": 2,
+      "rating": 4.7,
+      "reference": "ChIJ1-vKbRhawokRuh_krlCFDsQ",
+      "types": [
+        "meal_delivery",
+        "meal_takeaway",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1649
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "73 Mulberry St, New York, NY 10013, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7162295,
+          "lng": -73.9992492
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71757222989272,
+            "lng": -73.99784302010728
+          },
+          "southwest": {
+            "lat": 40.71487257010727,
+            "lng": -74.00054267989273
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Uncle Lou 快樂人",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/116753542691272204482\">Mike Forzley</a>"
+          ],
+          "photo_reference": "AXQCQNSM4Pn2MKZ67CaHOyRSTcyXO-LTnraVBC-B-Ox6ZfDL5ltz02YRSNK7t_oXg5qrqC5gIZ-_QYtEoDOCiTQ31OErxxy_FFac0PxFbwAmkH_wr_ywUF67SK_K8Rz9Ol1Gg0sd8-3mQS8wQ2AVubQS6jXYD7694Ci0njQqM-tgNq8PUhl__86N6RSdvEczwm6us40ivf-sV0UbNMQR8NN2rcVzwUfxtK0bxDr9h2TT7JHVILz2wb_AApA_aQ9FZKysB0aF6bWJqVApHkF8rIco9UMK0jUZD5aF-mjOcTr9uA8eiVnza0S7azSBiVoi7qE3b-s0Y-B8bkRwy3DLNuz91qe2IJy4N9v7DLc54mSW4vGV20Wlf-D2I4PFAJBBlCksfcBwieD_qbIUvAU4ttIa27jMRIKG1eyC_1_g1aCs5hlFymNcLGNNe7z9jjm_ibf5gbgwDEKRgkpij4NefFelA5s5QgZlcRpBSdZP6H10IwCnAqQdm8dMzUTqdVGAyhIAxa6xr_n5JctmJGSTbcvwxavmv3NA9AXtuwjPl1QdnKoC-N2lEZbM5okJHHTDJnVDKPTPC6eT",
+          "width": 4032
+        }
+      ],
+      "place_id": "ChIJSRT5b9ZbwokRYilWRG4jYaY",
+      "plus_code": {
+        "compound_code": "P282+F8 New York",
+        "global_code": "87G8P282+F8"
+      },
+      "price_level": 2,
+      "rating": 4.5,
+      "reference": "ChIJSRT5b9ZbwokRYilWRG4jYaY",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2038
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "82 Reade St, New York, NY 10007, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7154539,
+          "lng": -74.00733009999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71675852989272,
+            "lng": -74.00600892010728
+          },
+          "southwest": {
+            "lat": 40.71405887010728,
+            "lng": -74.00870857989271
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "1803 NYC",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3456,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/109862516641179315264\">Craig Wilson</a>"
+          ],
+          "photo_reference": "AXQCQNTqEk4szrfZYZMtGczKgibWB5eutcxTOlCKDqkHAaDHjR6sSKbbRDEYMfAvpBFumx8uCE8Ydp9W0CQqGSH09DH0uNJMA2nKOmASjd_vGpAtoNLF2d8rcjkXnAy6BA7O-JNLGqhWesoOUyJQxrDNSrsWpD39rXeVWmd8G4qc41bLbDJ-Bd9hXADTlyCetJb13bSiq2MskwENG-Cp5KMjIvZA4BVkMAyrdzbv4I-oqhH0zNEvNBh11MvJ7SqO2uj6s5998GpM1aqD-J4axRIGbzlKAjJ0kekKAZZQwRSET1CprN6xMYcI9tEhUvttraz17FFVenbqY0-wfG1P9IvbBmCFMEDXy4BDb9FBB9RTSmSOswBZgdnZgJA2CPKPpVHFYXrhlNfw4hjCyrLKPa-awYNW6xC28S0OxuLwrPgmGsJuXUIvHBhAUFg7BMgzSe3pNy6ryeXpgWY6Og5JOq74tpSg3R-NOCqyBp-LCGWltlFFI49Y6m0PkvgxWjRLilrUT1JNx9cIgDQybHDEHAGGqzHvmaQ5iEfwyIhbWyqxBt2ssNYdh16HtRIFizPcchVUrbSYRLlh",
+          "width": 4608
+        }
+      ],
+      "place_id": "ChIJ0yKXaB9awokR6WFqdEE9aBY",
+      "plus_code": {
+        "compound_code": "PX8V+53 New York",
+        "global_code": "87G7PX8V+53"
+      },
+      "price_level": 2,
+      "rating": 4.5,
+      "reference": "ChIJ0yKXaB9awokR6WFqdEE9aBY",
+      "types": [
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1845
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "259 Front St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.70822829999999,
+          "lng": -74.0005403
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.70962017989272,
+            "lng": -73.99921012010726
+          },
+          "southwest": {
+            "lat": 40.70692052010728,
+            "lng": -74.00190977989271
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Cowgirl SeaHorse",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 4032,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/108796500199237876504\">Omari Groves</a>"
+          ],
+          "photo_reference": "AXQCQNSnkt6AJw2OWBOzDX9PLZlsZAIHxBgLfoMeyBULRVVW0LoZ4r8VnM3f20-485cGeAgzqqZBfIRCQ8ftXc_SE29kEnyuuR8FEY0g-iZo7SaYf4nalyI_2ORpUriJTIDlmC0tsYEoZjxdns6IfKHPXdsActLAYzbaocSUd5ehX9q6_uYZ9vTHi6C_ehz0KfV2_YUyBiUMVYvDOw4bTfmwlNOLI7gw1aMrITHzmF9WwZ4GDpznablWXUF4urOdgHexwBaR82KwXrH99hq7BWg93KhYpjBfbx3r57vmYLzEt84TCKBVr0PojTZf3R-OxyeX1Q2u9WCbiLUV6RjBjuYhc2KwhMfiFKX8A7OHNMMXdbDuvshAZwDbjZjtw4HUITiiEiG0mNIV-smDN0PJukhZFqNLw_yddS1ucDD-K9Ij9_vSieaxew861EqyNAHXMgweyuc8IDFn2JytEPpi8u89nYO4wBMZ8-l_nXNsCSjZZR12kDuJJR6nyA0CszL3BdNkvZ5_-6BOO_0sxSm9xdbTJStiVXAmC0SWOKn3dQsYlnSMcwtsPvx6zrCp-O2qfeo_9D82A2MP",
+          "width": 3024
+        }
+      ],
+      "place_id": "ChIJ24YpVTtawokRsFPSkHjTWoA",
+      "plus_code": {
+        "compound_code": "PX5X+7Q New York",
+        "global_code": "87G7PX5X+7Q"
+      },
+      "price_level": 2,
+      "rating": 4.3,
+      "reference": "ChIJ24YpVTtawokRsFPSkHjTWoA",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1348
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "17 Mott St, New York, NY 10013, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7142762,
+          "lng": -73.998921
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71564427989272,
+            "lng": -73.99749567010727
+          },
+          "southwest": {
+            "lat": 40.71294462010728,
+            "lng": -74.00019532989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Wo Hop",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 2252,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/112368992450776603380\">John Sanders</a>"
+          ],
+          "photo_reference": "AXQCQNT8X_R_JPUVFj8_V6vS71mkPFRnqQyw-1dMtXMmLrZpPer7UAq6fYmq5uakqj_c8sWuf_VTU10cXxXp1ed4v8_Yc6ZJy9ABYAoE27hA6gmezU5JPyHrRQe0rM3yPMWBsLvvGjAcGSbrXE3OcLrRUPmDb_kRne-aLqg2Cy8e87IuF6Jd8-baflSMvZf1ZYBz4-tEwkef8ub0kljN1SGM5gnM1AFl6ihSEK04yyECpLonuBYLJn8kmLUZZiD2r79BWqWKrdS39mxcxxDl410Sxpjz3ET_0BntWc3ISboqx1cgjo0aYxf9rB7zgQWZyojncn4Fub3QrVw4OPLnpY1NDirTjWMcfuWLaw3Gs-UbUTvfdjXyq1NZRANw91tF1GBBuR-QO-23fO-JyboF-c-x_at3c3q2l0k8y0UbNJkbT7oNaIo1Au-gLlHpLvbmVh5dtr2yHL7Hb4TF6et70raqdqT3xeJnwVVvCKSeMMiiB4luUSb1oMcqvU41g1a4khQJQUylesu6faIuQv5s7WLbHvTMs0gxHQbSKsemFgN7nVyj5qwA5oeqBh4fu8yaloBv3QccIKO4",
+          "width": 4000
+        }
+      ],
+      "place_id": "ChIJBfjMbPJbwokRrcQD5YX1LEI",
+      "plus_code": {
+        "compound_code": "P272+PC New York",
+        "global_code": "87G8P272+PC"
+      },
+      "price_level": 1,
+      "rating": 4.4,
+      "reference": "ChIJBfjMbPJbwokRrcQD5YX1LEI",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 4034
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "20 John St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7097921,
+          "lng": -74.0089345
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71116367989272,
+            "lng": -74.00753327010727
+          },
+          "southwest": {
+            "lat": 40.70846402010728,
+            "lng": -74.01023292989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Aroy Dee Thai Kitchen",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1532,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/105744809648585340265\">Aroy Dee Thai Kitchen</a>"
+          ],
+          "photo_reference": "AXQCQNSj78zqPfr2DvD-c1s6Q46lBIazqRL-vs0D3aLMjR9DuS4DPRBbFg_kytfoytN2nRhdJCZ3ABim6x9LBPrHTiKlKn3HoQH7KqWjETO05nifCFnvKwWexap4400WE964tKzmTveCJAUq03pcwlMj6IXy49nQGyJOy_WHLodypOxdDhpuST6lRiUZ90XfbjqHT13a614UTbjMH-yxw_nfWfSbL1cAWTQbOLwaZnxSXb84BXxgN5ka0TG1Ck5R36Eh6ZvT04IhmjVc7A1Gjg8ODRoKvFCTiO_nA5SYqrleoSUX_5uSS7A",
+          "width": 2400
+        }
+      ],
+      "place_id": "ChIJv-EALxhawokR9oeGPdShFLo",
+      "plus_code": {
+        "compound_code": "PX5R+WC New York",
+        "global_code": "87G7PX5R+WC"
+      },
+      "price_level": 1,
+      "rating": 4.6,
+      "reference": "ChIJv-EALxhawokR9oeGPdShFLo",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1471
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "45 Murray St, New York, NY 10007, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7141495,
+          "lng": -74.0092085
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71543892989273,
+            "lng": -74.00792102010729
+          },
+          "southwest": {
+            "lat": 40.71273927010728,
+            "lng": -74.01062067989274
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Benares Tribeca Indian Restaurant",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/106119741715819873611\">Han Thu</a>"
+          ],
+          "photo_reference": "AXQCQNRsruadLxH_EoOekJmk_XvL2tWZzowz6iijotp1oFO4uZj2pkk4glijWRxR3-0jlskwOnvVclzzMblDE623wKbtLaI12c9h2DtW3jrYsYqElrY4iUYEJA1tBW7Y7GsbEFLGKc1Tqqqe4E5mhWwHDY_AzkossA-GA0MszGxQlq_VZH6XzCUYs811C3XYRPNpHb_Ry3BT-33GgpkS2a6SUSAPyT4mo6n_BdTQj3beNvwogGRcVAYYJoxlQPATtWuN4j-k0jUdv2EHgHK4hoDjIxqY6SuvcYXjp_XQ3RgxapGjplQHB0dpXGdtYV2rUBjwGbWOoOHolQgfQdgsVKeZ1aEMFQNwag12pbEiXfiVb05_PBF_ifaLvcg5R60hq4v7XDJTCNdmJl7TD9KYMxW4gAshJ_7tjo5ST-tBXHhIJ27vdjTu-gfiM_Jo7HzDaSvmamm6uGwHeMUKeLum1zmVTjfG_Alsc-3xr1trN3bi54O4goOb5kxH5FryNJd-Y0nnaRi2bGDfT6Vrn87sRPBAmoWXWW3jZkT8XudTYCea8wJ-eOfbiY3dE2bLRTIbZCWWzx1WRBFG",
+          "width": 4032
+        }
+      ],
+      "place_id": "ChIJ6e4q1BhawokRWWDyNSiQ4yo",
+      "plus_code": {
+        "compound_code": "PX7R+M8 New York",
+        "global_code": "87G7PX7R+M8"
+      },
+      "price_level": 2,
+      "rating": 4.2,
+      "reference": "ChIJ6e4q1BhawokRWWDyNSiQ4yo",
+      "types": [
+        "bar",
+        "meal_takeaway",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2162
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "123 Washington St, New York, NY 10006, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7092528,
+          "lng": -74.0136764
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71063352989272,
+            "lng": -74.01229747010728
+          },
+          "southwest": {
+            "lat": 40.70793387010728,
+            "lng": -74.01499712989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Skinos",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/116712867601454597978\">Sneek</a>"
+          ],
+          "photo_reference": "AXQCQNSvwPfmss9t6UcQtAWsGTZ-GP359iz3uezOxmQPG2fa6xVsrPUnfZx3Ooc0pmXn-2ckIhR3xrBeqm5_I88UyZtem4fz-W33eo4b_CT4RQ6T_7jCPMBaFfa0HPJDs48jvIiSX3-UtmVNi82DwIy9uEhWCYpyZ0lR5SBUmU8u7r0afL3GF6SzB6VOrmdmmRd-KRr2OBQrGZ6WzFM62sZjDTwyRJPb9LN8cHQvK_uJfJ_XWuBP-LR7g8zn4yDmmUaxmnjPOMaVOEvF13y-rcnIWxavJVpHAbJZ_bVJXqxybquqQPKrU6FzBwOCq4COxoeaYnSFPVofFbN5DG7H9EV_9NKUgDyAPLbLzB_JefcrCLqyfhZni_hoaVykJLyDINNM40MVdIqOhtm5-R4vt3zWbyqj2ZniDbZDiKmD4Cql-nOrGUtUa3vp5b1cJzCzh8NEKzyjEgC8dlI7n6ZAQSO_aMNyfLjs8BGVZJkEKM5sLwaQEOe2O7zNN5-CTxrNAhYuQg7vThunWZURYnFwK4XjViR00MV7eL1PhMx5rEodXMPQbRFpdTrKshalvrppuCMkm2i8gz3i",
+          "width": 3024
+        }
+      ],
+      "place_id": "ChIJQV4litZbwokRPc2qPtWjFsw",
+      "plus_code": {
+        "compound_code": "PX5P+MF New York",
+        "global_code": "87G7PX5P+MF"
+      },
+      "rating": 4.4,
+      "reference": "ChIJQV4litZbwokRPc2qPtWjFsw",
+      "types": [
+        "night_club",
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1087
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "88 Reade St, New York, NY 10013, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7156222,
+          "lng": -74.0076528
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71693117989273,
+            "lng": -74.00636192010728
+          },
+          "southwest": {
+            "lat": 40.71423152010728,
+            "lng": -74.00906157989273
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Nish Nush",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 2911,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/110214482755180000151\">Ferdinand</a>"
+          ],
+          "photo_reference": "AXQCQNTziLeiF5mQjR1RpoeXQi9FZ8EkMpXpM7LgAcxar1WboM8zJAsVbZBlxnULE5wFEuFLLjwdcBUj6auTZN53HTOF4x4AOOV-kQV9Ca3CA6qd8rSzRxHhYxgqt_pdIAMgkFWypgIRdTvkdmz24SOQCwT_qp2tSF-UgCv6HALiHQvW2O99MhAuWYMeuFubvRGXsjIBM4DTakYMRhorHtkX7_Qo0KkKrhaaZHzVHlu7ubVpIo-zrR6_x7FwYLwMe0AJwiib1XE8IQXq9YK8TARkJp4QzO7Z4vefNStjUTYEII_9T2nU6Z1OMbgwE_QLEVfZWN_xvjDelUNTecY8wh98JGrHfxhE22v3lQPNxRVpybJqLVUrvKZTtDOhFSFFum0PCGrKg2ghTFhDQT-t4CegGOjqIrcpgcaeczmdn8bo1n5QyFeEoPJfXGBVfKZqElCmN_4qU4z2GSNpMnc-W-J5WDFitlDCCM_TaOmguNj1DkS_qmtaDb1WpVh6akAgqJunI1FmiKwDbVdHVdiTohn8I_bKfCg2p10bulWC5jq-RJf9Md4-GYy-FnH8007sjnhPmV4",
+          "width": 3707
+        }
+      ],
+      "place_id": "ChIJ0zTkax9awokRgH4QnXxcRSc",
+      "plus_code": {
+        "compound_code": "PX8R+6W New York",
+        "global_code": "87G7PX8R+6W"
+      },
+      "price_level": 1,
+      "rating": 4.5,
+      "reference": "ChIJ0zTkax9awokRgH4QnXxcRSc",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1695
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "101 Liberty St, New York, NY 10007, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7100647,
+          "lng": -74.0119758
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71133372989271,
+            "lng": -74.01040112010729
+          },
+          "southwest": {
+            "lat": 40.70863407010727,
+            "lng": -74.01310077989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Gansevoort Liberty Market",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/103637604980921305940\">Michael Yu</a>"
+          ],
+          "photo_reference": "AXQCQNR1lQpYHNaRikg2uW15Pvk5xK3oiIh_zR4z4j3aHLw1U_yRMspGlJqBM5VW8_ymYi3pOUethSrnk1mx70SP88J89Rsu4y1Gr6Sq9MWXIny6dwR8llL-BZmR1BHgFiPh20MWxEEYRsRqdl6ZWaXLkMvhS_z4j_-DUXzR8IgrbSKgVfSB7GdhbYS6Piww1gc4WRq37DCP2VVyV3Y_jnsypC7CivXk8_qD2008_RZ1RDl_6OCcwZWkahDkbDWUS_P3Lmh0MT9wytwF4FIQ0Tv_9ih5tx_Pok3DWGCayWKJxSrR0IgFZzpfU9U5_htkfNVdy3yi1tkbqRSxU4pZKmEtrO2tJGEu0SgLbYeV-Okj7nj9WhBLtggEJVXux-Fq79k_lnyIIXLeYX0aYmo95tpFyqjHzevGpP5YvZkUeI2uO0Ka5EUQlxUm1njL65b3YkGW-qdM4ISwSv58gXM8ZmnKyELGOsNVOhHVJMg_csY4Rlf52mt2-wJq2WMPdAPg1g5QrIAm_YY33CcNqZm7VYkZvU1r3Trrsyw0FKGxszv_RKX6oBFXnxiNO2aHoTElVTG8VHrAOSw8tv8EnQ",
+          "width": 4032
+        }
+      ],
+      "place_id": "ChIJaXsA18FZwokRAp3zqMxa6z8",
+      "plus_code": {
+        "compound_code": "PX6Q+26 New York",
+        "global_code": "87G7PX6Q+26"
+      },
+      "price_level": 2,
+      "rating": 4.3,
+      "reference": "ChIJaXsA18FZwokRAp3zqMxa6z8",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1485
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "formatted_address": "67 Nassau St, New York, NY 10038, United States",
+      "geometry": {
+        "location": {
+          "lat": 40.7094837,
+          "lng": -74.00856639999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 40.71081237989272,
+            "lng": -74.00719702010727
+          },
+          "southwest": {
+            "lat": 40.70811272010727,
+            "lng": -74.00989667989272
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+      "icon_background_color": "#FF9E67",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/restaurant_pinlet",
+      "name": "Sushi & Co",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1350,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/103625347834669710703\">Sushi &amp; Co | Sushi, Japanese restaurant in Downtown NYC</a>"
+          ],
+          "photo_reference": "AXQCQNRblSPgmmgI-AbmCHdwljDUWz76SSGlItMPwHd_HgWPC7ltYi0XTzzi5NsAgw7N3ArJaerLXeog8s3boPodvjgrpUVaA1No6bSTkazj61qoED1bTNytWqImV-V3yyAc3lbiTbBgQMU9ufMOyAu8OwOHsS18Nqz5FVhosL1l0oA0iEEajM1H8RpYYsiLDgn5gUdiqrlR20eMIixPzN6ghfzOy7bUU_OON8_z2MazpnMSD9pHkicp82lpTKBYVpRtsY8-zK2FHdxpxu6aHY3qNveD5AXIgjx8coNC4XvoxB_eDGwHZpE",
+          "width": 900
+        }
+      ],
+      "place_id": "ChIJK-iBUjZbwokR6nW3PdAmegs",
+      "plus_code": {
+        "compound_code": "PX5R+RH New York",
+        "global_code": "87G7PX5R+RH"
+      },
+      "price_level": 2,
+      "rating": 4.6,
+      "reference": "ChIJK-iBUjZbwokR6nW3PdAmegs",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 688
+    }
+  ],
+  "status": "OK"
+}
