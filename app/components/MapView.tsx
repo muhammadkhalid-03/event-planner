@@ -175,6 +175,7 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
                   destination: waypoints[waypoints.length - 1].location,
                   travelMode: google.maps.TravelMode.DRIVING,
                   waypoints: waypoints.slice(0, -1),
+                  optimizeWaypoints: true,
                 }}
                 callback={directionsCallback}
               />
