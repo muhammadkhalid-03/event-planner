@@ -2,9 +2,8 @@
 /// <reference types="google.maps" />
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useGoogleMaps } from "../contexts/GoogleMapsContext";
-import { getRoute } from "../api/mapServices";
 import {
   GoogleMap,
   Marker,
@@ -17,20 +16,14 @@ import businessData from "../../api_logs/places-api-1750535962558.json";
 import { Business, LatLng, Waypoint } from "../types/businesses";
 
 const polylineOptions = {
-  strokeColor: "#FF0000",
+  strokeColor: "#4285F4",
   strokeOpacity: 0.8,
   strokeWeight: 4,
 };
 
-const AnyReactComponent = ({ text }: { text: string }) => <div>{text}</div>;
-
 export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { isLoaded, loadError } = useGoogleMaps();
   const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // Default to NYC
-  const [path, setPath] = useState<{ lat: number; lng: number }[]>([]);
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
   const [streetViewVisible, setStreetViewVisible] = useState(false);
@@ -47,17 +40,6 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
       setBusinessesData(businessData.results);
     }
   }, []);
-
-  useEffect(() => {
-    if (isLoaded && sourceData && waypoints) {
-      const fetchRoute = async () => {
-        const path = await getRoute(sourceData, waypoints);
-        setCenter(path ? path[0] : { lat: 40.7128, lng: -74.006 });
-        setPath(path || []);
-      };
-      fetchRoute();
-    }
-  }, [isLoaded, sourceData, waypoints]);
 
   const directionsCallback = useCallback((response: any) => {
     if (response !== null && response.status === "OK") {
@@ -161,7 +143,7 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
           zoom={18}
           onLoad={(map) => {
             const bounds = new window.google.maps.LatLngBounds();
-            path.forEach((point) => bounds.extend(point));
+            // path.forEach((point) => bounds.extend(point));
             map.fitBounds(bounds);
           }}
         >
@@ -220,20 +202,13 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
           )}
         </GoogleMap>
       )}
-      {(!isLoaded || isLoading) && (
+      {!isLoaded && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-4 flex items-center space-x-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
             <p className="text-gray-700">
               {!isLoaded ? "Loading Google Maps..." : "Loading street view..."}
             </p>
-          </div>
-        </div>
-      )}
-      {(error || loadError) && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-4 max-w-md">
-            <p className="text-red-600">{error || loadError}</p>
           </div>
         </div>
       )}
