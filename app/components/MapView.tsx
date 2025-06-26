@@ -3,7 +3,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useGoogleMaps } from "../contexts/GoogleMapsContext";
 import {
   GoogleMap,
   Marker,
@@ -14,6 +13,7 @@ import {
 } from "@react-google-maps/api";
 import businessData from "../../api_logs/places-api-1750535962558.json";
 import { Business, LatLng, Waypoint } from "../types/businesses";
+import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 
 const polylineOptions = {
   strokeColor: "#4285F4",
@@ -22,7 +22,7 @@ const polylineOptions = {
 };
 
 export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
-  const { isLoaded, loadError } = useGoogleMaps();
+  const apiIsLoaded = useApiIsLoaded();
   const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // Default to NYC
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
@@ -136,7 +136,7 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
 
   return (
     <>
-      {isLoaded && (
+      {apiIsLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
           center={center}
@@ -202,12 +202,14 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
           )}
         </GoogleMap>
       )}
-      {!isLoaded && (
+      {!apiIsLoaded && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-4 flex items-center space-x-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
             <p className="text-gray-700">
-              {!isLoaded ? "Loading Google Maps..." : "Loading street view..."}
+              {!apiIsLoaded
+                ? "Loading Google Maps..."
+                : "Loading street view..."}
             </p>
           </div>
         </div>

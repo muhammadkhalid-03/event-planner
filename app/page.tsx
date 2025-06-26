@@ -3,12 +3,12 @@
 import { useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
-import { useGoogleMaps } from "./contexts/GoogleMapsContext";
 import Link from "next/link";
 import { LatLng } from "./types/businesses";
+import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 
 export default function Home() {
-  const { isLoaded } = useGoogleMaps();
+  const apiIsLoaded = useApiIsLoaded();
   const [sourceLocation, setSourceLocation] = useState<LatLng | null>(null);
 
   const handleLocationSubmit = (sourceData: LatLng | null) => {
@@ -37,7 +37,7 @@ export default function Home() {
               PLACES API
             </Link>
           </div>
-          {isLoaded && <LocationForm onSubmit={handleLocationSubmit} />}
+          {apiIsLoaded && <LocationForm onSubmit={handleLocationSubmit} />}
         </div>
       </div>
     </main>

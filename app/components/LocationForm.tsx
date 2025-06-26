@@ -6,6 +6,7 @@ import usePlacesAutocomplete, {
   getLatLng,
 } from "use-places-autocomplete";
 import { LatLng } from "../types/businesses";
+import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 
 interface LocationFormProps {
   onSubmit: (sourceData: LatLng | null) => void;
@@ -13,16 +14,9 @@ interface LocationFormProps {
 
 export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [sourceData, setSourceData] = useState<LatLng | null>(null);
+  const apiIsLoaded = useApiIsLoaded();
 
   const [selectedSourceText, setSelectedSourceText] = useState("");
-
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,13 +47,15 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       // When the user selects a place, we can replace the keyword without request data from API
       // by setting the second parameter to "false"
       // Get latitude and longitude via utility functions
-      getGeocode({ address: description }).then((results) => {
-        const { lat, lng } = getLatLng(results[0]);
-        setSourceData({ lat, lng });
-        setSelectedSourceText(description);
-        setSourceValue(description);
-        clearSourceSuggestions();
-      });
+      if (apiIsLoaded) {
+        getGeocode({ address: description }).then((results) => {
+          const { lat, lng } = getLatLng(results[0]);
+          setSourceData({ lat, lng });
+          setSelectedSourceText(description);
+          setSourceValue(description);
+          clearSourceSuggestions();
+        });
+      }
     };
 
   // Render suggestions for source
@@ -86,37 +82,39 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label
-            htmlFor="source"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Source Location
-          </label>
-          <input
-            type="text"
-            id="source"
-            name="source"
-            value={sourceValue}
-            onChange={handleSourceInput}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Starting point"
-          />
-          {sourceSuggestionsStatus === "OK" && (
-            <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
-              {renderSourceSuggestions()}
-            </ul>
-          )}
-        </div>
+      {apiIsLoaded && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label
+              htmlFor="source"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Source Location
+            </label>
+            <input
+              type="text"
+              id="source"
+              name="source"
+              value={sourceValue}
+              onChange={handleSourceInput}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Starting point"
+            />
+            {sourceSuggestionsStatus === "OK" && (
+              <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
+                {renderSourceSuggestions()}
+              </ul>
+            )}
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium"
-        >
-          Show Street View
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium"
+          >
+            Show Street View
+          </button>
+        </form>
+      )}
     </div>
   );
 }
