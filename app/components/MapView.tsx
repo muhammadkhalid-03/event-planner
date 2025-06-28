@@ -11,9 +11,10 @@ import {
   InfoWindow,
   StreetViewPanorama,
 } from "@react-google-maps/api";
-import businessData from "../../api_logs/places-api-1750535962558.json";
-import { Business, LatLng, Waypoint } from "../types/businesses";
+import businessData1 from "../../api_logs/places-api-1750535962558.json";
+import { Business, LatLng } from "../types/businesses";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
+import { useRouteStore } from "../stores/routeStore";
 
 const polylineOptions = {
   strokeColor: "#4285F4",
@@ -21,25 +22,32 @@ const polylineOptions = {
   strokeWeight: 4,
 };
 
-export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
+export default function MapView() {
   const apiIsLoaded = useApiIsLoaded();
   const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // Default to NYC
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
+  // const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
   const [streetViewVisible, setStreetViewVisible] = useState(false);
   const [businessesData, setBusinessesData] = useState<Business[]>([]);
-  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  // const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const {
+    sourceLocation,
+    waypoints,
+    selectedLocation,
+    setWaypoints,
+    setSelectedLocation,
+  } = useRouteStore();
 
-  useEffect(() => {
-    if (businessData.results) {
-      const waypoints = businessData.results.slice(0, 3).map((business) => ({
-        location: business.geometry.location,
-        stopover: true,
-      }));
-      setWaypoints(waypoints);
-      setBusinessesData(businessData.results);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (businessData1.results) {
+  //     const waypoints = businessData1.results.slice(0, 3).map((business) => ({
+  //       location: business.geometry.location,
+  //       stopover: true,
+  //     }));
+  //     setWaypoints(waypoints);
+  //     setBusinessesData(businessData1.results);
+  //   }
+  // }, []);
 
   const directionsCallback = useCallback((response: any) => {
     if (response !== null && response.status === "OK") {
@@ -148,12 +156,12 @@ export default function MapView({ sourceData }: { sourceData: LatLng | null }) {
           }}
         >
           {!directionsResponse &&
-            sourceData &&
+            sourceLocation &&
             waypoints &&
             waypoints.length > 0 && (
               <DirectionsService
                 options={{
-                  origin: sourceData,
+                  origin: sourceLocation,
                   destination: waypoints[waypoints.length - 1].location,
                   travelMode: google.maps.TravelMode.DRIVING,
                   waypoints: waypoints.slice(0, -1),

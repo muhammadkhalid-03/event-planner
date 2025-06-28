@@ -9,17 +9,11 @@ import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 
 export default function Home() {
   const apiIsLoaded = useApiIsLoaded();
-  const [sourceLocation, setSourceLocation] = useState<LatLng | null>(null);
-
-  const handleLocationSubmit = (sourceData: LatLng | null) => {
-    setSourceLocation(sourceData);
-    console.log("📍 Source Location: ", sourceData);
-  };
 
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
-        <MapView sourceData={sourceLocation} />
+        <MapView />
       </div>
       <div className="w-96 border-l border-gray-200 bg-white shadow-lg">
         <div className="h-full p-6">
@@ -37,7 +31,7 @@ export default function Home() {
               PLACES API
             </Link>
           </div>
-          {apiIsLoaded && <LocationForm onSubmit={handleLocationSubmit} />}
+          {apiIsLoaded && <LocationForm />}
         </div>
       </div>
     </main>

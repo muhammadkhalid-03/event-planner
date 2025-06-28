@@ -5,23 +5,25 @@ import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
-import { LatLng } from "../types/businesses";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
+import { useRouteStore } from "../stores/routeStore";
+import businessData1 from "../../api_logs/places-api-1750535962558.json";
 
-interface LocationFormProps {
-  onSubmit: (sourceData: LatLng | null) => void;
-}
-
-export default function LocationForm({ onSubmit }: LocationFormProps) {
-  const [sourceData, setSourceData] = useState<LatLng | null>(null);
+export default function LocationForm() {
   const apiIsLoaded = useApiIsLoaded();
-
+  const { setSourceLocation, waypoints, setWaypoints } = useRouteStore();
   const [selectedSourceText, setSelectedSourceText] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("📍 All Location Data: ", sourceData);
-    onSubmit(sourceData);
+    // TODO: Call LLM here
+    if (businessData1.results) {
+      const waypoints = businessData1.results.slice(0, 3).map((business) => ({
+        location: business.geometry.location,
+        stopover: true,
+      }));
+      setWaypoints(waypoints);
+    }
   };
 
   const {
@@ -50,7 +52,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       if (apiIsLoaded) {
         getGeocode({ address: description }).then((results) => {
           const { lat, lng } = getLatLng(results[0]);
-          setSourceData({ lat, lng });
+          setSourceLocation({ lat, lng });
           setSelectedSourceText(description);
           setSourceValue(description);
           clearSourceSuggestions();
