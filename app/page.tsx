@@ -4,6 +4,7 @@ import { useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
 import { useGoogleMaps } from "./contexts/GoogleMapsContext";
+import GeminiChat from "./components/GeminiChat"; 
 
 interface LocationData {
   country: string;
@@ -53,6 +54,9 @@ export default function Home() {
             </p>
           </div>
           {isLoaded && <LocationForm onSubmit={handleLocationSubmit} />}
+          <div className="p-6 border-t border-gray-200">
+          <GeminiChat />
+        </div>
         </div>
       </div>
     </main>
