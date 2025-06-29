@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePlacesSearch, PlacesSearchParams } from '../hooks/usePlacesSearch';
+import Link from 'next/link';
 
 export const PlacesSearch: React.FC = () => {
   const [location, setLocation] = useState('');
@@ -9,6 +10,32 @@ export const PlacesSearch: React.FC = () => {
   const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
   
   const { places, isSearching, searchError, searchNearbyPlaces } = usePlacesSearch();
+
+  const saveRestaurantsToFile = async (restaurants: any[]) => {
+    try {
+      const response = await fetch('/api/save-restaurants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          coordinates,
+          radius,
+          restaurants
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(result.message);
+      } else {
+        console.error('Error saving restaurant data:', result.error);
+      }
+    } catch (error) {
+      console.error('Error saving restaurant data:', error);
+    }
+  };
 
   const handleLocationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +71,9 @@ export const PlacesSearch: React.FC = () => {
         };
         
         await searchNearbyPlaces(searchParams);
+        if (places.length > 0) {
+          await saveRestaurantsToFile(places);
+        }
       }
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -68,6 +98,9 @@ export const PlacesSearch: React.FC = () => {
           };
           
           await searchNearbyPlaces(searchParams);
+          if (places.length > 0) {
+            await saveRestaurantsToFile(places);
+          }
         },
         (error) => {
           console.error('Geolocation error:', error);
@@ -146,6 +179,16 @@ export const PlacesSearch: React.FC = () => {
           <p><strong>Search Location:</strong> {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}</p>
           <p><strong>Radius:</strong> {radius} meters</p>
           <p><strong>Restaurants Found:</strong> {places.length}</p>
+          {places.length > 0 && (
+            <div className="mt-3">
+              <Link 
+                href="/analyze" 
+                className="inline-block bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              >
+                🤖 Analyze Restaurants with AI
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
