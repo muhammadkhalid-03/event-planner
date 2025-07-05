@@ -1,19 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
 import Link from "next/link";
 import { LatLng } from "./types/businesses";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
+import { useRouteStore } from "./stores/routeStore";
+import RouteSelector from "./components/RouteSelector";
 
 export default function Home() {
   const apiIsLoaded = useApiIsLoaded();
+  const { waypoints, drawerOpen, setDrawerOpen } = useRouteStore();
+
+  useEffect(() => {
+    if (waypoints.length > 0) {
+      setDrawerOpen(true);
+    }
+  }, [waypoints]);
 
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
         <MapView />
+        <div className="absolute bottom-4 z-10">
+          <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
+        </div>
       </div>
       <div className="w-96 border-l border-gray-200 bg-white shadow-lg">
         <div className="h-full p-6">

@@ -50,6 +50,6 @@ export interface Business {
 }
 
 export interface Waypoint {
-  location: LatLng;
+  location: Business;
   stopover: boolean;
 }

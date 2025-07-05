@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
@@ -8,21 +8,28 @@ import usePlacesAutocomplete, {
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import { useRouteStore } from "../stores/routeStore";
 import businessData1 from "../../api_logs/places-api-1750535962558.json";
+import { Button } from "@/components/ui/button";
+import { useMapRefStore } from "../stores/mapRefStore";
 
 export default function LocationForm() {
   const apiIsLoaded = useApiIsLoaded();
-  const { setSourceLocation, waypoints, setWaypoints } = useRouteStore();
+  const { setSourceLocation, waypoints, setWaypoints, setDrawerOpen } =
+    useRouteStore();
   const [selectedSourceText, setSelectedSourceText] = useState("");
+  const { mapRef } = useMapRefStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Call LLM here
     if (businessData1.results) {
-      const waypoints = businessData1.results.slice(0, 3).map((business) => ({
-        location: business.geometry.location,
+      const waypoints = businessData1.results.slice(0, 10).map((business) => ({
+        location: business,
         stopover: true,
       }));
       setWaypoints(waypoints);
+      if (mapRef) {
+        mapRef.panTo(waypoints[0].location.geometry.location);
+      }
     }
   };
 
@@ -115,6 +122,7 @@ export default function LocationForm() {
           >
             Show Street View
           </button>
+          <Button onClick={() => setDrawerOpen(true)}>Open Drawer</Button>
         </form>
       )}
     </div>

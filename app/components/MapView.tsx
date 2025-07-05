@@ -2,7 +2,7 @@
 /// <reference types="google.maps" />
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   GoogleMap,
   Marker,
@@ -11,10 +11,12 @@ import {
   InfoWindow,
   StreetViewPanorama,
 } from "@react-google-maps/api";
-import businessData1 from "../../api_logs/places-api-1750535962558.json";
-import { Business, LatLng } from "../types/businesses";
+
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import { useRouteStore } from "../stores/routeStore";
+import RouteSelector from "./RouteSelector";
+import { useMapRefStore } from "../stores/mapRefStore";
+import { Waypoint } from "../types/businesses";
 
 const polylineOptions = {
   strokeColor: "#4285F4",
@@ -24,30 +26,13 @@ const polylineOptions = {
 
 export default function MapView() {
   const apiIsLoaded = useApiIsLoaded();
-  const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // Default to NYC
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  // const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
   const [streetViewVisible, setStreetViewVisible] = useState(false);
-  const [businessesData, setBusinessesData] = useState<Business[]>([]);
-  // const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
-  const {
-    sourceLocation,
-    waypoints,
-    selectedLocation,
-    setWaypoints,
-    setSelectedLocation,
-  } = useRouteStore();
+  const [directionsRequested, setDirectionsRequested] = useState(false);
 
-  // useEffect(() => {
-  //   if (businessData1.results) {
-  //     const waypoints = businessData1.results.slice(0, 3).map((business) => ({
-  //       location: business.geometry.location,
-  //       stopover: true,
-  //     }));
-  //     setWaypoints(waypoints);
-  //     setBusinessesData(businessData1.results);
-  //   }
-  // }, []);
+  const { sourceLocation, waypoints, selectedLocation, setSelectedLocation } =
+    useRouteStore();
+  const { mapRef, setMapRef } = useMapRefStore();
 
   const directionsCallback = useCallback((response: any) => {
     if (response !== null && response.status === "OK") {
@@ -57,114 +42,85 @@ export default function MapView() {
     }
   }, []);
 
-  // useEffect(() => {
-  //   let center;
-  //   if (!locationData) {
-  //     center = { lat: 40.7128, lng: -74.006 };
-  //   } else {
-  //     center = locationData.location;
-  //   }
+  const handleMarkerClick = useCallback(
+    (waypoint: Waypoint) => {
+      setSelectedLocation(waypoint.location);
+      setStreetViewVisible(false);
 
-  //   // Initialize the map once Google Maps is loaded and no location is selected
-  //   if (isLoaded && mapRef.current) {
-  //     const map = new google.maps.Map(mapRef.current, {
-  //       center: center, // Default to New York City
-  //       mapId: "DEMO_MAP_ID",
-  //       zoom: 2,
-  //     });
+      if (mapRef) {
+        mapRef.panTo(waypoint.location.geometry.location);
+        mapRef.setZoom(16);
+      }
+    },
+    [mapRef, setSelectedLocation]
+  );
 
-  //     new google.maps.marker.AdvancedMarkerElement({
-  //       map,
-  //       position: center,
-  //     });
+  const mapLoadedRef = useRef(false);
 
-  //     const bounds = new google.maps.LatLngBounds();
-  //     bounds.extend(center);
+  const handleMapLoad = useCallback(
+    (map: google.maps.Map) => {
+      setMapRef(map);
 
-  //     // TODO: For street view panorama
-  //     //   // Initialize the map once the script is loaded
-  //     //   if (mapRef.current && !locationData) {
-  //     //     new google.maps.StreetViewPanorama(mapRef.current, {
-  //     //       position: { lat: 40.7128, lng: -74.006 }, // Default to New York City
-  //     //       pov: { heading: 165, pitch: 0 },
-  //     //       zoom: 1,
-  //     //     });
-  //     //   }
-  //     // };
+      // Only fit bounds once, on initial load
+      if (!mapLoadedRef.current) {
+        mapLoadedRef.current = true;
 
-  //     map.setZoom(18);
-  //   }
-  // }, [isLoaded, locationData]);
+        if (waypoints && waypoints.length > 0) {
+          const bounds = new window.google.maps.LatLngBounds();
+          if (sourceLocation) {
+            bounds.extend(sourceLocation);
+          }
+          waypoints.forEach((wp) =>
+            bounds.extend(wp.location.geometry.location)
+          );
+          map.fitBounds(bounds);
+        }
+      }
+    },
+    [setMapRef]
+  ); // Keep dependencies minimal
 
-  // TODO: For street view panorama
-
-  // useEffect(() => {
-  //   console.log("Selected location: ", selectedLocation);
-  //   if (!selectedLocation || !mapRef.current || !isLoaded) return;
-
-  //   setIsLoading(true);
-  //   setError(null);
-
-  //   // Geocode the address to get coordinates
-  //   const geocoder = new google.maps.Geocoder();
-  //   const address = `${selectedLocation.location}, ${selectedLocation.city}, ${selectedLocation.country}`;
-
-  //   geocoder.geocode({ address }, (results, status) => {
-  //     console.log("Status: ", status);
-  //     if (status === "OK" && results && results[0]) {
-  //       const location = results[0].geometry.location;
-
-  //       // Initialize Street View
-  //       const streetView = new google.maps.StreetViewService();
-  //       streetView.getPanorama(
-  //         {
-  //           location: location,
-  //           radius: 50,
-  //         },
-  //         (data, status) => {
-  //           if (status === "OK") {
-  //             new google.maps.StreetViewPanorama(mapRef.current!, {
-  //               position: location,
-  //               pov: { heading: 165, pitch: 0 },
-  //               zoom: 1,
-  //             });
-  //             setIsLoading(false);
-  //           } else {
-  //             setError("Street View is not available for this location.");
-  //             setIsLoading(false);
-  //           }
-  //         }
-  //       );
-  //     } else {
-  //       setError("Could not find the specified location.");
-  //       setIsLoading(false);
-  //     }
-  //   });
-  // }, [selectedLocation, isLoaded]);
+  useEffect(() => {
+    if (
+      sourceLocation &&
+      waypoints &&
+      waypoints.length > 0 &&
+      !directionsRequested &&
+      !directionsResponse
+    ) {
+      setDirectionsRequested(true);
+    }
+  }, [sourceLocation, waypoints, directionsRequested, directionsResponse]);
 
   return (
     <>
       {apiIsLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
-          center={center}
-          zoom={18}
-          onLoad={(map) => {
-            const bounds = new window.google.maps.LatLngBounds();
-            // path.forEach((point) => bounds.extend(point));
-            map.fitBounds(bounds);
+          onLoad={handleMapLoad}
+          options={{
+            gestureHandling: "greedy",
+            zoomControl: false,
+            mapTypeControl: false,
+            streetViewControl: true,
+            fullscreenControl: true,
           }}
         >
           {!directionsResponse &&
+            directionsRequested &&
             sourceLocation &&
             waypoints &&
             waypoints.length > 0 && (
               <DirectionsService
                 options={{
                   origin: sourceLocation,
-                  destination: waypoints[waypoints.length - 1].location,
+                  destination:
+                    waypoints[waypoints.length - 1].location.geometry.location,
                   travelMode: google.maps.TravelMode.DRIVING,
-                  waypoints: waypoints.slice(0, -1),
+                  waypoints: waypoints.slice(0, -1).map((wp) => ({
+                    location: wp.location.geometry.location,
+                    stopover: true,
+                  })),
                   optimizeWaypoints: true,
                 }}
                 callback={directionsCallback}
@@ -176,21 +132,19 @@ export default function MapView() {
                 directions: directionsResponse,
                 polylineOptions,
                 suppressMarkers: true,
+                preserveViewport: true,
               }}
             />
           )}
           {waypoints.map((waypoint, index) => (
             <Marker
-              key={index} // need an index here for React to keep track of array element
-              position={waypoint.location || center}
-              onClick={() => {
-                setSelectedLocation(waypoint.location);
-                setStreetViewVisible(false);
-              }}
+              key={`waypoint-${index}`}
+              position={waypoint.location.geometry.location}
+              onClick={() => handleMarkerClick(waypoint)}
             />
           ))}
           {selectedLocation && (
-            <InfoWindow position={selectedLocation}>
+            <InfoWindow position={selectedLocation.geometry.location}>
               <div>
                 <button onClick={() => setStreetViewVisible(true)}>
                   Enter Street View
@@ -201,7 +155,7 @@ export default function MapView() {
           {streetViewVisible && selectedLocation && (
             <StreetViewPanorama
               options={{
-                position: selectedLocation,
+                position: selectedLocation.geometry.location,
                 pov: { heading: 165, pitch: 0 },
                 visible: true,
                 zoom: 1,

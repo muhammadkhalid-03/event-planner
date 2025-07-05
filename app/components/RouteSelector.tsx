@@ -1,0 +1,123 @@
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ChevronDown, ChevronUp, Star } from "lucide-react";
+import { useEffect } from "react";
+import { useRouteStore } from "../stores/routeStore";
+import { Badge } from "@/components/ui/badge";
+
+interface RouteSelectorProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
+
+export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
+  const { selectedLocation } = useRouteStore();
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setOpen(true);
+    }
+  }, [selectedLocation]);
+  return (
+    <>
+      {/* Always-visible summary bar */}
+      <div
+        className="fixed bottom-0 left-16 right-96 bg-white shadow rounded-t-lg cursor-pointer z-40 flex items-center justify-between"
+        style={{ left: "4rem", right: "24rem" }}
+        onClick={() => setOpen(true)}
+      >
+        <div className="p-4 text-center">
+          <span className="font-semibold">
+            Select a location to view more information
+          </span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="mr-2"
+          onClick={() => setOpen(true)}
+        >
+          <ChevronUp className="w-4 h-4" />
+        </Button>
+      </div>
+      <Sheet open={open} onOpenChange={setOpen} modal={false}>
+        <SheetContent
+          side="bottom"
+          className="left-16 right-96 mx-0 rounded-t-lg"
+          style={{
+            left: "4rem", // 16 * 0.25rem = 4rem
+            right: "24rem", // 96 * 0.25rem = 24rem
+          }}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <SheetHeader>
+            <div className="flex flex-col justify-start items-start gap-2">
+              <div className="flex w-full flex-wrap gap-2">
+                <SheetTitle>
+                  {selectedLocation?.name || "Select a business"}
+                </SheetTitle>
+                {selectedLocation && (
+                  <Badge
+                    className={`${
+                      selectedLocation &&
+                      selectedLocation?.opening_hours?.open_now
+                        ? "bg-green-300"
+                        : "bg-red-600"
+                    } text-white`}
+                  >
+                    {selectedLocation?.opening_hours?.open_now
+                      ? "Open"
+                      : "Closed"}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex w-full flex-wrap gap-2">
+                {selectedLocation &&
+                  selectedLocation?.types?.map((type) => (
+                    <Badge variant="secondary" key={type}>
+                      {type[0].toUpperCase() +
+                        type.slice(1).replaceAll("_", " ")}
+                    </Badge>
+                  ))}
+              </div>
+            </div>
+            {selectedLocation && (
+              <div className="flex flex-col justify-start items-start gap-2">
+                <div className="flex flex-row justify-start items-center gap-2">
+                  <p className="text-sm text-muted-foreground">Price Level: </p>
+                  <p className="text-sm text-muted-foreground text-green-500">
+                    {selectedLocation?.price_level === undefined ||
+                    selectedLocation?.price_level === null
+                      ? "N/A"
+                      : selectedLocation?.price_level === 0
+                      ? "Free"
+                      : "$".repeat(selectedLocation?.price_level)}
+                  </p>
+                </div>
+                <div className="flex flex-row justify-start items-center gap-2">
+                  <p className="text-sm text-muted-foreground">Rating: </p>
+                  <p className="text-sm text-muted-foreground flex flex-row justify-start items-center gap-2">
+                    {selectedLocation?.rating}
+                    <Star className="w-4 h-4" color="#FFD700" fill="yellow" />(
+                    {selectedLocation?.user_ratings_total} reviews)
+                  </p>
+                </div>
+              </div>
+            )}
+            {selectedLocation && (
+              <SheetDescription>
+                {selectedLocation?.formatted_address}
+              </SheetDescription>
+            )}
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
