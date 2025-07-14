@@ -1,4 +1,3 @@
-/// <reference path="../types/google-maps.d.ts" />
 /// <reference types="google.maps" />
 "use client";
 
@@ -9,7 +8,6 @@ import { getRoute } from "../api/mapServices";
 import {
   GoogleMap,
   Polyline,
-  Marker,
   DirectionsService,
   DirectionsRenderer,
   InfoWindow,
@@ -20,21 +18,101 @@ interface MapViewProps {
   locationData: LocationData | null;
   sourceData: LocationData | null;
   destinationData: LocationData | null;
+  plannedLocations?: Array<{
+    id: string;
+    name: string;
+    location: { lat: number; lng: number };
+    type: string;
+    address?: string;
+    rating?: number;
+    order?: number;
+  }>;
 }
+
+// Custom Advanced Marker Component
+interface AdvancedMarkerProps {
+  position: { lat: number; lng: number };
+  map: google.maps.Map | null;
+  onClick?: () => void;
+  title?: string;
+  content?: HTMLElement;
+}
+
+const AdvancedMarker: React.FC<AdvancedMarkerProps> = ({ position, map, onClick, title, content }) => {
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+  useEffect(() => {
+    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
+
+    // Create advanced marker
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position,
+      title,
+      content: content || undefined,
+    });
+
+    // Add click listener if provided
+    if (onClick) {
+      marker.addListener('click', onClick);
+    }
+
+    markerRef.current = marker;
+
+    // Cleanup
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.map = null;
+      }
+    };
+  }, [map, position, onClick, title, content]);
+
+  // Update position when it changes
+  useEffect(() => {
+    if (markerRef.current) {
+      markerRef.current.position = position;
+    }
+  }, [position]);
+
+  return null; // This component doesn't render anything directly
+};
+
+// Helper function to create numbered marker content
+const createNumberedMarker = (number: number): HTMLElement => {
+  const markerDiv = document.createElement('div');
+  markerDiv.style.cssText = `
+    width: 32px;
+    height: 32px;
+    background-color: #4F46E5;
+    border: 3px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    font-family: system-ui, -apple-system, sans-serif;
+  `;
+  markerDiv.textContent = number.toString();
+  return markerDiv;
+};
+
 const polylineOptions = {
   strokeColor: "#FF0000",
   strokeOpacity: 0.8,
   strokeWeight: 4,
 };
 
-const AnyReactComponent = ({ text }: { text: string }) => <div>{text}</div>;
-
 export default function MapView({
   locationData,
   sourceData,
   destinationData,
+  plannedLocations = [],
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isLoaded, loadError } = useGoogleMaps();
@@ -54,6 +132,7 @@ export default function MapView({
       id: 1,
       location: origin,
       stopover: true,
+      title: "Origin",
     },
     {
       id: 2,
@@ -62,13 +141,23 @@ export default function MapView({
         lng: -92.728344,
       },
       stopover: true,
+      title: "Waypoint",
     },
     {
       id: 3,
       location: destination,
       stopover: true,
+      title: "Destination",
     },
   ];
+
+  // Sanitize waypoints for Google Maps Directions API (remove id and title properties)
+  const sanitizedWaypoints = waypoints
+    .filter(waypoint => waypoint.location) // Only include waypoints with valid locations
+    .map(({ location, stopover }) => ({
+      location,
+      stopover
+    }));
 
   useEffect(() => {
     if (isLoaded && sourceData && destinationData) {
@@ -90,113 +179,40 @@ export default function MapView({
     }
   }, []);
 
-  // useEffect(() => {
-  //   let center;
-  //   if (!locationData) {
-  //     center = { lat: 40.7128, lng: -74.006 };
-  //   } else {
-  //     center = locationData.location;
-  //   }
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+    
+    const bounds = new window.google.maps.LatLngBounds();
+    path.forEach((point) => bounds.extend(point));
+    if (path.length > 0) {
+      map.fitBounds(bounds);
+    }
+  }, [path]);
 
-  //   // Initialize the map once Google Maps is loaded and no location is selected
-  //   if (isLoaded && mapRef.current) {
-  //     const map = new google.maps.Map(mapRef.current, {
-  //       center: center, // Default to New York City
-  //       mapId: "DEMO_MAP_ID",
-  //       zoom: 2,
-  //     });
-
-  //     new google.maps.marker.AdvancedMarkerElement({
-  //       map,
-  //       position: center,
-  //     });
-
-  //     const bounds = new google.maps.LatLngBounds();
-  //     bounds.extend(center);
-
-  //     // TODO: For street view panorama
-  //     //   // Initialize the map once the script is loaded
-  //     //   if (mapRef.current && !locationData) {
-  //     //     new google.maps.StreetViewPanorama(mapRef.current, {
-  //     //       position: { lat: 40.7128, lng: -74.006 }, // Default to New York City
-  //     //       pov: { heading: 165, pitch: 0 },
-  //     //       zoom: 1,
-  //     //     });
-  //     //   }
-  //     // };
-
-  //     map.setZoom(18);
-  //   }
-  // }, [isLoaded, locationData]);
-
-  // TODO: For street view panorama
-
-  // useEffect(() => {
-  //   console.log("Selected location: ", selectedLocation);
-  //   if (!selectedLocation || !mapRef.current || !isLoaded) return;
-
-  //   setIsLoading(true);
-  //   setError(null);
-
-  //   // Geocode the address to get coordinates
-  //   const geocoder = new google.maps.Geocoder();
-  //   const address = `${selectedLocation.location}, ${selectedLocation.city}, ${selectedLocation.country}`;
-
-  //   geocoder.geocode({ address }, (results, status) => {
-  //     console.log("Status: ", status);
-  //     if (status === "OK" && results && results[0]) {
-  //       const location = results[0].geometry.location;
-
-  //       // Initialize Street View
-  //       const streetView = new google.maps.StreetViewService();
-  //       streetView.getPanorama(
-  //         {
-  //           location: location,
-  //           radius: 50,
-  //         },
-  //         (data, status) => {
-  //           if (status === "OK") {
-  //             new google.maps.StreetViewPanorama(mapRef.current!, {
-  //               position: location,
-  //               pov: { heading: 165, pitch: 0 },
-  //               zoom: 1,
-  //             });
-  //             setIsLoading(false);
-  //           } else {
-  //             setError("Street View is not available for this location.");
-  //             setIsLoading(false);
-  //           }
-  //         }
-  //       );
-  //     } else {
-  //       setError("Could not find the specified location.");
-  //       setIsLoading(false);
-  //     }
-  //   });
-  // }, [selectedLocation, isLoaded]);
+  const onUnmount = useCallback(() => {
+    setMap(null);
+  }, []);
 
   return (
     <>
-      {/* <div ref={mapRef} className="absolute inset-0" /> */}
       {isLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
           center={center}
           zoom={18}
-          onLoad={(map) => {
-            const bounds = new window.google.maps.LatLngBounds();
-            path.forEach((point) => bounds.extend(point));
-            map.fitBounds(bounds);
+          onLoad={onLoad}
+          onUnmount={onUnmount}
+          options={{
+            mapId: "DEMO_MAP_ID", // Required for Advanced Markers
           }}
         >
           {!directionsResponse && origin && destination && (
-            // get the directions using waypoints
             <DirectionsService
               options={{
                 origin: origin,
                 destination: destination,
                 travelMode: google.maps.TravelMode.DRIVING,
-                waypoints,
+                waypoints: sanitizedWaypoints,
               }}
               callback={directionsCallback}
             />
@@ -210,20 +226,46 @@ export default function MapView({
               }}
             />
           )}
+          
+          {/* Render Advanced Markers for waypoints */}
           {waypoints.map((waypoint) => (
-            <Marker
-              key={waypoint.id}
-              position={waypoint.location || center}
+            waypoint.location && (
+              <AdvancedMarker
+                key={waypoint.id}
+                position={waypoint.location}
+                map={map}
+                title={waypoint.title}
+                onClick={() => {
+                  setSelectedLocation({
+                    country: "",
+                    city: "",
+                    location: waypoint.location!,
+                  });
+                  setStreetViewVisible(false);
+                }}
+              />
+            )
+          ))}
+
+          {/* Render Advanced Markers for planned locations */}
+          {plannedLocations.map((location) => (
+            <AdvancedMarker
+              key={location.id}
+              position={location.location}
+              map={map}
+              title={`${location.order ? `${location.order}. ` : ''}${location.name} (${location.type})`}
+              content={location.order ? createNumberedMarker(location.order) : undefined}
               onClick={() => {
                 setSelectedLocation({
                   country: "",
                   city: "",
-                  location: waypoint.location || center,
+                  location: location.location,
                 });
                 setStreetViewVisible(false);
               }}
             />
           ))}
+          
           {selectedLocation && (
             <InfoWindow
               position={selectedLocation.location}
@@ -246,7 +288,6 @@ export default function MapView({
               }}
             />
           )}
-          {/* <Polyline path={path} options={polylineOptions} /> */}
         </GoogleMap>
       )}
       {(!isLoaded || isLoading) && (

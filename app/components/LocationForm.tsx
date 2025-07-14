@@ -12,120 +12,147 @@ interface LocationData {
   location: { lat: number; lng: number };
 }
 
+interface EventPlanData {
+  startingLocation: LocationData;
+  hourRange: number;
+  numberOfPeople: number;
+  radius: number;
+  eventDescription: string;
+  suggestedPlan: string;
+  plannedLocations?: Array<{
+    id: string;
+    name: string;
+    location: { lat: number; lng: number };
+    type: string;
+    address?: string;
+    rating?: number;
+    order?: number;
+  }>;
+  placesFound?: number;
+  metadata?: {
+    timestamp: number;
+    searchLocation: { lat: number; lng: number };
+    radius: number;
+    eventParameters: {
+      hourRange: number;
+      numberOfPeople: number;
+      eventDescription: string;
+    };
+  };
+}
+
 interface LocationFormProps {
-  onSubmit: (data: {
-    locationData: LocationData;
-    sourceData: LocationData;
-    destinationData: LocationData;
-  }) => void;
+  onSubmit: (data: EventPlanData) => void;
 }
 
 export default function LocationForm({ onSubmit }: LocationFormProps) {
   const defaultLocation = { lat: 40.7128, lng: -74.006 };
 
-  const [locationData, setLocationData] = useState<LocationData>({
+  const [startingLocation, setStartingLocation] = useState<LocationData>({
     country: "",
     city: "",
     location: defaultLocation,
   });
 
-  const [sourceData, setSourceData] = useState<LocationData>({
-    country: "",
-    city: "",
-    location: defaultLocation,
-  });
+  const [hourRange, setHourRange] = useState<number>(2);
+  const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
+  const [radius, setRadius] = useState<number>(1000);
+  const [eventDescription, setEventDescription] = useState<string>("");
+  const [suggestedPlan, setSuggestedPlan] = useState<string>("");
 
-  const [destinationData, setDestinationData] = useState<LocationData>({
-    country: "",
-    city: "",
-    location: defaultLocation,
-  });
+  const [selectedStartingLocationText, setSelectedStartingLocationText] = useState("");
 
-  const [activeField, setActiveField] = useState<
-    "location" | "source" | "destination"
-  >("location");
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
 
-  const [selectedLocationText, setSelectedLocationText] = useState("");
-  const [selectedSourceText, setSelectedSourceText] = useState("");
-  const [selectedDestinationText, setSelectedDestinationText] = useState("");
-
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("📍 All Location Data: ", {
-      locationData,
-      sourceData,
-      destinationData,
-    });
-    onSubmit({ locationData, sourceData, destinationData });
+    
+    // Validate required fields
+    if (!startingLocation.location.lat || !startingLocation.location.lng) {
+      setPlanError("Please select a valid starting location");
+      return;
+    }
+    
+    if (!eventDescription.trim()) {
+      setPlanError("Please describe your event");
+      return;
+    }
+
+    setIsGeneratingPlan(true);
+    setPlanError(null);
+    setSuggestedPlan("🔍 Searching for nearby places...\n🤖 Generating your personalized event plan...");
+
+    try {
+      console.log("📍 Starting event plan generation workflow...");
+      
+      const response = await fetch('/api/generate-event-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startingLocation,
+          hourRange,
+          numberOfPeople,
+          radius,
+          eventDescription
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Display the generated plan
+        setSuggestedPlan(result.eventPlan);
+        
+        // Pass the complete data to parent component including planned locations
+        onSubmit({ 
+          startingLocation, 
+          hourRange, 
+          numberOfPeople, 
+          radius,
+          eventDescription, 
+          suggestedPlan: result.eventPlan,
+          plannedLocations: result.plannedLocations,
+          placesFound: result.placesFound,
+          metadata: result.metadata
+        });
+
+        console.log(`✅ Event plan generated! Found ${result.placesFound} places, plan includes ${result.plannedLocations.length} locations`);
+      } else {
+        setPlanError(result.error || 'Failed to generate event plan');
+        setSuggestedPlan("❌ Failed to generate event plan. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error generating event plan:', error);
+      setPlanError('Network error. Please check your connection and try again.');
+      setSuggestedPlan("❌ Network error occurred. Please try again.");
+    } finally {
+      setIsGeneratingPlan(false);
+    }
   };
 
   const {
-    ready: readyLocation,
-    value: locationValue,
+    ready: readyStartingLocation,
+    value: startingLocationValue,
     suggestions: {
-      status: locationSuggestionsStatus,
-      data: locationSuggestionsData,
+      status: startingLocationSuggestionsStatus,
+      data: startingLocationSuggestionsData,
     },
-    setValue: setLocationValue,
-    clearSuggestions: clearLocationSuggestions,
-  } = usePlacesAutocomplete({
-    debounce: 300,
-  });
-  const {
-    ready: readySource,
-    value: sourceValue,
-    suggestions: {
-      status: sourceSuggestionsStatus,
-      data: sourceSuggestionsData,
-    },
-    setValue: setSourceValue,
-    clearSuggestions: clearSourceSuggestions,
-  } = usePlacesAutocomplete({
-    debounce: 300,
-  });
-  const {
-    ready: readyDestination,
-    value: destinationValue,
-    suggestions: {
-      status: destinationSuggestionsStatus,
-      data: destinationSuggestionsData,
-    },
-    setValue: setDestinationValue,
-    clearSuggestions: clearDestinationSuggestions,
+    setValue: setStartingLocationValue,
+    clearSuggestions: clearStartingLocationSuggestions,
   } = usePlacesAutocomplete({
     debounce: 300,
   });
 
-  const handleLocationInput = (e: any) => {
-    // Update the keyword of the input element
-    setLocationValue(e.target.value);
+  const handleStartingLocationInput = (e: any) => {
+    setStartingLocationValue(e.target.value);
   };
-  const handleSourceInput = (e: any) => {
-    // Update the keyword of the input element
-    setSourceValue(e.target.value);
-  };
-  const handleDestinationInput = (e: any) => {
-    // Update the keyword of the input element
-    setDestinationValue(e.target.value);
-  };
-  // const handleInput = (e: any) => {
-  //   // Update the keyword of the input element
-  //   setValue(e.target.value);
-  // };
-  const handleSelect =
+
+  const handleStartingLocationSelect =
     ({ description }: { description: string }) =>
     () => {
-      // When the user selects a place, we can replace the keyword without request data from API
-      // by setting the second parameter to "false"
-      // Get latitude and longitude via utility functions
       getGeocode({ address: description }).then((results) => {
         const { lat, lng } = getLatLng(results[0]);
         const newData = {
@@ -134,35 +161,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           location: { lat, lng },
         };
 
-        // Update the correct data based on active field
-        switch (activeField) {
-          case "location":
-            setLocationData(newData);
-            setSelectedLocationText(description);
-            setLocationValue(description, false);
-            clearLocationSuggestions();
-            break;
-          case "source":
-            setSourceData(newData);
-            setSelectedSourceText(description);
-            setSourceValue(description, false);
-            clearSourceSuggestions();
-            break;
-          case "destination":
-            setDestinationData(newData);
-            setSelectedDestinationText(description);
-            setDestinationValue(description, false);
-            clearDestinationSuggestions();
-            break;
-        }
+        setStartingLocation(newData);
+        setSelectedStartingLocationText(description);
+        setStartingLocationValue(description, false);
+        clearStartingLocationSuggestions();
 
-        console.log(`📍 ${activeField} Coordinates: `, { lat, lng });
+        console.log(`📍 Starting Location Coordinates: `, { lat, lng });
       });
     };
 
-  // Render suggestions for location
-  const renderLocationSuggestions = () =>
-    locationSuggestionsData.map((suggestion) => {
+  const renderStartingLocationSuggestions = () =>
+    startingLocationSuggestionsData.map((suggestion) => {
       const {
         place_id,
         structured_formatting: { main_text, secondary_text },
@@ -171,51 +180,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       return (
         <li
           key={place_id}
-          onClick={handleSelect(suggestion)}
-          className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
-        >
-          <div className="text-sm">
-            <strong className="text-gray-900">{main_text}</strong>
-            <div className="text-gray-500 text-xs">{secondary_text}</div>
-          </div>
-        </li>
-      );
-    });
-
-  // Render suggestions for source
-  const renderSourceSuggestions = () =>
-    sourceSuggestionsData.map((suggestion) => {
-      const {
-        place_id,
-        structured_formatting: { main_text, secondary_text },
-      } = suggestion;
-
-      return (
-        <li
-          key={place_id}
-          onClick={handleSelect(suggestion)}
-          className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
-        >
-          <div className="text-sm">
-            <strong className="text-gray-900">{main_text}</strong>
-            <div className="text-gray-500 text-xs">{secondary_text}</div>
-          </div>
-        </li>
-      );
-    });
-
-  // Render suggestions for destination
-  const renderDestinationSuggestions = () =>
-    destinationSuggestionsData.map((suggestion) => {
-      const {
-        place_id,
-        structured_formatting: { main_text, secondary_text },
-      } = suggestion;
-
-      return (
-        <li
-          key={place_id}
-          onClick={handleSelect(suggestion)}
+          onClick={handleStartingLocationSelect(suggestion)}
           className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
         >
           <div className="text-sm">
@@ -229,129 +194,146 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* <div>
-          <label
-            htmlFor="country"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Country
-          </label>
-          <input
-            type="text"
-            id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Enter your country"
-          />
-        </div>
-
         <div>
           <label
-            htmlFor="city"
+            htmlFor="startingLocation"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            City
+            Starting Location
           </label>
           <input
             type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleInputChange}
+            id="startingLocation"
+            name="startingLocation"
+            value={startingLocationValue || selectedStartingLocationText}
+            onChange={handleStartingLocationInput}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Enter your city"
+            placeholder="Enter your starting location"
           />
-        </div> */}
-
-        <div>
-          <label
-            htmlFor="location"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Primary Location
-          </label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={
-              activeField === "location" ? locationValue : selectedLocationText
-            }
-            onChange={handleLocationInput}
-            onFocus={() => setActiveField("location")}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="e.g., neighborhood, landmark, address"
-          />
-          {locationSuggestionsStatus === "OK" && activeField === "location" && (
+          {startingLocationSuggestionsStatus === "OK" && (
             <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
-              {renderLocationSuggestions()}
+              {renderStartingLocationSuggestions()}
             </ul>
           )}
         </div>
 
         <div>
           <label
-            htmlFor="source"
+            htmlFor="hourRange"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Source Location
+            Hour Range
           </label>
           <input
-            type="text"
-            id="source"
-            name="source"
-            value={activeField === "source" ? sourceValue : selectedSourceText}
-            onChange={handleSourceInput}
-            onFocus={() => setActiveField("source")}
+            type="number"
+            id="hourRange"
+            name="hourRange"
+            value={hourRange}
+            onChange={(e) => setHourRange(parseInt(e.target.value) || 0)}
+            min="1"
+            max="24"
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Starting point"
+            placeholder="How many hours do you have?"
           />
-          {sourceSuggestionsStatus === "OK" && activeField === "source" && (
-            <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
-              {renderSourceSuggestions()}
-            </ul>
-          )}
         </div>
 
         <div>
           <label
-            htmlFor="destination"
+            htmlFor="numberOfPeople"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Destination Location
+            Number of People
           </label>
           <input
-            type="text"
-            id="destination"
-            name="destination"
-            value={
-              activeField === "destination"
-                ? destinationValue
-                : selectedDestinationText
-            }
-            onChange={handleDestinationInput}
-            onFocus={() => setActiveField("destination")}
+            type="number"
+            id="numberOfPeople"
+            name="numberOfPeople"
+            value={numberOfPeople}
+            onChange={(e) => setNumberOfPeople(parseInt(e.target.value) || 0)}
+            min="1"
+            max="100"
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="End point"
+            placeholder="Number of people"
           />
-          {destinationSuggestionsStatus === "OK" &&
-            activeField === "destination" && (
-              <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
-                {renderDestinationSuggestions()}
-              </ul>
-            )}
         </div>
+
+        <div>
+          <label
+            htmlFor="radius"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Radius (meters)
+          </label>
+          <input
+            type="number"
+            id="radius"
+            name="radius"
+            value={radius}
+            onChange={(e) => setRadius(parseInt(e.target.value) || 0)}
+            min="100"
+            max="5000"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Search radius from starting location"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="eventDescription"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Description of Event
+          </label>
+          <textarea
+            id="eventDescription"
+            name="eventDescription"
+            value={eventDescription}
+            onChange={(e) => setEventDescription(e.target.value)}
+            rows={3}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+            placeholder="Describe your event theme or activities you're interested in..."
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="suggestedPlan"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Suggested Plan
+          </label>
+          <textarea
+            id="suggestedPlan"
+            name="suggestedPlan"
+            value={suggestedPlan}
+            readOnly
+            rows={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 resize-none"
+            placeholder="Your suggested plan will appear here after clicking Plan..."
+          />
+        </div>
+
+        {planError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {planError}
+          </div>
+        )}
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium"
+          disabled={isGeneratingPlan}
+          className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium ${
+            isGeneratingPlan 
+              ? 'bg-gray-400 text-gray-700 cursor-not-allowed' 
+              : 'bg-indigo-600 text-white hover:bg-indigo-700'
+          }`}
         >
-          Show Street View
+          {isGeneratingPlan ? '🔄 Generating Plan...' : 'Plan'}
         </button>
       </form>
     </div>

@@ -3,11 +3,13 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import OpenAI from 'openai';
 
-// Initialize DeepSeek client
-const deepseek = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com/v1',
-});
+// Initialize DeepSeek client only when needed
+function getDeepSeekClient() {
+  return new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY || 'dummy-key-for-build',
+    baseURL: 'https://api.deepseek.com/v1',
+  });
+}
 
 
 export async function POST(request: NextRequest) {
@@ -90,6 +92,7 @@ Provide your analysis in a structured format with clear conclusions and actionab
 
 // DeepSeek processing function
 async function processWithDeepSeek(prompt: string) {
+  const deepseek = getDeepSeekClient();
   const completion = await deepseek.chat.completions.create({
     model: 'deepseek-chat',
     messages: [

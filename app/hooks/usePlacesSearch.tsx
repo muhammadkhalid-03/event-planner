@@ -11,6 +11,8 @@ export interface PlaceResult {
     longitude: number;
   };
   businessStatus?: string;
+  placeType: string;
+  types?: string[];
 }
 
 // Enhanced interface for detailed place information
@@ -29,6 +31,7 @@ export interface DetailedPlaceResult {
   types?: string[];
   phoneNumber?: string;
   websiteURI?: string;
+  placeType: string;
   regularOpeningHours?: {
     openNow?: boolean;
     periods?: any[];
@@ -76,7 +79,15 @@ export interface PlacesSearchParams {
   latitude: number;
   longitude: number;
   radiusInMeters: number;
+  placeTypes?: string[];
 }
+
+// Available place types with their Google Places API equivalents
+export const PLACE_TYPES = {
+  restaurants: 'restaurant',
+  parks: 'park',
+  clubs: 'night_club'
+} as const;
 
 export const usePlacesSearch = () => {
   const { isLoaded, loadError } = useGoogleMaps();
@@ -97,44 +108,72 @@ export const usePlacesSearch = () => {
     try {
       const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
       
-      const request = {
-        fields: ['id', 'displayName', 'location', 'businessStatus'],
-        locationRestriction: {
-          center: {
-            lat: params.latitude,
-            lng: params.longitude,
-          },
-          radius: params.radiusInMeters,
-        },
-        includedPrimaryTypes: ['restaurant'],
-        maxResultCount: 20,
-        rankPreference: SearchNearbyRankPreference.POPULARITY,
-        language: 'en-US',
-        region: 'us',
-      };
-
-      // @ts-ignore
-      const { places: searchResults } = await Place.searchNearby(request);
+      // Default to all types if none specified
+      const searchTypes = params.placeTypes || Object.values(PLACE_TYPES);
       
-      if (searchResults && searchResults.length > 0) {
-        const formattedPlaces: PlaceResult[] = searchResults
-          .filter(place => place.id && place.location)
-          .map((place) => {
-            return {
-              id: place.id!,
-              displayName: place.displayName || 'Unknown Restaurant',
-              location: {
-                latitude: place.location!.lat(),
-                longitude: place.location!.lng(),
-              },
-              businessStatus: place.businessStatus ?? undefined,
-            }
-          });
-        setPlaces(formattedPlaces);
-        return formattedPlaces;
+      const allPlaces: PlaceResult[] = [];
+      
+      // Search for each place type separately to ensure we get results for each category
+      for (const placeType of searchTypes) {
+        const request = {
+          fields: ['id', 'displayName', 'location', 'businessStatus', 'types'],
+          locationRestriction: {
+            center: {
+              lat: params.latitude,
+              lng: params.longitude,
+            },
+            radius: params.radiusInMeters,
+          },
+          includedPrimaryTypes: [placeType],
+          maxResultCount: 20,
+          rankPreference: SearchNearbyRankPreference.POPULARITY,
+          language: 'en-US',
+          region: 'us',
+        };
+
+        try {
+          // @ts-ignore
+          const { places: searchResults } = await Place.searchNearby(request);
+          
+          if (searchResults && searchResults.length > 0) {
+            const formattedPlaces: PlaceResult[] = searchResults
+              .filter(place => place.id && place.location)
+              .map((place) => {
+                // Determine the primary place type for display
+                let primaryType = 'restaurant';
+                if (placeType === 'park') primaryType = 'park';
+                if (placeType === 'night_club') primaryType = 'club';
+                
+                return {
+                  id: place.id!,
+                  displayName: place.displayName || `Unknown ${primaryType}`,
+                  location: {
+                    latitude: place.location!.lat(),
+                    longitude: place.location!.lng(),
+                  },
+                  businessStatus: place.businessStatus ?? undefined,
+                  placeType: primaryType,
+                  types: place.types || []
+                }
+              });
+            
+            allPlaces.push(...formattedPlaces);
+          }
+        } catch (typeError) {
+          console.warn(`Error searching for ${placeType}:`, typeError);
+        }
+        
+        // Add a small delay between searches to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      return [];
+      // Remove duplicates based on place ID
+      const uniquePlaces = allPlaces.filter((place, index, self) => 
+        index === self.findIndex(p => p.id === place.id)
+      );
+      
+      setPlaces(uniquePlaces);
+      return uniquePlaces;
       
     } catch (error) {
       console.error('Places search error:', error);
@@ -150,5 +189,6 @@ export const usePlacesSearch = () => {
     isSearching,
     searchError,
     searchNearbyPlaces,
+    PLACE_TYPES,
   };
 };
