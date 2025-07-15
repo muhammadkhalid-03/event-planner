@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
+    console.log("PlacesData:", placesData);
 
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
@@ -428,7 +429,10 @@ Found ${places.length} venues in your area:
 function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
   try {
     // Extract mentioned place names from the plan and match them to the places data
+    const plannedLocations = [];
     const planLower = eventPlan.toLowerCase();
+
+    // Create array of matches with their position in the plan text
     const matches = [];
 
     for (const place of placesData) {
@@ -437,10 +441,19 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
 
       if (position !== -1) {
         matches.push({
-          position, // position in the plan text
-          id: place.id,
-          longitude: place.location.lng,
-          latitude: place.location.lat,
+          place,
+          position,
+          data: {
+            id: place.id,
+            name: place.displayName,
+            location: place.location,
+            type: place.placeType,
+            tags: place.types,
+            formatted_address: place.formattedAddress,
+            rating: place.rating,
+            user_rating_total: place.userRatingCount,
+            price_level: place.priceLevel,
+          },
         });
       }
     }
@@ -448,12 +461,12 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
     // Sort by position in the plan text (earliest mention first)
     matches.sort((a, b) => a.position - b.position);
 
-    // Return only id, longitude, and latitude fields in order
-    const orderedLocations = matches.map((match) => ({
-      id: match.id,
-      longitude: match.longitude,
-      latitude: match.latitude,
+    // Add order number to each location
+    const orderedLocations = matches.map((match, index) => ({
+      ...match.data,
+      order: index + 1, // 1-based numbering
     }));
+    console.log("OrderedLocations:", orderedLocations);
 
     return orderedLocations;
   } catch (error) {
