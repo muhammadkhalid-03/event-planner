@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
 
+
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
     const fileName = `event-plan-places-${timestamp}.json`;
@@ -68,16 +69,28 @@ export async function POST(request: NextRequest) {
     
     console.log(`💾 Saved places data to ${fileName}`);
 
-    // Step 3: Generate event plan with DeepSeek
-    const eventPlan = await generateEventPlanWithDeepSeek({
+    console.log(`🔍 Found ${placesData.length} places in the area`);
+
+
+    const filteredPlaces = await filterPlacesWithDeepSeek({
       places: placesData,
+      eventDescription,
+      location: startingLocation.location
+    });
+
+    console.log(`🤖 DeepSeek filtered ${filteredPlaces.length} places from ${placesData.length}`);
+
+
+    const eventPlan = await generateEventPlanWithDeepSeek({
+      places: filteredPlaces,
       hourRange,
       numberOfPeople,
       eventDescription,
       startingLocation
     });
 
-    console.log('🤖 Generated event plan with DeepSeek');
+
+    console.log('Generated event plan with DeepSeek');
 
     // Step 4: Extract planned locations for map display
     const plannedLocations = extractLocationsFromPlan(eventPlan, placesData);
@@ -198,6 +211,73 @@ async function searchNearbyPlaces(params: {
     console.error('Error searching places:', error);
     throw new Error('Failed to search for nearby places');
   }
+}
+
+
+
+async function filterPlacesWithDeepSeek(params: {
+  places: any[];
+  eventDescription: string;
+  location: { lat: number; lng: number };
+}) {
+  const { places, eventDescription, location } = params;
+
+  const filterPrompt = `
+You are a location-aware event assistant. 
+Given a list of venues and a high-level event description, return only the places that are relevant to the event type and location.
+
+CONTEXT:
+- Location Coordinates: ${location.lat}, ${location.lng}
+- Event Description: "${eventDescription}"
+- Available Places: ${JSON.stringify(places.slice(0, 15), null, 2)} (showing first 15 only for brevity)
+
+TASK:
+- Select 3–8 places that are most relevant to this event type
+- Respond with a JSON array of objects like: 
+[
+  { "id": "place_id_1" },
+  { "id": "place_id_2" },
+  ...
+]
+- Do not invent places. Use only those provided.
+- Focus on diversity (not all restaurants), high ratings, and relevance to the description.
+
+IMPORTANT:
+- Keep only the array in your response — no explanation.
+`;
+
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant that curates relevant venues from a provided list.'
+        },
+        {
+          role: 'user',
+          content: filterPrompt
+        }
+      ],
+      temperature: 0.6,
+      max_tokens: 1000
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('DeepSeek filtering failed');
+  }
+
+  const result = await response.json();
+  const filtered = JSON.parse(result.choices[0].message.content || '[]');
+  const allowedIds = new Set(filtered.map((p: any) => p.id));
+
+  return places.filter(p => allowedIds.has(p.id));
 }
 
 // Helper function to generate event plan with DeepSeek
