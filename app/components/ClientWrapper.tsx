@@ -1,11 +1,18 @@
 "use client";
 
-import { GoogleMapsProvider } from "../contexts/GoogleMapsContext";
+import { APIProvider } from "@vis.gl/react-google-maps";
 
 interface ClientWrapperProps {
   children: React.ReactNode;
 }
 
 export default function ClientWrapper({ children }: ClientWrapperProps) {
-  return <GoogleMapsProvider>{children}</GoogleMapsProvider>;
+  return (
+    <APIProvider
+      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      libraries={["places"]}
+    >
+      {children}
+    </APIProvider>
+  );
 }
