@@ -5,6 +5,7 @@ import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
+import { usePlacesStore } from "../stores/placesStore";
 
 interface LocationData {
   country: string;
@@ -59,21 +60,22 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [radius, setRadius] = useState<number>(1000);
   const [eventDescription, setEventDescription] = useState<string>("");
   const [suggestedPlan, setSuggestedPlan] = useState<string>("");
-
-  const [selectedStartingLocationText, setSelectedStartingLocationText] = useState("");
+  const { setLocations } = usePlacesStore();
+  const [selectedStartingLocationText, setSelectedStartingLocationText] =
+    useState("");
 
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!startingLocation.location.lat || !startingLocation.location.lng) {
       setPlanError("Please select a valid starting location");
       return;
     }
-    
+
     if (!eventDescription.trim()) {
       setPlanError("Please describe your event");
       return;
@@ -81,22 +83,24 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
 
     setIsGeneratingPlan(true);
     setPlanError(null);
-    setSuggestedPlan("🔍 Searching for nearby places...\n🤖 Generating your personalized event plan...");
+    setSuggestedPlan(
+      "🔍 Searching for nearby places...\n🤖 Generating your personalized event plan..."
+    );
 
     try {
       console.log("📍 Starting event plan generation workflow...");
-      
-      const response = await fetch('/api/generate-event-plan', {
-        method: 'POST',
+
+      const response = await fetch("/api/generate-event-plan", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           startingLocation,
           hourRange,
           numberOfPeople,
           radius,
-          eventDescription
+          eventDescription,
         }),
       });
 
@@ -105,28 +109,33 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       if (result.success) {
         // Display the generated plan
         setSuggestedPlan(result.eventPlan);
-        
+        setLocations(result.plannedLocations);
+
         // Pass the complete data to parent component including planned locations
-        onSubmit({ 
-          startingLocation, 
-          hourRange, 
-          numberOfPeople, 
+        onSubmit({
+          startingLocation,
+          hourRange,
+          numberOfPeople,
           radius,
-          eventDescription, 
+          eventDescription,
           suggestedPlan: result.eventPlan,
           plannedLocations: result.plannedLocations,
           placesFound: result.placesFound,
-          metadata: result.metadata
+          metadata: result.metadata,
         });
 
-        console.log(`✅ Event plan generated! Found ${result.placesFound} places, plan includes ${result.plannedLocations.length} locations`);
+        console.log(
+          `✅ Event plan generated! Found ${result.placesFound} places, plan includes ${result.plannedLocations.length} locations`
+        );
       } else {
-        setPlanError(result.error || 'Failed to generate event plan');
+        setPlanError(result.error || "Failed to generate event plan");
         setSuggestedPlan("❌ Failed to generate event plan. Please try again.");
       }
     } catch (error) {
-      console.error('Error generating event plan:', error);
-      setPlanError('Network error. Please check your connection and try again.');
+      console.error("Error generating event plan:", error);
+      setPlanError(
+        "Network error. Please check your connection and try again."
+      );
       setSuggestedPlan("❌ Network error occurred. Please try again.");
     } finally {
       setIsGeneratingPlan(false);
@@ -328,12 +337,12 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           type="submit"
           disabled={isGeneratingPlan}
           className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 font-medium ${
-            isGeneratingPlan 
-              ? 'bg-gray-400 text-gray-700 cursor-not-allowed' 
-              : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            isGeneratingPlan
+              ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+              : "bg-indigo-600 text-white hover:bg-indigo-700"
           }`}
         >
-          {isGeneratingPlan ? '🔄 Generating Plan...' : 'Plan'}
+          {isGeneratingPlan ? "🔄 Generating Plan..." : "Plan"}
         </button>
       </form>
     </div>
