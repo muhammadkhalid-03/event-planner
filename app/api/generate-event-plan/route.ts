@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
-    console.log("PlacesData:", placesData);
 
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
@@ -272,39 +270,41 @@ Format the response in a clear, easy-to-read structure with proper headings and 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{
-              text: "You are an expert event planner with deep knowledge of creating memorable experiences using specific venues and logistics."
-            }]
+            parts: [
+              {
+                text: "You are an expert event planner with deep knowledge of creating memorable experiences using specific venues and logistics.",
+              },
+            ],
           },
           contents: [
             {
               role: "user",
-              parts: [{ text: eventPlanPrompt }]
-            }
+              parts: [{ text: eventPlanPrompt }],
+            },
           ],
           generationConfig: {
             maxOutputTokens: 3000,
-            temperature: 0.7
+            temperature: 0.7,
           },
           safetySettings: [
             {
               category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_NONE"
+              threshold: "BLOCK_NONE",
             },
             {
               category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_NONE"
+              threshold: "BLOCK_NONE",
             },
             {
               category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_NONE"
+              threshold: "BLOCK_NONE",
             },
             {
               category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_NONE"
-            }
-          ]
-        })
+              threshold: "BLOCK_NONE",
+            },
+          ],
+        }),
       }
     );
 
@@ -328,7 +328,7 @@ Format the response in a clear, easy-to-read structure with proper headings and 
 
     // Extract response text from Gemini's structure
     const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!responseText) {
       console.error("❌ Invalid Gemini API response format:", result);
       return generateFallbackPlan(params);
@@ -491,12 +491,3 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
     return [];
   }
 }
-
-
-
-
-
-
-
-
-

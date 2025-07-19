@@ -49,7 +49,6 @@ export async function getRoute(
       response.data.routes[0].polyline.encodedPolyline
     ); // returns an array of [lat, lng] tuples
     const path = decodedPolyline.map(([lat, lng]) => ({ lat, lng }));
-    console.log("Path: ", path);
     return path;
   } catch (error) {
     console.error("Error fetching route data:", error);

@@ -57,7 +57,6 @@ export default function Home() {
 
   const handleEventPlanSubmit = (data: EventPlanData) => {
     setEventPlanData(data);
-    console.log("Event Plan Data:", data);
 
     if (data.plannedLocations && data.plannedLocations.length > 0) {
       console.log(
@@ -73,12 +72,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
-        <MapView
-        // locationData={eventPlanData?.startingLocation || null}
-        // sourceData={eventPlanData?.startingLocation || null}
-        // destinationData={eventPlanData?.startingLocation || null}
-        // plannedLocations={eventPlanData?.plannedLocations || []}
-        />
+        <MapView />
         <div className="absolute bottom-4 z-10">
           <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
         </div>
