@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import usePlacesAutocomplete, {
@@ -68,12 +68,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
 
   const [eventDescription, setEventDescription] = useState<string>("");
   const [suggestedPlan, setSuggestedPlan] = useState<string>("");
-  const { setLocations } = usePlacesStore();
+  const { setLocations, setStartingLocation: setStoreStartingLocation } = usePlacesStore();
   const [selectedStartingLocationText, setSelectedStartingLocationText] =
     useState("");
 
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+
+  // Set initial starting location in store when component mounts
+  useEffect(() => {
+    setStoreStartingLocation(defaultLocation);
+  }, [setStoreStartingLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +191,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         setSelectedStartingLocationText(description);
         setStartingLocationValue(description, false);
         clearStartingLocationSuggestions();
+
+        // Update the store with the new starting location
+        setStoreStartingLocation({ lat, lng });
 
         console.log(`📍 Starting Location Coordinates: `, { lat, lng });
       });

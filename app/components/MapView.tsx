@@ -34,7 +34,7 @@ export default function MapView() {
   const [streetViewVisible, setStreetViewVisible] = useState(false);
   const [directionsRequested, setDirectionsRequested] = useState(false);
 
-  const { selectedLocation, setSelectedLocation, locations } = usePlacesStore();
+  const { selectedLocation, setSelectedLocation, locations, startingLocation } = usePlacesStore();
   const { mapRef, setMapRef } = useMapRefStore();
 
   const directionsCallback = useCallback((response: any) => {
@@ -108,6 +108,14 @@ export default function MapView() {
     }
   }, [mapRef, locations]);
 
+  // Update map center when starting location changes
+  useEffect(() => {
+    if (mapRef && startingLocation) {
+      mapRef.panTo(startingLocation);
+      mapRef.setZoom(14);
+    }
+  }, [mapRef, startingLocation]);
+
   return (
     <>
       {apiIsLoaded && (
@@ -124,6 +132,24 @@ export default function MapView() {
             fullscreenControl: true,
           }}
         >
+          {/* Starting location marker */}
+          {startingLocation && (
+            <Marker
+              position={startingLocation}
+              title="Starting Location"
+              icon={{
+                url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                  <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="18" fill="#10B981" stroke="white" stroke-width="4"/>
+                    <circle cx="20" cy="20" r="8" fill="white"/>
+                  </svg>
+                `),
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 20),
+              }}
+            />
+          )}
+
           {!directionsResponse &&
             directionsRequested &&
             // sourceLocation &&

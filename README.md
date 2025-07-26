@@ -20,7 +20,14 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Clean Text Formatting for Suggested Plans (Latest)
+### Automatic Map Updates for Starting Location (Latest)
+- **🗺️ Real-time Map Updates**: Map automatically centers and updates when a new starting location is selected
+- ✅ **Instant Visual Feedback**: Map immediately pans to the new location with optimal zoom level (14x)
+- ✅ **Starting Location Marker**: Green circular marker clearly identifies your chosen starting point on the map
+- ✅ **Seamless Integration**: Uses shared store state to sync location input with map display in real-time
+- ✅ **Enhanced Navigation**: Users can immediately see their starting location context before planning events
+
+### Clean Text Formatting for Suggested Plans
 - **📝 Simplified Plan Output**: Removed all hashtags, asterisks, and markdown formatting from event plan suggestions
 - ✅ **Clean Format**: Plans now display as plain text with simple numbered lists for better readability
 - ✅ **Consistent Structure**: All plans follow the format: brief description → numbered venue list → concluding call-to-action
