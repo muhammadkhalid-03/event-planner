@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Slider from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
 import { usePlacesStore } from "../stores/placesStore";
+import { sendEmail } from "../utils/send-email";
 
 interface LocationData {
   country: string;
@@ -116,15 +117,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
   const [budget, setBudget] = useState<number>(1000);
 
-
   const [eventDescription, setEventDescription] = useState<string>("");
   const [suggestedPlan, setSuggestedPlan] = useState<string>("");
-  const { setLocations, setStartingLocation: setStoreStartingLocation } = usePlacesStore();
+  const { setLocations, setStartingLocation: setStoreStartingLocation } =
+    usePlacesStore();
   const [selectedStartingLocationText, setSelectedStartingLocationText] =
     useState("");
 
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   // Set initial starting location in store when component mounts
   useEffect(() => {
@@ -139,7 +142,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setPlanError("Please select a valid starting location");
       return;
     }
-    
+
     if (!eventDescription.trim()) {
       setPlanError("Please describe your event");
       return;
@@ -190,12 +193,10 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         const firstRoute = result.routes[0];
         setSuggestedPlan(firstRoute.suggestedPlan);
         setLocations(firstRoute.plannedLocations);
-
-        // Pass all routes to parent component
-        onSubmit({ 
-          startingLocation, 
-          hourRange, 
-          numberOfPeople, 
+        onSubmit({
+          startingLocation,
+          hourRange,
+          numberOfPeople,
           radius,
           ageRange,
           budget,
@@ -215,7 +216,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         );
       } else {
         setPlanError(result.error || "Failed to generate route options");
-        setSuggestedPlan("❌ Failed to generate route options. Please try again.");
+        setSuggestedPlan(
+          "❌ Failed to generate route options. Please try again."
+        );
       }
     } catch (error) {
       console.error("Error generating route options:", error);
@@ -225,6 +228,27 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setSuggestedPlan("❌ Network error occurred. Please try again.");
     } finally {
       setIsGeneratingPlan(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!userEmail.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    if (!suggestedPlan.trim()) {
+      alert("No plan available to send");
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      await sendEmail({ plan: suggestedPlan, email: userEmail });
+    } catch (error) {
+      console.error("Error sending email:", error);
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -403,12 +427,12 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             Age Range: {ageRange[0]} - {ageRange[1]} years
           </label>
           <Slider
-              range
-              min={0}
-              max={100}
-              step={1}
-              value={ageRange}
-              onChange={(value) => setAgeRange(value as [number, number])}
+            range
+            min={0}
+            max={100}
+            step={1}
+            value={ageRange}
+            onChange={(value) => setAgeRange(value as [number, number])}
           />
         </div>
         <div>
@@ -416,14 +440,13 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             Budget (USD): ${budget}
           </label>
           <Slider
-              min={0}
-              max={1000}
-              step={10}
-              value={budget}
-              onChange={(value) => setBudget(value as number)}
+            min={0}
+            max={1000}
+            step={10}
+            value={budget}
+            onChange={(value) => setBudget(value as number)}
           />
         </div>
-
 
         <div>
           <label
@@ -478,6 +501,37 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           }`}
         >
           {isGeneratingPlan ? "🔄 Generating Plan..." : "Plan"}
+        </button>
+
+        <div>
+          <label
+            htmlFor="userEmail"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Your Email Address
+          </label>
+          <input
+            type="email"
+            id="userEmail"
+            name="userEmail"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Enter your email to receive the plan"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSendEmail}
+          disabled={isGeneratingPlan || isSendingEmail || !suggestedPlan}
+          className={`w-full mt-2 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 font-medium ${
+            isGeneratingPlan || isSendingEmail || !suggestedPlan
+              ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+              : "bg-green-600 text-white hover:bg-green-700"
+          }`}
+        >
+          {isSendingEmail ? "✉️ Sending Email..." : "Send Plan via Email"}
         </button>
       </form>
     </div>

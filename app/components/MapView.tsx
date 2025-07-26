@@ -18,7 +18,6 @@ import { PlannedLocation, usePlacesStore } from "../stores/placesStore";
 import { useMapRefStore } from "../stores/mapRefStore";
 import { Badge } from "../../components/ui/badge";
 
-
 const polylineOptions = {
   strokeColor: "#4285F4",
   strokeOpacity: 0.8,
@@ -35,7 +34,8 @@ export default function MapView() {
   const [streetViewVisible, setStreetViewVisible] = useState(false);
   const [directionsRequested, setDirectionsRequested] = useState(false);
 
-  const { selectedLocation, setSelectedLocation, locations, startingLocation } = usePlacesStore();
+  const { selectedLocation, setSelectedLocation, locations, startingLocation } =
+    usePlacesStore();
   const { mapRef, setMapRef } = useMapRefStore();
 
   const directionsCallback = useCallback((response: any) => {
@@ -52,8 +52,16 @@ export default function MapView() {
       setStreetViewVisible(false);
 
       if (mapRef) {
-        mapRef.panTo(waypoint.location);
-        mapRef.setZoom(16);
+        // Instead of centering exactly on the marker, offset it slightly upward
+        // so the InfoWindow is visible
+        const offsetLat = waypoint.location.lat + 0.001; // Offset by ~200 meters north
+        mapRef.panTo({ lat: offsetLat, lng: waypoint.location.lng });
+
+        // Use a more reasonable zoom level (14 instead of 16)
+        const currentZoom = mapRef.getZoom();
+        if (!currentZoom || currentZoom < 14) {
+          mapRef.setZoom(14);
+        }
       }
     },
     [mapRef, setSelectedLocation]
@@ -139,7 +147,9 @@ export default function MapView() {
               position={startingLocation}
               title="Starting Location"
               icon={{
-                url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                url:
+                  "data:image/svg+xml;charset=UTF-8," +
+                  encodeURIComponent(`
                   <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="20" cy="20" r="18" fill="#10B981" stroke="white" stroke-width="4"/>
                     <circle cx="20" cy="20" r="8" fill="white"/>
@@ -153,18 +163,18 @@ export default function MapView() {
 
           {!directionsResponse &&
             directionsRequested &&
-            // sourceLocation &&
             locations &&
-            locations.length > 0 && (
+            locations.length > 0 &&
+            startingLocation && ( // <-- Make sure startingLocation exists
               <DirectionsService
                 options={{
-                  origin: locations[0].location, // TODO: Change this when we have our source location
+                  origin: startingLocation, // <-- Use the actual starting location
                   destination: locations[locations.length - 1].location,
-                  travelMode: google.maps.TravelMode.DRIVING,
                   waypoints: locations.slice(0, -1).map((wp) => ({
                     location: wp.location,
                     stopover: true,
                   })),
+                  travelMode: google.maps.TravelMode.DRIVING,
                   optimizeWaypoints: true,
                 }}
                 callback={directionsCallback}
