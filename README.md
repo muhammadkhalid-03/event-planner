@@ -27,12 +27,14 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 - ✅ **Seamless Integration**: Uses shared store state to sync location input with map display in real-time
 - ✅ **Enhanced Navigation**: Users can immediately see their starting location context before planning events
 
-### Clean Text Formatting for Suggested Plans
-- **📝 Simplified Plan Output**: Removed all hashtags, asterisks, and markdown formatting from event plan suggestions
-- ✅ **Clean Format**: Plans now display as plain text with simple numbered lists for better readability
-- ✅ **Consistent Structure**: All plans follow the format: brief description → numbered venue list → concluding call-to-action
-- ✅ **User-Friendly**: Both AI-generated and fallback plans use the same clean, readable format
-- ✅ **Enhanced Experience**: Removes visual clutter and focuses on essential event information
+### Updated Plan Output Messaging and Formatting
+- **📝 Improved Plan Text Structure**: Updated LLM prompts to follow specific messaging requirements
+- ✅ **Evening Events Focus**: Plans now start with a description specifically about evening events
+- ✅ **Clear Plan Options**: Updated ending message to inform users they have 3 different plans that can be edited
+- ✅ **Additional Plans Available**: Plans now mention that more plans can be generated if needed
+- ✅ **No Markdown Formatting**: Removed all hashtags, asterisks, and markdown formatting from all plan generation endpoints
+- ✅ **Consistent Experience**: Applied formatting changes to single plans, multiple routes, and event creation APIs
+- ✅ **TypeScript Fixes**: Resolved linter errors for better code quality and type safety
 
 ### Default Map Location Set to New York City
 - **🗽 NYC Default View**: Google Maps now defaults to New York City when first loading the website

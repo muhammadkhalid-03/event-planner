@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       
       // Create different filtering strategies for variety
       const filterStrategy = i % 3; // 3 different strategies
-      let filteredPlaces;
+      let filteredPlaces: any[];
       
       switch (filterStrategy) {
         case 0:
@@ -321,30 +321,35 @@ EVENT REQUIREMENTS:
 AVAILABLE PLACES DATA:
 ${JSON.stringify(params.places, null, 2)}
 
-Please create a comprehensive event plan that includes:
+IMPORTANT FORMATTING REQUIREMENTS:
+- DO NOT use any hashtags (#), asterisks (*), or any markdown formatting
+- DO NOT use bullet points with dashes (-) or asterisks (*)
+- Use plain text only
+- Follow this exact format:
 
-1. **Event Overview**: Brief description of the planned event based on the description provided
-2. **Detailed Itinerary**: Hour-by-hour schedule with specific venues from the provided data (use numbered format like "1. Venue Name", "2. Venue Name", etc.)
-3. **Venue Details**: For each location, include:
-   - Exact name and address from the data
-   - Why it was chosen (based on ratings, type, etc.)
-   - Estimated time to spend there
-   - What to do/eat there
-4. **Travel Route**: Logical sequence of locations to minimize travel time
-5. **Timeline**: Realistic schedule that fits within ${params.hourRange} hours
-6. **Group Considerations**: Activities suitable for ${params.numberOfPeople} people
-7. **Backup Options**: Alternative venues in case primary choices are unavailable
+FORMAT:
+Start with a 2-3 line description of the evening events.
 
-IMPORTANT: 
+Then list all events in this format:
+1. Venue Name - Address
+   Why this location and what to do here
+   Estimated time: X hours
+
+2. Venue Name - Address  
+   Why this location and what to do here
+   Estimated time: X hours
+
+End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
+
+REQUIREMENTS: 
 - Use ONLY the places provided in the data
 - Include specific names and addresses exactly as provided
-- Use numbered format for venues (1. Venue Name, 2. Venue Name, etc.)
+- Use numbered format for venues (1., 2., 3., etc.)
 - Mention venue names clearly and exactly as they appear in the data
 - Create a realistic timeline that accounts for travel between locations
 - Make this route unique and different from other options
 - Focus on the ${routeName} style for this route
-
-Format the response in a clear, easy-to-read structure with proper headings and bullet points.
+- NO hashtags, asterisks, dashes, or any markdown formatting
 `;
 
     console.log("🤖 Calling Gemini API...");

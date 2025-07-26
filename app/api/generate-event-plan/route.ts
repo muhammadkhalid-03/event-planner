@@ -393,7 +393,7 @@ IMPORTANT FORMATTING REQUIREMENTS:
 - Follow this exact format:
 
 FORMAT:
-Start with a 2-3 line description of the plan.
+Start with a 2-3 line description of the evening events.
 
 Then list all events in this format:
 1. Venue Name - Address
@@ -404,7 +404,7 @@ Then list all events in this format:
    Why this location and what to do here
    Estimated time: X hours
 
-End with: "You can choose to edit your plan or make another one!"
+End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
 
 REQUIREMENTS: 
 - Use ONLY the places provided in the data
