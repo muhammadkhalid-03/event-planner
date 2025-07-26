@@ -11,6 +11,9 @@ export async function POST(request: NextRequest) {
       radius,
         ageRange,
         budget,
+        eventDate,
+        startTime,
+        endTime,
       eventDescription 
     } = await request.json();
 
@@ -21,6 +24,9 @@ export async function POST(request: NextRequest) {
       radius,
         ageRange,
         budget,
+      eventDate,
+      startTime,
+      endTime,
       eventDescription,
     });
 
@@ -65,6 +71,9 @@ export async function POST(request: NextRequest) {
         numberOfPeople,
           ageRange,
           budget,
+        eventDate,
+        startTime,
+        endTime,
         eventDescription,
         startingLocation
       },
@@ -89,7 +98,10 @@ export async function POST(request: NextRequest) {
       eventDescription,
       location: startingLocation.location,
       ageRange,
-      budget
+      budget,
+      eventDate,
+      startTime,
+      endTime,
     });
     console.log(`🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`);
     
@@ -138,6 +150,11 @@ export async function POST(request: NextRequest) {
           hourRange,
           numberOfPeople,
           eventDescription,
+          eventDate,
+          startTime,
+          endTime,
+          ageRange,
+          budget,
         },
       },
     });
@@ -247,8 +264,11 @@ async function filterPlacesWithGemini(params: {
   location: { lat: number; lng: number };
   ageRange: [number, number];
   budget: number;
+  eventDate: string;
+  startTime: string;
+  endTime: string;
 }) {
-  const { places, eventDescription, location, ageRange, budget } = params;
+  const { places, eventDescription, location, ageRange, budget, eventDate, startTime, endTime } = params;
   
   console.log(`🔍 Starting Gemini filtering with ${places.length} places`);
   console.log(`📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`);
@@ -262,13 +282,17 @@ async function filterPlacesWithGemini(params: {
 You are a location-aware event assistant. 
 Filter places based on these criteria:
 
+
 - Age Range: ${ageRange[0]} - ${ageRange[1]} years.
-- Budget: up to $${budget}.
+- Budget: up to ${budget}.
+- Event Date: ${eventDate}
+- Start Time: ${startTime}
+- End Time: ${endTime}
 - Event Description: "${eventDescription}".
+
 
 Rules:
 - Remove places inappropriate for children if age < 18 (e.g., night clubs).
-- Use price_level to filter budget (0=free, 1=cheap, 2=medium, 3=expensive).
 - Choose 3–8 diverse, relevant venues.
 
 Available places:
@@ -497,7 +521,7 @@ function generateFallbackPlan(params: {
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
-  const { places, hourRange, numberOfPeople, eventDescription } = params;
+  const { places, hourRange, numberOfPeople, eventDescription,  } = params;
 
   // Sort places by rating (if available) and type diversity
   const restaurants = places
