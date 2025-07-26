@@ -23,6 +23,9 @@ interface EventPlanData {
   ageRange: [number, number];
   budget: number;
   eventDescription: string;
+  eventDate: string;
+   startTime: string;
+   endTime: string;
   suggestedPlan: string;
   plannedLocations?: Array<{
     id: string;
@@ -42,6 +45,9 @@ interface EventPlanData {
       hourRange: number;
       numberOfPeople: number;
       eventDescription: string;
+      eventDate: string;
+      startTime: string;
+      endTime: string;
     };
   };
 }
@@ -59,7 +65,10 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     location: defaultLocation,
   });
 
-  const [hourRange, setHourRange] = useState<number>(2);
+
+  const [eventDate, setEventDate] = useState<string>("");
+  const[startTime, setStartTime] = useState<string>("");
+  const[endTime, setEndTime] = useState<string>("");
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [radius, setRadius] = useState<number>(1000);
   const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
@@ -83,11 +92,18 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setPlanError("Please select a valid starting location");
       return;
     }
-    
+
     if (!eventDescription.trim()) {
       setPlanError("Please describe your event");
       return;
     }
+    if(!eventDate || !startTime || !endTime){
+      setPlanError("Please select a valid event date and time");
+    }
+    const start=new Date(`${eventDate} ${startTime}`);
+    const end=new Date(`${eventDate} ${endTime}`);
+    const hourRange=Math.max(Math.ceil((end.getTime()-start.getTime())/(1000*60*60)),0);
+
 
     setIsGeneratingPlan(true);
     setPlanError(null);
@@ -111,6 +127,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           ageRange,
           budget,
           eventDescription,
+          eventDate,
+          startTime,
+          endTime,
         }),
       });
 
@@ -122,14 +141,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         setLocations(result.plannedLocations);
 
         // Pass the complete data to parent component including planned locations
-        onSubmit({ 
-          startingLocation, 
-          hourRange, 
-          numberOfPeople, 
+        onSubmit({
+          startingLocation,
+          hourRange,
+          numberOfPeople,
           radius,
           ageRange,
           budget,
           eventDescription,
+          eventDate,
+          startTime,
+          endTime,
           suggestedPlan: result.eventPlan,
           plannedLocations: result.plannedLocations,
           placesFound: result.placesFound,
@@ -240,24 +262,44 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         </div>
 
         <div>
-          <label
-            htmlFor="hourRange"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Hour Range
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Date
           </label>
           <input
-            type="number"
-            id="hourRange"
-            name="hourRange"
-            value={hourRange}
-            onChange={(e) => setHourRange(parseInt(e.target.value) || 0)}
-            min="1"
-            max="24"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="How many hours do you have?"
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start Time
+            </label>
+            <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Time
+            </label>
+            <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
         </div>
 
         <div>
