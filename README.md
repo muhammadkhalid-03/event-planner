@@ -23,7 +23,7 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 - **Fully Automated Event Planning Workflow** - Single-click comprehensive event planning
 - ✅ **Places API Integration**: Automatically searches for restaurants, parks, and bars within user-specified radius
 - ✅ **JSON Data Storage**: Saves all found places to timestamped JSON files in `api_logs` directory
-- ✅ **DeepSeek AI Analysis**: Processes places data with user inputs (hour range, people count, event description) to generate personalized event plans
+- ✅ **Gemini AI Analysis**: Processes places data with user inputs (hour range, people count, event description) to generate personalized event plans
 - ✅ **Real-time Plan Display**: Shows AI-generated event plan in Suggested Plan textarea
 - ✅ **Interactive Map Integration**: Displays planned locations as markers on Google Maps with click interactions
 - ✅ **Error Handling**: Comprehensive error handling with user-friendly messages
@@ -79,10 +79,26 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ```bash
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 **Important:** After creating/updating the `.env.local` file, restart your development server with `npm run dev` for the environment variables to take effect.
+
+### Recent Updates & Fixes
+
+#### Event Planning Data Flow Fix (Latest)
+- **Fixed "AVAILABLE PLACES DATA field is empty" Error** - Resolved issue where AI wasn't receiving places data properly
+- ✅ **Enhanced Debugging**: Added comprehensive logging throughout the event planning workflow
+- ✅ **Fallback Mechanism**: System now uses original places data if AI filtering removes all venues
+- ✅ **Better Error Handling**: Improved error messages and API key validation
+- ✅ **Robust Data Flow**: Event planning now works reliably even with missing API keys or filtering issues
+
+#### Troubleshooting Event Planning Issues
+If you encounter "no place data provided" errors:
+1. **Check API Keys**: Ensure both `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY` are configured in `.env.local`
+2. **Check Console Logs**: Look for detailed debugging output in both browser console and terminal
+3. **Verify Location**: Ensure the starting location has nearby venues within the specified radius
+4. **Restart Server**: After updating `.env.local`, restart with `npm run dev`
 
 ### Installation
 
@@ -163,7 +179,7 @@ When you click the "Plan" button, the system performs the following automated st
 - Creates a permanent record for analysis and debugging
 
 ### 3. AI Event Planning 🤖
-- Sends the places data along with your event parameters to DeepSeek AI
+- Sends the places data along with your event parameters to Gemini AI
 - AI analyzes all available venues considering:
   - Your event description and preferences
   - Time constraints (hour range)
@@ -172,7 +188,7 @@ When you click the "Plan" button, the system performs the following automated st
   - Logical travel routes between venues
 
 ### 4. Plan Generation 📋
-- DeepSeek creates a detailed, personalized event itinerary
+- Gemini creates a detailed, personalized event itinerary
 - Includes specific venue recommendations with reasoning
 - Provides hour-by-hour timeline
 - Suggests optimal travel routes
@@ -199,7 +215,7 @@ When you click the "Plan" button, the system performs the following automated st
 - Custom place categorization and filtering
 
 ### AI-Powered Analysis
-- Restaurant analysis using DeepSeek API
+- Restaurant analysis using Gemini API
 - Event planning recommendations
 - Intelligent location suggestions
 
@@ -208,7 +224,7 @@ When you click the "Plan" button, the system performs the following automated st
 The application requires two API keys configured in `.env.local`:
 
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: For Google Maps, Places, and Geocoding APIs
-- `DEEPSEEK_API_KEY`: For AI-powered restaurant analysis and event planning
+- `GEMINI_API_KEY`: For AI-powered restaurant analysis and event planning
 
 ## Technologies Used
 
@@ -219,4 +235,4 @@ The application requires two API keys configured in `.env.local`:
 - [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/overview) - Maps and Street View integration
 - [@react-google-maps/api](https://react-google-maps-api-docs.netlify.app/) - React Google Maps integration
 - [Google Places API](https://developers.google.com/maps/documentation/places/web-service) - Place search and details
-- [DeepSeek API](https://deepseek.com/) - AI-powered analysis
+- [Google Gemini API](https://ai.google.dev/) - AI-powered analysis and event planning
