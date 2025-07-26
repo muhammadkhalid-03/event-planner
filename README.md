@@ -20,7 +20,13 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Intelligent Place Type Selection (Latest)
+### Default Map Location Set to New York City (Latest)
+- **🗽 NYC Default View**: Google Maps now defaults to New York City when first loading the website
+- ✅ **Consistent Starting Point**: Map centers on Manhattan (40.7128, -74.006) with zoom level 12
+- ✅ **Enhanced User Experience**: Users immediately see a recognizable location instead of a blank or random map area
+- ✅ **Coordinates Alignment**: Matches the default starting location coordinates used in the Activity Planner form
+
+### Intelligent Place Type Selection
 - **🧠 AI-Powered Category Selection**: Gemini AI now dynamically selects the most relevant place types based on your event description
 - ✅ **Smart Event Analysis**: System analyzes event themes to choose from 96+ place categories including restaurants, museums, parks, entertainment venues, shopping, wellness, and more
 - ✅ **Contextual Matching**: Automatically adapts place search based on event type (romantic dates, family outings, business events, cultural activities, etc.)

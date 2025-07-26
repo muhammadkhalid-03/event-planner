@@ -24,6 +24,10 @@ const polylineOptions = {
   strokeWeight: 4,
 };
 
+// Default location: New York City
+const defaultMapCenter = { lat: 40.7128, lng: -74.006 };
+const defaultZoom = 12;
+
 export default function MapView() {
   const apiIsLoaded = useApiIsLoaded();
   const [directionsResponse, setDirectionsResponse] = useState(null);
@@ -109,6 +113,8 @@ export default function MapView() {
       {apiIsLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
+          center={defaultMapCenter}
+          zoom={defaultZoom}
           onLoad={handleMapLoad}
           options={{
             gestureHandling: "greedy",
