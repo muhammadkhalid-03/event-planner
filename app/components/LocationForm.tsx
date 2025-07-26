@@ -50,6 +50,48 @@ interface EventPlanData {
       endTime: string;
     };
   };
+  allRoutes?: Array<{
+    startingLocation: LocationData;
+    hourRange: number;
+    numberOfPeople: number;
+    radius: number;
+    eventDescription: string;
+    eventDate?: string;
+    startTime?: string;
+    endTime?: string;
+    suggestedPlan: string;
+    plannedLocations: Array<{
+      id: string;
+      name: string;
+      location: { lat: number; lng: number };
+      type: string;
+      address?: string;
+      rating?: number;
+      order?: number;
+      tags?: string[];
+      user_rating_total?: number;
+      price_level?: number;
+    }>;
+    placesFound: number;
+    routeNumber: number;
+    routeName: string;
+    metadata: {
+      timestamp: number;
+      searchLocation: { lat: number; lng: number };
+      radius: number;
+      eventParameters: {
+        hourRange: number;
+        numberOfPeople: number;
+        eventDescription: string;
+        eventDate?: string;
+        startTime?: string;
+        endTime?: string;
+        ageRange?: [number, number];
+        budget?: number;
+      };
+      filterStrategy: number;
+    };
+  }>;
 }
 
 interface LocationFormProps {
@@ -92,29 +134,31 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setPlanError("Please select a valid starting location");
       return;
     }
-
+    
     if (!eventDescription.trim()) {
       setPlanError("Please describe your event");
       return;
     }
+
     if(!eventDate || !startTime || !endTime){
       setPlanError("Please select a valid event date and time");
+      return;
     }
-    const start=new Date(`${eventDate} ${startTime}`);
-    const end=new Date(`${eventDate} ${endTime}`);
-    const hourRange=Math.max(Math.ceil((end.getTime()-start.getTime())/(1000*60*60)),0);
 
+    const start = new Date(`${eventDate} ${startTime}`);
+    const end = new Date(`${eventDate} ${endTime}`);
+    const hourRange = Math.max(Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)), 0);
 
     setIsGeneratingPlan(true);
     setPlanError(null);
     setSuggestedPlan(
-      "🔍 Searching for nearby places...\n🤖 Generating your personalized event plan..."
+      "🔍 Searching for nearby places...\n🤖 Generating multiple route options..."
     );
 
     try {
-      console.log("📍 Starting event plan generation workflow...");
+      console.log("📍 Starting multiple routes generation workflow...");
 
-      const response = await fetch("/api/generate-event-plan", {
+      const response = await fetch("/api/generate-multiple-routes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,21 +174,23 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           eventDate,
           startTime,
           endTime,
+          numberOfRoutes: 3, // Generate 3 different route options
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        // Display the generated plan
-        setSuggestedPlan(result.eventPlan);
-        setLocations(result.plannedLocations);
+        // Display the first route's plan as the main suggestion
+        const firstRoute = result.routes[0];
+        setSuggestedPlan(firstRoute.suggestedPlan);
+        setLocations(firstRoute.plannedLocations);
 
-        // Pass the complete data to parent component including planned locations
-        onSubmit({
-          startingLocation,
-          hourRange,
-          numberOfPeople,
+        // Pass all routes to parent component
+        onSubmit({ 
+          startingLocation, 
+          hourRange, 
+          numberOfPeople, 
           radius,
           ageRange,
           budget,
@@ -152,21 +198,22 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           eventDate,
           startTime,
           endTime,
-          suggestedPlan: result.eventPlan,
-          plannedLocations: result.plannedLocations,
+          suggestedPlan: firstRoute.suggestedPlan,
+          plannedLocations: firstRoute.plannedLocations,
           placesFound: result.placesFound,
           metadata: result.metadata,
+          allRoutes: result.routes, // Pass all generated routes
         });
 
         console.log(
-          `✅ Event plan generated! Found ${result.placesFound} places, plan includes ${result.plannedLocations.length} locations`
+          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
         );
       } else {
-        setPlanError(result.error || "Failed to generate event plan");
-        setSuggestedPlan("❌ Failed to generate event plan. Please try again.");
+        setPlanError(result.error || "Failed to generate route options");
+        setSuggestedPlan("❌ Failed to generate route options. Please try again.");
       }
     } catch (error) {
-      console.error("Error generating event plan:", error);
+      console.error("Error generating route options:", error);
       setPlanError(
         "Network error. Please check your connection and try again."
       );

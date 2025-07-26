@@ -21,6 +21,9 @@ interface EventPlanData {
   numberOfPeople: number;
   radius: number;
   eventDescription: string;
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
   suggestedPlan: string;
   plannedLocations?: Array<{
     id: string;
@@ -43,11 +46,24 @@ interface EventPlanData {
       hourRange: number;
       numberOfPeople: number;
       eventDescription: string;
+      eventDate?: string;
+      startTime?: string;
+      endTime?: string;
+      ageRange?: [number, number];
+      budget?: number;
     };
   };
   routeNumber?: number;
   routeName?: string;
   allRoutes?: Array<{
+    startingLocation: LocationData;
+    hourRange: number;
+    numberOfPeople: number;
+    radius: number;
+    eventDescription: string;
+    eventDate?: string;
+    startTime?: string;
+    endTime?: string;
     suggestedPlan: string;
     plannedLocations: Array<{
       id: string;
@@ -72,6 +88,11 @@ interface EventPlanData {
         hourRange: number;
         numberOfPeople: number;
         eventDescription: string;
+        eventDate?: string;
+        startTime?: string;
+        endTime?: string;
+        ageRange?: [number, number];
+        budget?: number;
       };
       filterStrategy: number;
     };
