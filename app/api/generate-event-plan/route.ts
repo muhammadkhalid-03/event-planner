@@ -386,33 +386,36 @@ EVENT REQUIREMENTS:
 AVAILABLE PLACES DATA:
 ${JSON.stringify(params.places, null, 2)}
 
-Please create a comprehensive event plan that includes:
+IMPORTANT FORMATTING REQUIREMENTS:
+- DO NOT use any hashtags (#), asterisks (*), or any markdown formatting
+- DO NOT use bullet points with dashes (-) or asterisks (*)
+- Use plain text only
+- Follow this exact format:
 
-1. **Event Overview**: Brief description of the planned event based on the description provided
-2. **Detailed Itinerary**: Hour-by-hour schedule with specific venues from the provided data (use numbered format like "1. Venue Name", "2. Venue Name", etc.)
-3. **Venue Details**: For each location, include:
-   - Exact name and address from the data
-   - Why it was chosen (based on ratings, type, etc.)
-   - Estimated time to spend there
-   - What to do/eat there
-4. **Travel Route**: Logical sequence of locations to minimize travel time
-5. **Timeline**: Realistic schedule that fits within ${params.hourRange} hours
-6. **Group Considerations**: Activities suitable for ${
-      params.numberOfPeople
-    } people
-7. **Backup Options**: Alternative venues in case primary choices are unavailable
+FORMAT:
+Start with a 2-3 line description of the plan.
 
-IMPORTANT: 
+Then list all events in this format:
+1. Venue Name - Address
+   Why this location and what to do here
+   Estimated time: X hours
+
+2. Venue Name - Address  
+   Why this location and what to do here
+   Estimated time: X hours
+
+End with: "You can choose to edit your plan or make another one!"
+
+REQUIREMENTS: 
 - Use ONLY the places provided in the data
 - Include specific names and addresses exactly as provided
-- Use numbered format for venues (1. Venue Name, 2. Venue Name, etc.)
+- Use numbered format for venues (1., 2., 3., etc.)
 - Mention venue names clearly and exactly as they appear in the data
 - Create a realistic timeline that accounts for travel between locations
 - Make the plan engaging and tailored to the event description: "${
       params.eventDescription
     }"
-
-Format the response in a clear, easy-to-read structure with proper headings and bullet points.
+- NO hashtags, asterisks, dashes, or any markdown formatting
 `;
 
     console.log("🤖 Calling Gemini API...");
@@ -549,55 +552,23 @@ function generateFallbackPlan(params: {
     selectedPlaces.push(places[0]);
   }
 
-  return `
-# 🎉 ${eventDescription || "Your Event"} Plan
-
-**⚠️ Note: This plan was generated using fallback logic due to AI service limitations. For best results, please ensure your Gemini API key is configured.**
-
-## Event Overview
-Duration: ${hourRange} hours | Group Size: ${numberOfPeople} people
-Event Theme: ${eventDescription || "General event"}
-
-## Suggested Itinerary
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
 ${selectedPlaces
   .map(
-    (place, index) => `
-### ${index + 1}. ${place.displayName || place.name}
-- **Address**: ${
+    (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
       place.formattedAddress || place.address || "Address not available"
     }
-- **Type**: ${
-      place.placeType.charAt(0).toUpperCase() + place.placeType.slice(1)
-    }
-- **Rating**: ${place.rating ? `⭐ ${place.rating}` : "Not rated"}
-- **Estimated Time**: ${Math.floor(
-      hourRange / Math.max(selectedPlaces.length, 1)
-    )} hour(s)
+   ${place.rating 
+     ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities` 
+     : `Selected ${place.placeType} venue based on location and type`}
+   Estimated time: ${Math.floor(
+     hourRange / Math.max(selectedPlaces.length, 1)
+   )} hour(s)
 
-**Why this location**: ${
-      place.rating
-        ? `Highly rated (${place.rating} stars)`
-        : "Selected based on location and type"
-    }
 `
   )
-  .join("")}
-
-## 📍 Total Places Found
-Found ${places.length} venues in your area:
-- ${restaurants.length} restaurants
-- ${parks.length} parks  
-- ${clubs.length} entertainment venues
-
-## 💡 Tips
-- Call ahead to confirm hours and availability
-- Consider transportation between venues
-- Allow extra time for ${numberOfPeople} people in your group
-- Have backup options ready
-
-**🔧 Technical Note**: This is a simplified plan. For AI-powered personalized recommendations, please configure your Gemini API key in the environment variables.
-`;
+  .join("")}You can choose to edit your plan or make another one!`;
 }
 
 // Helper function to extract locations from the generated plan with ordering

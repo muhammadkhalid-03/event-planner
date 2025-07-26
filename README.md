@@ -20,7 +20,14 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Default Map Location Set to New York City (Latest)
+### Clean Text Formatting for Suggested Plans (Latest)
+- **📝 Simplified Plan Output**: Removed all hashtags, asterisks, and markdown formatting from event plan suggestions
+- ✅ **Clean Format**: Plans now display as plain text with simple numbered lists for better readability
+- ✅ **Consistent Structure**: All plans follow the format: brief description → numbered venue list → concluding call-to-action
+- ✅ **User-Friendly**: Both AI-generated and fallback plans use the same clean, readable format
+- ✅ **Enhanced Experience**: Removes visual clutter and focuses on essential event information
+
+### Default Map Location Set to New York City
 - **🗽 NYC Default View**: Google Maps now defaults to New York City when first loading the website
 - ✅ **Consistent Starting Point**: Map centers on Manhattan (40.7128, -74.006) with zoom level 12
 - ✅ **Enhanced User Experience**: Users immediately see a recognizable location instead of a blank or random map area
