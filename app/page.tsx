@@ -7,6 +7,7 @@ import Link from "next/link";
 import RouteSelector from "./components/RouteSelector";
 import { usePlacesStore } from "./stores/placesStore";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
+import RouteCarousel from "./components/RouteCarousel";
 
 interface LocationData {
   country: string;
@@ -29,6 +30,9 @@ interface EventPlanData {
     address?: string;
     rating?: number;
     order?: number;
+    tags?: string[];
+    user_rating_total?: number;
+    price_level?: number;
   }>;
   placesFound?: number;
   metadata?: {
@@ -41,11 +45,42 @@ interface EventPlanData {
       eventDescription: string;
     };
   };
+  routeNumber?: number;
+  routeName?: string;
+  allRoutes?: Array<{
+    suggestedPlan: string;
+    plannedLocations: Array<{
+      id: string;
+      name: string;
+      location: { lat: number; lng: number };
+      type: string;
+      address?: string;
+      rating?: number;
+      order?: number;
+      tags?: string[];
+      user_rating_total?: number;
+      price_level?: number;
+    }>;
+    placesFound: number;
+    routeNumber: number;
+    routeName: string;
+    metadata: {
+      timestamp: number;
+      searchLocation: { lat: number; lng: number };
+      radius: number;
+      eventParameters: {
+        hourRange: number;
+        numberOfPeople: number;
+        eventDescription: string;
+      };
+      filterStrategy: number;
+    };
+  }>;
 }
 
 export default function Home() {
   const apiIsLoaded = useApiIsLoaded();
-  const { locations, drawerOpen, setDrawerOpen } = usePlacesStore();
+  const { locations, drawerOpen, setDrawerOpen, setLocations } = usePlacesStore();
   const [eventPlanData, setEventPlanData] = useState<EventPlanData | null>(
     null
   );
@@ -54,9 +89,40 @@ export default function Home() {
       setDrawerOpen(true);
     }
   }, [locations]);
+  const [routes, setRoutes] = useState<EventPlanData[]>([]);
+  const [currentRouteIndex, setCurrentRouteIndex] = useState(0);
 
   const handleEventPlanSubmit = (data: EventPlanData) => {
-    setEventPlanData(data);
+    // If we have multiple routes from the new API, add them all to the carousel
+    if (data.allRoutes && data.allRoutes.length > 0) {
+      // Convert the route data to the expected format
+      const newRoutes = data.allRoutes.map((route, index) => ({
+        startingLocation: data.startingLocation,
+        hourRange: data.hourRange,
+        numberOfPeople: data.numberOfPeople,
+        radius: data.radius,
+        eventDescription: data.eventDescription,
+        suggestedPlan: route.suggestedPlan,
+        plannedLocations: route.plannedLocations,
+        placesFound: route.placesFound,
+        metadata: route.metadata,
+        routeNumber: route.routeNumber,
+        routeName: route.routeName,
+      }));
+      
+      setRoutes(prev => [...prev, ...newRoutes]);
+      setCurrentRouteIndex(routes.length); // Set to the first new route
+      setEventPlanData(newRoutes[0]); // Set the first route as current
+      
+      console.log(
+        `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`
+      );
+    } else {
+      // Fallback to single route behavior
+      setRoutes(prev => [...prev, data]);
+      setCurrentRouteIndex(routes.length);
+      setEventPlanData(data);
+    }
 
     if (data.plannedLocations && data.plannedLocations.length > 0) {
       console.log(
@@ -69,10 +135,39 @@ export default function Home() {
     }
   };
 
+  const handleRouteChange = (index: number) => {
+    setCurrentRouteIndex(index);
+    setEventPlanData(routes[index]);
+    // Update map with new route locations
+    const plannedLocations = routes[index].plannedLocations?.map(location => ({
+      id: location.id,
+      name: location.name,
+      location: location.location,
+      tags: location.tags || [],
+      type: location.type,
+      formatted_address: location.address,
+      rating: location.rating,
+      user_rating_total: location.user_rating_total,
+      price_level: location.price_level,
+      order: location.order || 0,
+    })) || [];
+    setLocations(plannedLocations);
+  };
+
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
         <MapView />
+        {/* Route Carousel at bottom */}
+        {routes.length > 0 && (
+          <div className="absolute bottom-16 left-0 right-0 z-20">
+            <RouteCarousel 
+              routes={routes} 
+              currentIndex={currentRouteIndex}
+              onSelect={handleRouteChange}
+            />
+          </div>
+        )}
         <div className="absolute bottom-4 z-10">
           <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
         </div>

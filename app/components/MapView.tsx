@@ -24,13 +24,18 @@ const polylineOptions = {
   strokeWeight: 4,
 };
 
+// Default location: New York City
+const defaultMapCenter = { lat: 40.7128, lng: -74.006 };
+const defaultZoom = 12;
+
 export default function MapView() {
   const apiIsLoaded = useApiIsLoaded();
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [streetViewVisible, setStreetViewVisible] = useState(false);
   const [directionsRequested, setDirectionsRequested] = useState(false);
 
-  const { selectedLocation, setSelectedLocation, locations } = usePlacesStore();
+  const { selectedLocation, setSelectedLocation, locations, startingLocation } =
+    usePlacesStore();
   const { mapRef, setMapRef } = useMapRefStore();
 
   const directionsCallback = useCallback((response: any) => {
@@ -47,8 +52,16 @@ export default function MapView() {
       setStreetViewVisible(false);
 
       if (mapRef) {
-        mapRef.panTo(waypoint.location);
-        mapRef.setZoom(16);
+        // Instead of centering exactly on the marker, offset it slightly upward
+        // so the InfoWindow is visible
+        const offsetLat = waypoint.location.lat + 0.001; // Offset by ~200 meters north
+        mapRef.panTo({ lat: offsetLat, lng: waypoint.location.lng });
+
+        // Use a more reasonable zoom level (14 instead of 16)
+        const currentZoom = mapRef.getZoom();
+        if (!currentZoom || currentZoom < 14) {
+          mapRef.setZoom(14);
+        }
       }
     },
     [mapRef, setSelectedLocation]
@@ -104,11 +117,21 @@ export default function MapView() {
     }
   }, [mapRef, locations]);
 
+  // Update map center when starting location changes
+  useEffect(() => {
+    if (mapRef && startingLocation) {
+      mapRef.panTo(startingLocation);
+      mapRef.setZoom(14);
+    }
+  }, [mapRef, startingLocation]);
+
   return (
     <>
       {apiIsLoaded && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
+          center={defaultMapCenter}
+          zoom={defaultZoom}
           onLoad={handleMapLoad}
           options={{
             gestureHandling: "greedy",
@@ -118,20 +141,40 @@ export default function MapView() {
             fullscreenControl: true,
           }}
         >
+          {/* Starting location marker */}
+          {startingLocation && (
+            <Marker
+              position={startingLocation}
+              title="Starting Location"
+              icon={{
+                url:
+                  "data:image/svg+xml;charset=UTF-8," +
+                  encodeURIComponent(`
+                  <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="18" fill="#10B981" stroke="white" stroke-width="4"/>
+                    <circle cx="20" cy="20" r="8" fill="white"/>
+                  </svg>
+                `),
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 20),
+              }}
+            />
+          )}
+
           {!directionsResponse &&
             directionsRequested &&
-            // sourceLocation &&
             locations &&
-            locations.length > 0 && (
+            locations.length > 0 &&
+            startingLocation && ( // <-- Make sure startingLocation exists
               <DirectionsService
                 options={{
-                  origin: locations[0].location, // TODO: Change this when we have our source location
+                  origin: startingLocation, // <-- Use the actual starting location
                   destination: locations[locations.length - 1].location,
-                  travelMode: google.maps.TravelMode.DRIVING,
                   waypoints: locations.slice(0, -1).map((wp) => ({
                     location: wp.location,
                     stopover: true,
                   })),
+                  travelMode: google.maps.TravelMode.DRIVING,
                   optimizeWaypoints: true,
                 }}
                 callback={directionsCallback}
@@ -217,7 +260,7 @@ export default function MapView() {
           {streetViewVisible && selectedLocation && (
             <StreetViewPanorama
               options={{
-                position: selectedLocation.geometry.location,
+                position: selectedLocation.location,
                 pov: { heading: 165, pitch: 0 },
                 visible: true,
                 zoom: 1,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import usePlacesAutocomplete, {
@@ -9,7 +9,6 @@ import usePlacesAutocomplete, {
 } from "use-places-autocomplete";
 import { usePlacesStore } from "../stores/placesStore";
 import { sendEmail } from "../utils/send-email";
-import { useLLMStore } from "../stores/llmStore";
 
 interface LocationData {
   country: string;
@@ -46,6 +45,32 @@ interface EventPlanData {
       eventDescription: string;
     };
   };
+  allRoutes?: Array<{
+    suggestedPlan: string;
+    plannedLocations: Array<{
+      id: string;
+      name: string;
+      location: { lat: number; lng: number };
+      type: string;
+      address?: string;
+      rating?: number;
+      order?: number;
+    }>;
+    placesFound: number;
+    routeNumber: number;
+    routeName: string;
+    metadata: {
+      timestamp: number;
+      searchLocation: { lat: number; lng: number };
+      radius: number;
+      eventParameters: {
+        hourRange: number;
+        numberOfPeople: number;
+        eventDescription: string;
+      };
+      filterStrategy: number;
+    };
+  }>;
 }
 
 interface LocationFormProps {
@@ -69,7 +94,8 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
 
   const [eventDescription, setEventDescription] = useState<string>("");
   const [suggestedPlan, setSuggestedPlan] = useState<string>("");
-  const { setLocations } = usePlacesStore();
+  const { setLocations, setStartingLocation: setStoreStartingLocation } =
+    usePlacesStore();
   const [selectedStartingLocationText, setSelectedStartingLocationText] =
     useState("");
 
@@ -77,8 +103,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [planError, setPlanError] = useState<string | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
-  const setLLMResponse = useLLMStore((state) => state.setResponse);
-  const llmResponse = useLLMStore((state) => state.response);
+
+  // Set initial starting location in store when component mounts
+  useEffect(() => {
+    setStoreStartingLocation(defaultLocation);
+  }, [setStoreStartingLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,13 +126,13 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     setIsGeneratingPlan(true);
     setPlanError(null);
     setSuggestedPlan(
-      "🔍 Searching for nearby places...\n🤖 Generating your personalized event plan..."
+      "🔍 Searching for nearby places...\n🤖 Generating multiple route options..."
     );
 
     try {
-      console.log("📍 Starting event plan generation workflow...");
+      console.log("📍 Starting multiple routes generation workflow...");
 
-      const response = await fetch("/api/generate-event-plan", {
+      const response = await fetch("/api/generate-multiple-routes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -116,18 +145,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           ageRange,
           budget,
           eventDescription,
+          numberOfRoutes: 3, // Generate 3 different route options
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        // Display the generated plan
-        setSuggestedPlan(result.eventPlan);
-        setLocations(result.plannedLocations);
-        console.log(llmResponse);
-        setLLMResponse(result.eventPlan);
-        // Pass the complete data to parent component including planned locations
+        // Display the first route's plan as the main suggestion
+        const firstRoute = result.routes[0];
+        setSuggestedPlan(firstRoute.suggestedPlan);
+        setLocations(firstRoute.plannedLocations);
         onSubmit({
           startingLocation,
           hourRange,
@@ -136,21 +164,24 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           ageRange,
           budget,
           eventDescription,
-          suggestedPlan: result.eventPlan,
-          plannedLocations: result.plannedLocations,
+          suggestedPlan: firstRoute.suggestedPlan,
+          plannedLocations: firstRoute.plannedLocations,
           placesFound: result.placesFound,
           metadata: result.metadata,
+          allRoutes: result.routes, // Pass all generated routes
         });
 
         console.log(
-          `✅ Event plan generated! Found ${result.placesFound} places, plan includes ${result.plannedLocations.length} locations`
+          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
         );
       } else {
-        setPlanError(result.error || "Failed to generate event plan");
-        setSuggestedPlan("❌ Failed to generate event plan. Please try again.");
+        setPlanError(result.error || "Failed to generate route options");
+        setSuggestedPlan(
+          "❌ Failed to generate route options. Please try again."
+        );
       }
     } catch (error) {
-      console.error("Error generating event plan:", error);
+      console.error("Error generating route options:", error);
       setPlanError(
         "Network error. Please check your connection and try again."
       );
@@ -213,6 +244,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         setSelectedStartingLocationText(description);
         setStartingLocationValue(description, false);
         clearStartingLocationSuggestions();
+
+        // Update the store with the new starting location
+        setStoreStartingLocation({ lat, lng });
 
         console.log(`📍 Starting Location Coordinates: `, { lat, lng });
       });
