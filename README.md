@@ -5,9 +5,10 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 ## Features
 
 - **Activity Planner**: Intelligent event planning with customizable parameters
+- **Smart Place Type Selection**: AI analyzes event descriptions to select from 96+ venue categories
 - **Google Places Autocomplete**: Real-time location search and validation
-- **Event Customization**: Hour range, group size, and event theme specification
-- **AI-Powered Suggestions**: Personalized event recommendations (ready for AI integration)
+- **Event Customization**: Hour range, group size, age range, budget, and event theme specification
+- **AI-Powered Suggestions**: Personalized event recommendations with contextual venue matching
 - Modern, responsive UI built with TailwindCSS
 - Form validation for required fields
 - Google Maps integration with starting location display
@@ -19,7 +20,15 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Complete Event Planning Automation (Latest)
+### Intelligent Place Type Selection (Latest)
+- **🧠 AI-Powered Category Selection**: Gemini AI now dynamically selects the most relevant place types based on your event description
+- ✅ **Smart Event Analysis**: System analyzes event themes to choose from 96+ place categories including restaurants, museums, parks, entertainment venues, shopping, wellness, and more
+- ✅ **Contextual Matching**: Automatically adapts place search based on event type (romantic dates, family outings, business events, cultural activities, etc.)
+- ✅ **Intelligent Filtering**: Considers age appropriateness, event theme, and activity preferences for optimal venue selection
+- ✅ **Fallback Protection**: Robust error handling ensures system works even if AI selection fails
+- ✅ **Enhanced Relevance**: Dramatically improves event plan quality by targeting specific venue types for each event
+
+### Complete Event Planning Automation
 - **Fully Automated Event Planning Workflow** - Single-click comprehensive event planning
 - ✅ **Places API Integration**: Automatically searches for restaurants, parks, and bars within user-specified radius
 - ✅ **JSON Data Storage**: Saves all found places to timestamped JSON files in `api_logs` directory
@@ -168,17 +177,27 @@ All fields are required except the suggested plan. Upon clicking "Plan", the app
 
 When you click the "Plan" button, the system performs the following automated steps:
 
-### 1. Places Discovery 🔍
-- Uses Google Places API to search for restaurants, parks, and bars within your specified radius
-- Searches multiple place types simultaneously to ensure variety
-- Retrieves detailed information including ratings, addresses, photos, and amenities
+### 1. Intelligent Place Type Selection 🧠
+- **AI-Powered Category Selection**: Gemini AI analyzes your event description to select the most relevant place types
+- **Smart Matching**: Chooses 3-5 place categories from 96+ available types based on your event theme
+- **Examples**: 
+  - "romantic date night" → restaurants, parks, art galleries, movie theaters, bars
+  - "kids birthday party" → amusement parks, restaurants, parks, zoos, bowling alleys
+  - "business networking" → restaurants, bars, art galleries, museums
+  - "cultural exploration" → museums, art galleries, tourist attractions, libraries, restaurants
 
-### 2. Data Storage 💾
+### 2. Places Discovery 🔍
+- Uses Google Places API to search for AI-selected place types within your specified radius
+- Searches multiple relevant categories simultaneously to ensure variety and relevance
+- Retrieves detailed information including ratings, addresses, photos, and amenities
+- Adapts search strategy based on your specific event needs
+
+### 3. Data Storage 💾
 - Saves all discovered places to a timestamped JSON file in the `api_logs` directory
 - Includes comprehensive metadata: search parameters, location coordinates, and event requirements
 - Creates a permanent record for analysis and debugging
 
-### 3. AI Event Planning 🤖
+### 4. AI Event Planning 🤖
 - Sends the places data along with your event parameters to Gemini AI
 - AI analyzes all available venues considering:
   - Your event description and preferences
@@ -187,14 +206,14 @@ When you click the "Plan" button, the system performs the following automated st
   - Location ratings and suitability
   - Logical travel routes between venues
 
-### 4. Plan Generation 📋
+### 5. Plan Generation 📋
 - Gemini creates a detailed, personalized event itinerary
 - Includes specific venue recommendations with reasoning
 - Provides hour-by-hour timeline
 - Suggests optimal travel routes
 - Considers group dynamics and event theme
 
-### 5. Interactive Display 🗺️
+### 6. Interactive Display 🗺️
 - Displays the generated plan in the "Suggested Plan" textarea
 - Shows planned venue locations as markers on Google Maps
 - Enables interactive exploration of suggested venues
