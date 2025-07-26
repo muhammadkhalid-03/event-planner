@@ -529,7 +529,7 @@ Found ${places.length} venues in your area:
 - Allow extra time for ${numberOfPeople} people in your group
 - Have backup options ready
 
-**🔧 Technical Note**: This is a simplified plan. For AI-powered personalized recommendations, please configure your DeepSeek API key in the environment variables.
+**🔧 Technical Note**: This is a simplified plan. For AI-powered personalized recommendations, please configure your Gemini API key in the environment variables.
 `;
 }
 
