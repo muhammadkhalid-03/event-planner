@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import { ChevronDown, ChevronUp, Star } from "lucide-react";
 import { useEffect } from "react";
-import { useRouteStore } from "../stores/routeStore";
+import { usePlacesStore } from "../stores/placesStore";
 import { Badge } from "@/components/ui/badge";
 
 interface RouteSelectorProps {
@@ -17,7 +17,7 @@ interface RouteSelectorProps {
 }
 
 export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
-  const { selectedLocation } = useRouteStore();
+  const { selectedLocation } = usePlacesStore();
 
   useEffect(() => {
     if (selectedLocation) {
@@ -62,27 +62,12 @@ export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
                 <SheetTitle>
                   {selectedLocation?.name || "Select a business"}
                 </SheetTitle>
-                {selectedLocation && (
-                  <Badge
-                    className={`${
-                      selectedLocation &&
-                      selectedLocation?.opening_hours?.open_now
-                        ? "bg-green-300"
-                        : "bg-red-600"
-                    } text-white`}
-                  >
-                    {selectedLocation?.opening_hours?.open_now
-                      ? "Open"
-                      : "Closed"}
-                  </Badge>
-                )}
               </div>
               <div className="flex w-full flex-wrap gap-2">
                 {selectedLocation &&
-                  selectedLocation?.types?.map((type) => (
-                    <Badge variant="secondary" key={type}>
-                      {type[0].toUpperCase() +
-                        type.slice(1).replaceAll("_", " ")}
+                  selectedLocation?.tags?.map((tag: string) => (
+                    <Badge variant="secondary" key={tag}>
+                      {tag[0].toUpperCase() + tag.slice(1).replace(/_/g, " ")}
                     </Badge>
                   ))}
               </div>
@@ -105,7 +90,7 @@ export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
                   <p className="text-sm text-muted-foreground flex flex-row justify-start items-center gap-2">
                     {selectedLocation?.rating}
                     <Star className="w-4 h-4" color="#FFD700" fill="yellow" />(
-                    {selectedLocation?.user_ratings_total} reviews)
+                    {selectedLocation?.user_rating_total} reviews)
                   </p>
                 </div>
               </div>

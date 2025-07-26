@@ -1,4 +1,4 @@
-/// <reference path="../types/google-maps.d.ts" />
+// / <reference path="../types/google-maps.d.ts" />
 /// <reference types="google.maps" />
 "use client";
 
@@ -10,13 +10,13 @@ import {
   DirectionsRenderer,
   InfoWindow,
   StreetViewPanorama,
+  OverlayView,
 } from "@react-google-maps/api";
 
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
-import { useRouteStore } from "../stores/routeStore";
-import RouteSelector from "./RouteSelector";
+import { PlannedLocation, usePlacesStore } from "../stores/placesStore";
 import { useMapRefStore } from "../stores/mapRefStore";
-import { Waypoint } from "../types/businesses";
+import { Badge } from "../../components/ui/badge";
 
 const polylineOptions = {
   strokeColor: "#4285F4",
@@ -30,8 +30,7 @@ export default function MapView() {
   const [streetViewVisible, setStreetViewVisible] = useState(false);
   const [directionsRequested, setDirectionsRequested] = useState(false);
 
-  const { sourceLocation, waypoints, selectedLocation, setSelectedLocation } =
-    useRouteStore();
+  const { selectedLocation, setSelectedLocation, locations } = usePlacesStore();
   const { mapRef, setMapRef } = useMapRefStore();
 
   const directionsCallback = useCallback((response: any) => {
@@ -43,12 +42,12 @@ export default function MapView() {
   }, []);
 
   const handleMarkerClick = useCallback(
-    (waypoint: Waypoint) => {
-      setSelectedLocation(waypoint.location);
+    (waypoint: PlannedLocation) => {
+      setSelectedLocation(waypoint);
       setStreetViewVisible(false);
 
       if (mapRef) {
-        mapRef.panTo(waypoint.location.geometry.location);
+        mapRef.panTo(waypoint.location);
         mapRef.setZoom(16);
       }
     },
@@ -65,14 +64,12 @@ export default function MapView() {
       if (!mapLoadedRef.current) {
         mapLoadedRef.current = true;
 
-        if (waypoints && waypoints.length > 0) {
+        if (locations && locations.length > 0) {
           const bounds = new window.google.maps.LatLngBounds();
-          if (sourceLocation) {
-            bounds.extend(sourceLocation);
-          }
-          waypoints.forEach((wp) =>
-            bounds.extend(wp.location.geometry.location)
-          );
+          // if (sourceLocation) {
+          //   bounds.extend(sourceLocation);
+          // }
+          locations.forEach((l) => bounds.extend(l.location));
           map.fitBounds(bounds);
         }
       }
@@ -80,17 +77,32 @@ export default function MapView() {
     [setMapRef]
   ); // Keep dependencies minimal
 
+  // Reset directions when locations change
+  useEffect(() => {
+    setDirectionsRequested(false);
+    setDirectionsResponse(null);
+  }, [locations]);
+
+  // Existing effect to trigger directions request
   useEffect(() => {
     if (
-      sourceLocation &&
-      waypoints &&
-      waypoints.length > 0 &&
+      // sourceLocation &&
+      locations &&
+      locations.length > 0 &&
       !directionsRequested &&
       !directionsResponse
     ) {
       setDirectionsRequested(true);
     }
-  }, [sourceLocation, waypoints, directionsRequested, directionsResponse]);
+  }, [locations, directionsRequested, directionsResponse]);
+
+  useEffect(() => {
+    if (mapRef && locations && locations.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      locations.forEach((l) => bounds.extend(l.location));
+      mapRef.fitBounds(bounds);
+    }
+  }, [mapRef, locations]);
 
   return (
     <>
@@ -108,17 +120,16 @@ export default function MapView() {
         >
           {!directionsResponse &&
             directionsRequested &&
-            sourceLocation &&
-            waypoints &&
-            waypoints.length > 0 && (
+            // sourceLocation &&
+            locations &&
+            locations.length > 0 && (
               <DirectionsService
                 options={{
-                  origin: sourceLocation,
-                  destination:
-                    waypoints[waypoints.length - 1].location.geometry.location,
+                  origin: locations[0].location, // TODO: Change this when we have our source location
+                  destination: locations[locations.length - 1].location,
                   travelMode: google.maps.TravelMode.DRIVING,
-                  waypoints: waypoints.slice(0, -1).map((wp) => ({
-                    location: wp.location.geometry.location,
+                  waypoints: locations.slice(0, -1).map((wp) => ({
+                    location: wp.location,
                     stopover: true,
                   })),
                   optimizeWaypoints: true,
@@ -136,22 +147,73 @@ export default function MapView() {
               }}
             />
           )}
-          {waypoints.map((waypoint, index) => (
-            <Marker
-              key={`waypoint-${index}`}
-              position={waypoint.location.geometry.location}
-              onClick={() => handleMarkerClick(waypoint)}
-            />
+          {locations.map((location, index) => (
+            <div key={`waypoint-${index}`}>
+              <Marker
+                position={location.location}
+                onClick={() => handleMarkerClick(location)}
+              >
+                {selectedLocation &&
+                  selectedLocation.location.lat === location.location.lat &&
+                  selectedLocation.location.lng === location.location.lng && (
+                    <InfoWindow
+                      position={location.location}
+                      onCloseClick={() => setSelectedLocation(null)}
+                    >
+                      <div className="flex flex-col items-start gap-2 min-w-[180px]">
+                        {/* Order badge and name */}
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-red-600 text-white rounded-full px-2 py-1 shadow-lg">
+                            {index + 1}
+                          </Badge>
+                          <span className="font-semibold text-base">
+                            {location.name || "Location"}
+                          </span>
+                        </div>
+                        {/* Tags (if any) */}
+                        <div className="flex flex-wrap gap-1">
+                          {location.tags?.slice(0, 2).map((tag: string) => (
+                            <Badge variant="secondary" key={tag}>
+                              {tag[0].toUpperCase() +
+                                tag.slice(1).replace(/_/g, " ")}
+                            </Badge>
+                          ))}
+                          {location.tags?.length > 2 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{location.tags.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                        {/* Actions */}
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            className="bg-muted text-primary rounded px-2 py-1 text-xs"
+                            onClick={() => setStreetViewVisible(true)}
+                          >
+                            Street View
+                          </button>
+                        </div>
+                      </div>
+                    </InfoWindow>
+                  )}
+              </Marker>
+              <OverlayView
+                position={location.location}
+                mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+              >
+                <Badge
+                  className="bg-red-600 text-white rounded-full px-2 py-1 shadow-lg"
+                  style={{
+                    position: "absolute",
+                    transform: "translate(-50%, -140%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {index + 1}
+                </Badge>
+              </OverlayView>
+            </div>
           ))}
-          {selectedLocation && (
-            <InfoWindow position={selectedLocation.geometry.location}>
-              <div>
-                <button onClick={() => setStreetViewVisible(true)}>
-                  Enter Street View
-                </button>
-              </div>
-            </InfoWindow>
-          )}
           {streetViewVisible && selectedLocation && (
             <StreetViewPanorama
               options={{
