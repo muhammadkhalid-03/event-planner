@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     let selectedPlaceTypes: string[];
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
-      console.log(`🤖 Gemini selected place types: ${selectedPlaceTypes.join(', ')}`);
+      console.log(`🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(', ')}`);
     } catch (error) {
       console.warn("❌ Failed to select place types with Gemini, using defaults:", error);
       selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"];
@@ -709,4 +709,4 @@ Example format: ["restaurant", "park", "museum"]
     // Return default types on any error
     return ["restaurant", "park", "tourist_attraction"];
   }
-} 
+}
