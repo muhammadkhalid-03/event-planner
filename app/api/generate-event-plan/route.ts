@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { NextRequest, NextResponse } from "next/server";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
-    const { 
-      startingLocation, 
-      hourRange, 
-      numberOfPeople, 
+    const {
+      startingLocation,
+      hourRange,
+      numberOfPeople,
       radius,
-        ageRange,
-        budget,
-      eventDescription 
+      ageRange,
+      budget,
+      eventDescription,
     } = await request.json();
 
     console.log("📍 Received request:", {
@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
       hourRange,
       numberOfPeople,
       radius,
-        ageRange,
-        budget,
+      ageRange,
+      budget,
       eventDescription,
     });
 
@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
 
-
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
     const fileName = `event-plan-places-${timestamp}.json`;
@@ -59,14 +58,14 @@ export async function POST(request: NextRequest) {
       timestamp,
       searchLocation: startingLocation.location,
       searchRadius: radius,
-      placeType: 'event-planning',
+      placeType: "event-planning",
       eventParameters: {
         hourRange,
         numberOfPeople,
-          ageRange,
-          budget,
+        ageRange,
+        budget,
         eventDescription,
-        startingLocation
+        startingLocation,
       },
       searchMetadata: {
         totalFound: placesData.length,
@@ -80,22 +79,22 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, JSON.stringify(placeDataStructure, null, 2));
 
     console.log(`💾 Saved places data to ${fileName}`);
-
-    console.log(`📊 Original places data: ${placesData.length} places`);
-    console.log(`📝 Sample places:`, placesData.slice(0, 3).map(p => ({ name: p.displayName, type: p.placeType })));
-
     const filteredPlaces = await filterPlacesWithGemini({
       places: placesData,
       eventDescription,
       location: startingLocation.location,
       ageRange,
-      budget
+      budget,
     });
-    console.log(`🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`);
-    
+    console.log(
+      `🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`
+    );
+
     let eventPlan;
     if (filteredPlaces.length === 0) {
-      console.warn("⚠️ No places passed the Gemini filter, using original places for event planning");
+      console.warn(
+        "⚠️ No places passed the Gemini filter, using original places for event planning"
+      );
       // Use original places if filtering removed everything
       eventPlan = await generateEventPlanWithGemini({
         places: placesData.slice(0, 8), // Use first 8 places as fallback
@@ -113,11 +112,6 @@ export async function POST(request: NextRequest) {
         startingLocation,
       });
     }
-
-
-
-
-
 
     console.log("🤖 Generated event plan with Gemini");
 
@@ -239,8 +233,6 @@ async function searchNearbyPlaces(params: {
   }
 }
 
-
-
 async function filterPlacesWithGemini(params: {
   places: any[];
   eventDescription: string;
@@ -249,12 +241,16 @@ async function filterPlacesWithGemini(params: {
   budget: number;
 }) {
   const { places, eventDescription, location, ageRange, budget } = params;
-  
+
   console.log(`🔍 Starting Gemini filtering with ${places.length} places`);
-  console.log(`📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`);
-  
+  console.log(
+    `📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`
+  );
+
   if (!process.env.GEMINI_API_KEY) {
-    console.warn("⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places");
+    console.warn(
+      "⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places"
+    );
     return places;
   }
 
@@ -280,26 +276,27 @@ Return JSON array of IDs like:
 
   const apiKey = process.env.GEMINI_API_KEY;
   const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: filterPrompt }],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 500,
-            temperature: 0.4,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: filterPrompt }],
           },
-        }),
-      }
+        ],
+        generationConfig: {
+          maxOutputTokens: 500,
+          temperature: 0.4,
+        },
+      }),
+    }
   );
 
-  if (!response.ok) throw new Error(`Gemini filtering failed: ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Gemini filtering failed: ${response.status}`);
 
   const result = await response.json();
   const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
@@ -314,14 +311,17 @@ Return JSON array of IDs like:
 
   const allowedIds = new Set(filtered.map((p: any) => p.id));
   const filteredPlaces = places.filter((p) => allowedIds.has(p.id));
-  
-  console.log(`✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`);
-  console.log(`📍 Selected places:`, filteredPlaces.map(p => ({ name: p.displayName, type: p.placeType })));
-  
+
+  console.log(
+    `✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`
+  );
+  console.log(
+    `📍 Selected places:`,
+    filteredPlaces.map((p) => ({ name: p.displayName, type: p.placeType }))
+  );
+
   return filteredPlaces;
 }
-
-
 
 // Helper function to generate event plan with Gemini
 async function generateEventPlanWithGemini(params: {
@@ -332,16 +332,8 @@ async function generateEventPlanWithGemini(params: {
   startingLocation: any;
 }) {
   try {
-    console.log(`🤖 Starting Gemini event plan generation with ${params.places.length} places`);
-    console.log(`📍 Places being sent to AI:`, params.places.map(p => ({ 
-      name: p.displayName, 
-      type: p.placeType, 
-      rating: p.rating,
-      address: p.formattedAddress 
-    })));
-
     if (!process.env.GEMINI_API_KEY) {
-      console.error('❌ GEMINI API key not found in environment variables');
+      console.error("❌ GEMINI API key not found in environment variables");
       // Return a fallback plan instead of failing
       return generateFallbackPlan(params);
     }
@@ -389,7 +381,7 @@ IMPORTANT:
 Format the response in a clear, easy-to-read structure with proper headings and bullet points.
 `;
 
-    console.log("🤖 Calling Gemini API...");
+    console.log("🤖 Calling Gemini API...", eventPlanPrompt);
 
     const apiKey = process.env.GEMINI_API_KEY;
     const response = await fetch(
@@ -454,7 +446,10 @@ Format the response in a clear, easy-to-read structure with proper headings and 
     }
 
     const result = await response.json();
-    console.log(`📥 Gemini API response received. Response structure:`, Object.keys(result));
+    console.log(
+      `📥 Gemini API response received. Response structure:`,
+      Object.keys(result)
+    );
 
     // Extract response text from Gemini's structure
     const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -466,7 +461,9 @@ Format the response in a clear, easy-to-read structure with proper headings and 
     }
 
     console.log("✅ Gemini API call successful");
-    console.log(`📄 Generated event plan preview: ${responseText.substring(0, 200)}...`);
+    console.log(
+      `📄 Generated event plan preview: ${responseText.substring(0, 200)}...`
+    );
     return responseText;
   } catch (error) {
     console.error("❌ Error in Gemini API call:", error);
