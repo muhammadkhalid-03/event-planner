@@ -93,24 +93,14 @@ export async function POST(request: NextRequest) {
       places: filteredPlaces,
       hourRange,
       numberOfPeople,
-      ageRange,
-      budget,
       eventDescription,
       startingLocation,
     });
 
-    console.log(`🤖 DeepSeek filtered ${filteredPlaces.length} places from ${placesData.length}`);
 
 
-    const eventPlan = await generateEventPlanWithDeepSeek({
-      places: filteredPlaces,
-      hourRange,
-      numberOfPeople,
-      ageRange,
-      budget,
-      eventDescription,
-      startingLocation,
-    });
+
+
 
     console.log("🤖 Generated event plan with Gemini");
 
@@ -312,8 +302,8 @@ async function generateEventPlanWithGemini(params: {
   startingLocation: any;
 }) {
   try {
-    if (!process.env.DEEPSEEK_API_KEY) {
-      console.error('❌ DeepSeek API key not found in environment variables');
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('❌ GEMINI API key not found in environment variables');
       // Return a fallback plan instead of failing
       return generateFallbackPlan(params);
     }
@@ -456,7 +446,7 @@ Format the response in a clear, easy-to-read structure with proper headings and 
   }
 }
 
-// Fallback function to generate a basic plan when DeepSeek API is unavailable
+// Fallback function to generate a basic plan when GEMINI API is unavailable
 function generateFallbackPlan(params: {
   places: any[];
   hourRange: number;
@@ -495,7 +485,7 @@ function generateFallbackPlan(params: {
   return `
 # 🎉 ${eventDescription || "Your Event"} Plan
 
-**⚠️ Note: This plan was generated using fallback logic due to AI service limitations. For best results, please ensure your DeepSeek API key is configured.**
+**⚠️ Note: This plan was generated using fallback logic due to AI service limitations. For best results, please ensure your Gemini API key is configured.**
 
 ## Event Overview
 Duration: ${hourRange} hours | Group Size: ${numberOfPeople} people
