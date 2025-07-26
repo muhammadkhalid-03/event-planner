@@ -1,4 +1,7 @@
-export async function sendEmail(data: { plan: string }): Promise<void> {
+export async function sendEmail(data: {
+  plan: string;
+  email: string;
+}): Promise<void> {
   const apiEndpoint = "/api/email/";
 
   try {
@@ -7,7 +10,7 @@ export async function sendEmail(data: { plan: string }): Promise<void> {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ plan: data.plan }),
+      body: JSON.stringify({ plan: data.plan, email: data.email }),
     });
 
     if (!response.ok) {

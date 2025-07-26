@@ -76,6 +76,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
   const setLLMResponse = useLLMStore((state) => state.setResponse);
   const llmResponse = useLLMStore((state) => state.response);
 
@@ -160,9 +161,19 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   };
 
   const handleSendEmail = async () => {
+    if (!userEmail.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    if (!suggestedPlan.trim()) {
+      alert("No plan available to send");
+      return;
+    }
+
     setIsSendingEmail(true);
     try {
-      await sendEmail({ plan: suggestedPlan });
+      await sendEmail({ plan: suggestedPlan, email: userEmail });
     } catch (error) {
       console.error("Error sending email:", error);
     } finally {
@@ -397,6 +408,25 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         >
           {isGeneratingPlan ? "🔄 Generating Plan..." : "Plan"}
         </button>
+
+        <div>
+          <label
+            htmlFor="userEmail"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Your Email Address
+          </label>
+          <input
+            type="email"
+            id="userEmail"
+            name="userEmail"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Enter your email to receive the plan"
+          />
+        </div>
+
         <button
           type="button"
           onClick={handleSendEmail}
