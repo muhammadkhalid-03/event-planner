@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
@@ -18,6 +20,8 @@ interface EventPlanData {
   hourRange: number;
   numberOfPeople: number;
   radius: number;
+  ageRange: [number, number];
+  budget: number;
   eventDescription: string;
   suggestedPlan: string;
   plannedLocations?: Array<{
@@ -58,6 +62,10 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [hourRange, setHourRange] = useState<number>(2);
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [radius, setRadius] = useState<number>(1000);
+  const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
+  const [budget, setBudget] = useState<number>(1000);
+
+
   const [eventDescription, setEventDescription] = useState<string>("");
   const [suggestedPlan, setSuggestedPlan] = useState<string>("");
   const { setLocations } = usePlacesStore();
@@ -75,7 +83,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setPlanError("Please select a valid starting location");
       return;
     }
-
+    
     if (!eventDescription.trim()) {
       setPlanError("Please describe your event");
       return;
@@ -100,6 +108,8 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           hourRange,
           numberOfPeople,
           radius,
+          ageRange,
+          budget,
           eventDescription,
         }),
       });
@@ -112,11 +122,13 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         setLocations(result.plannedLocations);
 
         // Pass the complete data to parent component including planned locations
-        onSubmit({
-          startingLocation,
-          hourRange,
-          numberOfPeople,
+        onSubmit({ 
+          startingLocation, 
+          hourRange, 
+          numberOfPeople, 
           radius,
+          ageRange,
+          budget,
           eventDescription,
           suggestedPlan: result.eventPlan,
           plannedLocations: result.plannedLocations,
@@ -289,6 +301,32 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             placeholder="Search radius from starting location"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Age Range: {ageRange[0]} - {ageRange[1]} years
+          </label>
+          <Slider
+              range
+              min={0}
+              max={100}
+              step={1}
+              value={ageRange}
+              onChange={(value) => setAgeRange(value as [number, number])}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Budget (USD): ${budget}
+          </label>
+          <Slider
+              min={0}
+              max={1000}
+              step={10}
+              value={budget}
+              onChange={(value) => setBudget(value as number)}
+          />
+        </div>
+
 
         <div>
           <label

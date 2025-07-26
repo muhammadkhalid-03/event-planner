@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile } from 'fs/promises';
+import path from 'path';
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      startingLocation,
-      hourRange,
-      numberOfPeople,
+    const { 
+      startingLocation, 
+      hourRange, 
+      numberOfPeople, 
       radius,
-      eventDescription,
+        ageRange,
+        budget,
+      eventDescription 
     } = await request.json();
 
     console.log("📍 Received request:", {
@@ -17,6 +19,8 @@ export async function POST(request: NextRequest) {
       hourRange,
       numberOfPeople,
       radius,
+        ageRange,
+        budget,
       eventDescription,
     });
 
@@ -47,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
 
+
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
     const fileName = `event-plan-places-${timestamp}.json`;
@@ -54,12 +59,14 @@ export async function POST(request: NextRequest) {
       timestamp,
       searchLocation: startingLocation.location,
       searchRadius: radius,
-      placeType: "event-planning",
+      placeType: 'event-planning',
       eventParameters: {
         hourRange,
         numberOfPeople,
+          ageRange,
+          budget,
         eventDescription,
-        startingLocation,
+        startingLocation
       },
       searchMetadata: {
         totalFound: placesData.length,
@@ -74,10 +81,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`💾 Saved places data to ${fileName}`);
 
-    const eventPlan = await generateEventPlanWithGemini({
+    const filteredPlaces = await filterPlacesWithGemini({
       places: placesData,
+      eventDescription,
+      location: startingLocation.location,
+      ageRange,
+      budget
+    });
+    console.log(`Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`);
+    const eventPlan = await generateEventPlanWithGemini({
+      places: filteredPlaces,
       hourRange,
       numberOfPeople,
+      ageRange,
+      budget,
+      eventDescription,
+      startingLocation,
+    });
+
+    console.log(`🤖 DeepSeek filtered ${filteredPlaces.length} places from ${placesData.length}`);
+
+
+    const eventPlan = await generateEventPlanWithDeepSeek({
+      places: filteredPlaces,
+      hourRange,
+      numberOfPeople,
+      ageRange,
+      budget,
       eventDescription,
       startingLocation,
     });
@@ -202,6 +232,77 @@ async function searchNearbyPlaces(params: {
   }
 }
 
+
+
+async function filterPlacesWithGemini(params: {
+  places: any[];
+  eventDescription: string;
+  location: { lat: number; lng: number };
+  ageRange: [number, number];
+  budget: number;
+}) {
+  const { places, eventDescription, location, ageRange, budget } = params;
+
+  const filterPrompt = `
+You are a location-aware event assistant. 
+Filter places based on these criteria:
+
+- Age Range: ${ageRange[0]} - ${ageRange[1]} years.
+- Budget: up to $${budget}.
+- Event Description: "${eventDescription}".
+
+Rules:
+- Remove places inappropriate for children if age < 18 (e.g., night clubs).
+- Use price_level to filter budget (0=free, 1=cheap, 2=medium, 3=expensive).
+- Choose 3–8 diverse, relevant venues.
+
+Available places:
+${JSON.stringify(places.slice(0, 15), null, 2)} (first 15 shown)
+
+Return JSON array of IDs like:
+[ { "id": "place_id_1" }, { "id": "place_id_2" } ]
+`;
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: filterPrompt }],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: 500,
+            temperature: 0.4,
+          },
+        }),
+      }
+  );
+
+  if (!response.ok) throw new Error(`Gemini filtering failed: ${response.status}`);
+
+  const result = await response.json();
+  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+
+  let filtered;
+  try {
+    filtered = JSON.parse(rawText);
+  } catch (e) {
+    console.warn("Gemini returned non-JSON output:", rawText);
+    filtered = [];
+  }
+
+  const allowedIds = new Set(filtered.map((p: any) => p.id));
+  return places.filter((p) => allowedIds.has(p.id));
+}
+
+
+
 // Helper function to generate event plan with Gemini
 async function generateEventPlanWithGemini(params: {
   places: any[];
@@ -211,8 +312,8 @@ async function generateEventPlanWithGemini(params: {
   startingLocation: any;
 }) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      console.error("❌ Gemini API key not found in environment variables");
+    if (!process.env.DEEPSEEK_API_KEY) {
+      console.error('❌ DeepSeek API key not found in environment variables');
       // Return a fallback plan instead of failing
       return generateFallbackPlan(params);
     }
