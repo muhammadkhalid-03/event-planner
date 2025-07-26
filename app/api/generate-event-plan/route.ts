@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
+// Available place types from Google Places API
+const AVAILABLE_PLACE_TYPES = [
+  'accounting', 'airport', 'amusement_park', 'aquarium', 'art_gallery', 'atm', 'bakery', 'bank', 'bar', 'beauty_salon',
+  'bicycle_store', 'book_store', 'bowling_alley', 'bus_station', 'cafe', 'campground', 'car_dealer', 'car_rental',
+  'car_repair', 'car_wash', 'casino', 'cemetery', 'church', 'city_hall', 'clothing_store', 'convenience_store',
+  'courthouse', 'dentist', 'department_store', 'doctor', 'drugstore', 'electrician', 'electronics_store', 'embassy',
+  'fire_station', 'florist', 'funeral_home', 'furniture_store', 'gas_station', 'gym', 'hair_care', 'hardware_store',
+  'hindu_temple', 'home_goods_store', 'hospital', 'insurance_agency', 'jewelry_store', 'laundry', 'lawyer', 'library',
+  'light_rail_station', 'liquor_store', 'local_government_office', 'locksmith', 'lodging', 'meal_delivery',
+  'meal_takeaway', 'mosque', 'movie_rental', 'movie_theater', 'moving_company', 'museum', 'night_club', 'painter',
+  'park', 'parking', 'pet_store', 'pharmacy', 'physiotherapist', 'plumber', 'police', 'post_office', 'primary_school',
+  'real_estate_agency', 'restaurant', 'roofing_contractor', 'rv_park', 'school', 'secondary_school', 'shoe_store',
+  'shopping_mall', 'spa', 'stadium', 'storage', 'store', 'subway_station', 'supermarket', 'synagogue', 'taxi_stand',
+  'tourist_attraction', 'train_station', 'transit_station', 'travel_agency', 'university', 'veterinary_care', 'zoo'
+];
+
 export async function POST(request: NextRequest) {
   try {
     const { 
@@ -40,12 +56,22 @@ export async function POST(request: NextRequest) {
 
     console.log("🎯 Starting event plan generation workflow...");
 
-    // Step 1: Search for nearby places using Google Places API
+    // Step 1: Dynamically select place types based on event description
+    let selectedPlaceTypes: string[];
+    try {
+      selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
+      console.log(`🤖 Gemini selected place types: ${selectedPlaceTypes.join(', ')}`);
+    } catch (error) {
+      console.warn("❌ Failed to select place types with Gemini, using defaults:", error);
+      selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"];
+    }
+
+    // Step 1 (continued): Search for nearby places using the AI-selected types
     const placesData = await searchNearbyPlaces({
       latitude: startingLocation.location.lat,
       longitude: startingLocation.location.lng,
       radiusInMeters: radius || 1000,
-      placeTypes: ["restaurant", "park", "night_club"],
+      placeTypes: selectedPlaceTypes,
     });
 
     if (!placesData || placesData.length === 0) {
@@ -384,33 +410,36 @@ EVENT REQUIREMENTS:
 AVAILABLE PLACES DATA:
 ${JSON.stringify(params.places, null, 2)}
 
-Please create a comprehensive event plan that includes:
+IMPORTANT FORMATTING REQUIREMENTS:
+- DO NOT use any hashtags (#), asterisks (*), or any markdown formatting
+- DO NOT use bullet points with dashes (-) or asterisks (*)
+- Use plain text only
+- Follow this exact format:
 
-1. **Event Overview**: Brief description of the planned event based on the description provided
-2. **Detailed Itinerary**: Hour-by-hour schedule with specific venues from the provided data (use numbered format like "1. Venue Name", "2. Venue Name", etc.)
-3. **Venue Details**: For each location, include:
-   - Exact name and address from the data
-   - Why it was chosen (based on ratings, type, etc.)
-   - Estimated time to spend there
-   - What to do/eat there
-4. **Travel Route**: Logical sequence of locations to minimize travel time
-5. **Timeline**: Realistic schedule that fits within ${params.hourRange} hours
-6. **Group Considerations**: Activities suitable for ${
-      params.numberOfPeople
-    } people
-7. **Backup Options**: Alternative venues in case primary choices are unavailable
+FORMAT:
+Start with a 2-3 line description of the evening events.
 
-IMPORTANT: 
+Then list all events in this format:
+1. Venue Name - Address
+   Why this location and what to do here
+   Estimated time: X hours
+
+2. Venue Name - Address  
+   Why this location and what to do here
+   Estimated time: X hours
+
+End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
+
+REQUIREMENTS: 
 - Use ONLY the places provided in the data
 - Include specific names and addresses exactly as provided
-- Use numbered format for venues (1. Venue Name, 2. Venue Name, etc.)
+- Use numbered format for venues (1., 2., 3., etc.)
 - Mention venue names clearly and exactly as they appear in the data
 - Create a realistic timeline that accounts for travel between locations
 - Make the plan engaging and tailored to the event description: "${
       params.eventDescription
     }"
-
-Format the response in a clear, easy-to-read structure with proper headings and bullet points.
+- NO hashtags, asterisks, dashes, or any markdown formatting
 `;
 
     console.log("🤖 Calling Gemini API...");
@@ -547,55 +576,23 @@ function generateFallbackPlan(params: {
     selectedPlaces.push(places[0]);
   }
 
-  return `
-# 🎉 ${eventDescription || "Your Event"} Plan
-
-**⚠️ Note: This plan was generated using fallback logic due to AI service limitations. For best results, please ensure your Gemini API key is configured.**
-
-## Event Overview
-Duration: ${hourRange} hours | Group Size: ${numberOfPeople} people
-Event Theme: ${eventDescription || "General event"}
-
-## Suggested Itinerary
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
 ${selectedPlaces
   .map(
-    (place, index) => `
-### ${index + 1}. ${place.displayName || place.name}
-- **Address**: ${
+    (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
       place.formattedAddress || place.address || "Address not available"
     }
-- **Type**: ${
-      place.placeType.charAt(0).toUpperCase() + place.placeType.slice(1)
-    }
-- **Rating**: ${place.rating ? `⭐ ${place.rating}` : "Not rated"}
-- **Estimated Time**: ${Math.floor(
-      hourRange / Math.max(selectedPlaces.length, 1)
-    )} hour(s)
+   ${place.rating 
+     ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities` 
+     : `Selected ${place.placeType} venue based on location and type`}
+   Estimated time: ${Math.floor(
+     hourRange / Math.max(selectedPlaces.length, 1)
+   )} hour(s)
 
-**Why this location**: ${
-      place.rating
-        ? `Highly rated (${place.rating} stars)`
-        : "Selected based on location and type"
-    }
 `
   )
-  .join("")}
-
-## 📍 Total Places Found
-Found ${places.length} venues in your area:
-- ${restaurants.length} restaurants
-- ${parks.length} parks  
-- ${clubs.length} entertainment venues
-
-## 💡 Tips
-- Call ahead to confirm hours and availability
-- Consider transportation between venues
-- Allow extra time for ${numberOfPeople} people in your group
-- Have backup options ready
-
-**🔧 Technical Note**: This is a simplified plan. For AI-powered personalized recommendations, please configure your Gemini API key in the environment variables.
-`;
+  .join("")}You can choose to edit your plan or make another one!`;
 }
 
 // Helper function to extract locations from the generated plan with ordering
@@ -645,5 +642,125 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
   } catch (error) {
     console.error("Error extracting locations from plan:", error);
     return [];
+  }
+}
+
+
+async function selectPlaceTypesWithGemini(eventDescription: string): Promise<string[]> {
+  console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
+  
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
+    return ["restaurant", "park", "tourist_attraction"]; // Default to common types
+  }
+
+  if (!eventDescription || eventDescription.trim().length === 0) {
+    console.warn("⚠️ Empty event description, using default place types");
+    return ["restaurant", "park", "tourist_attraction"];
+  }
+
+  const prompt = `
+You are an expert event planner. Analyze this event description and select the most relevant place types.
+
+EVENT DESCRIPTION: "${eventDescription}"
+
+AVAILABLE PLACE TYPES:
+${AVAILABLE_PLACE_TYPES.join(', ')}
+
+SELECTION RULES:
+1. Choose 3-5 place types that best match the event theme and activities
+2. Consider the event's purpose, target audience, and typical activities
+3. For dining events: include "restaurant", "cafe", "bar" as appropriate
+4. For cultural events: include "museum", "art_gallery", "library", "tourist_attraction"
+5. For entertainment: include "amusement_park", "bowling_alley", "movie_theater", "night_club"
+6. For outdoor activities: include "park", "zoo", "stadium", "campground"
+7. For shopping: include "shopping_mall", "store", "book_store", "clothing_store"
+8. For wellness: include "spa", "gym", "beauty_salon"
+9. For family events: avoid adult-only venues like "night_club", "bar", "casino"
+10. For business events: include "restaurant", "hotel", "conference_center" type venues
+
+EXAMPLES:
+- "romantic date night" → ["restaurant", "park", "art_gallery", "movie_theater", "bar"]
+- "kids birthday party" → ["amusement_park", "restaurant", "park", "zoo", "bowling_alley"]
+- "business networking" → ["restaurant", "bar", "art_gallery", "museum"]
+- "family day out" → ["park", "zoo", "restaurant", "museum", "amusement_park"]
+- "cultural exploration" → ["museum", "art_gallery", "tourist_attraction", "library", "restaurant"]
+
+Return ONLY a JSON array of place type strings. No explanation needed.
+Example format: ["restaurant", "park", "museum"]
+`;
+
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log("🔄 Calling Gemini API for place type selection...");
+    
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              maxOutputTokens: 100,
+              temperature: 0.3, // Lower temperature for more consistent results
+            },
+          }),
+        }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Gemini API error for place types: ${response.status} - ${errorText}`);
+      throw new Error(`Gemini place type selection failed: ${response.status}`);
+    }
+
+  const result = await response.json();
+  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+
+  let selectedTypes: string[];
+  try {
+    const parsed = JSON.parse(rawText);
+    // Validate that it's an array of strings
+    if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+      selectedTypes = parsed;
+    } else {
+      console.warn("Gemini returned invalid format for place types:", rawText);
+      selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+    }
+  } catch (e) {
+    console.warn("Gemini returned non-JSON output for place types:", rawText);
+    selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+  }
+
+  // Validate and filter selected types
+  const validSelectedTypes = selectedTypes.filter(type => 
+    AVAILABLE_PLACE_TYPES.includes(type)
+  );
+  
+  if (validSelectedTypes.length === 0) {
+    console.warn("No valid place types selected by Gemini, using defaults");
+    return ["restaurant", "park", "tourist_attraction"];
+  }
+
+  // Ensure we only have up to 5 unique types
+  const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
+  if (uniqueSelectedTypes.length > 5) {
+    console.warn(`Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes.slice(0, 5).join(', ')}`);
+    return uniqueSelectedTypes.slice(0, 5);
+  }
+
+  console.log(`✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(', ')}`);
+  return uniqueSelectedTypes;
+  
+  } catch (error) {
+    console.error("❌ Error in place type selection:", error);
+    // Return default types on any error
+    return ["restaurant", "park", "tourist_attraction"];
   }
 }

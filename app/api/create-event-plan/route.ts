@@ -44,27 +44,35 @@ CUSTOM REQUEST: ${task}
 AVAILABLE PLACES DATA:
 ${JSON.stringify(places, null, 2)}
 
-Please create a comprehensive event plan that includes:
+IMPORTANT FORMATTING REQUIREMENTS:
+- DO NOT use any hashtags (#), asterisks (*), or any markdown formatting
+- DO NOT use bullet points with dashes (-) or asterisks (*)
+- Use plain text only
+- Follow this exact format:
 
-1. **Event Overview**: Brief description of the planned event
-2. **Detailed Itinerary**: Hour-by-hour schedule with specific venues
-3. **Venue Details**: For each location, include:
-   - Name and address
-   - Why it was chosen
-   - Rating and key features
-   - Estimated time to spend there
-   - Budget considerations
-4. **Logistics**: 
-   - Travel routes and times between locations
-   - Transportation recommendations
-   - Parking information if available
-5. **Backup Options**: Alternative venues in case primary choices are unavailable
-6. **Budget Breakdown**: Estimated costs for the event
-7. **Special Considerations**: Any timing, accessibility, or other important notes
+FORMAT:
+Start with a 2-3 line description of the evening events.
 
-Make the plan practical, enjoyable, and tailored to the specific event type and group. Use actual data from the provided places (names, addresses, ratings, etc.) and create a realistic timeline that accounts for travel time between locations.
+Then list all events in this format:
+1. Venue Name - Address
+   Why this location and what to do here
+   Estimated time: X hours
 
-Format the response in a clear, easy-to-read structure with proper headings and bullet points.
+2. Venue Name - Address  
+   Why this location and what to do here
+   Estimated time: X hours
+
+End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
+
+REQUIREMENTS: 
+- Use ONLY the places provided in the data
+- Include specific names and addresses exactly as provided
+- Use numbered format for venues (1., 2., 3., etc.)
+- Mention venue names clearly and exactly as they appear in the data
+- Create a realistic timeline that accounts for travel between locations
+- Make the plan practical, enjoyable, and tailored to the specific event type and group
+- Use actual data from the provided places (names, addresses, ratings, etc.)
+- NO hashtags, asterisks, dashes, or any markdown formatting
 `;
 
     // Call Gemini API for event planning

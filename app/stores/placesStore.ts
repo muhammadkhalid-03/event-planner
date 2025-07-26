@@ -42,6 +42,8 @@ interface PlacesStore {
   setSelectedLocation: (location: PlannedLocation | null) => void;
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
+  startingLocation: { lat: number; lng: number } | null;
+  setStartingLocation: (location: { lat: number; lng: number } | null) => void;
 }
 
 export const usePlacesStore = create<PlacesStore>((set) => ({
@@ -53,4 +55,6 @@ export const usePlacesStore = create<PlacesStore>((set) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   drawerOpen: false,
   setDrawerOpen: (open) => set({ drawerOpen: open }),
+  startingLocation: null,
+  setStartingLocation: (location) => set({ startingLocation: location }),
 }));
