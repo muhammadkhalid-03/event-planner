@@ -18,6 +18,7 @@ import { PlannedLocation, usePlacesStore } from "../stores/placesStore";
 import { useMapRefStore } from "../stores/mapRefStore";
 import { Badge } from "../../components/ui/badge";
 
+
 const polylineOptions = {
   strokeColor: "#4285F4",
   strokeOpacity: 0.8,
