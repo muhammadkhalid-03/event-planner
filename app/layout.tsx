@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ClientWrapper>
-          <div className="pl-16">{children}</div>
+          <div>{children}</div>
         </ClientWrapper>
       </body>
     </html>
