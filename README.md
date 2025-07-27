@@ -20,7 +20,20 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Multiple Routes Generation with AI Place Type Selection (Latest)
+### Fixed Dynamic Place Type Implementation (Latest)
+- **🔧 Critical Bug Fix**: Fixed hardcoded place type limitation that was ignoring Gemini's AI selections
+- ✅ **True Dynamic Categorization**: Places stored in API logs now reflect the actual place types selected by Gemini AI
+- ✅ **Eliminated Hardcoded Restrictions**: Removed forced categorization into only "restaurant", "park", and "club"
+- ✅ **Full Place Type Support**: System now properly uses all 96+ Google Places API categories as selected by AI
+- ✅ **Improved Route Strategies**: All three route filtering strategies now work with dynamic place types
+- ✅ **Enhanced Fallback Planning**: Fallback plan generator now dynamically groups places by their actual types
+- ✅ **Accurate Data Storage**: API logs correctly store and categorize places based on AI-selected types
+- ✅ **Consistent Event Planning**: Event plans now genuinely reflect the venue types most relevant to your event description
+- ✅ **Fixed All Fallback Scenarios**: Removed restaurant-heavy defaults from all error handling scenarios
+- ✅ **Better Error Logging**: Enhanced debugging to identify exactly when and why fallbacks occur
+- ✅ **Diverse Default Types**: Changed all fallback defaults to use tourist_attraction/park/museum for more balanced results
+
+### Multiple Routes Generation with AI Place Type Selection
 - **🛣️ Multiple Route Options**: Generate 3 different route plans with varying strategies for the same event
 - ✅ **AI-Powered Place Selection**: Each route uses the same intelligent place type selection based on event description
 - ✅ **Diverse Route Strategies**: 
@@ -47,20 +60,42 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 - ✅ **Consistent Experience**: Applied formatting changes to single plans, multiple routes, and event creation APIs
 - ✅ **TypeScript Fixes**: Resolved linter errors for better code quality and type safety
 
+### AI Place Type Selection Fix (Latest)
+- **🔧 Critical Fix**: Fixed Gemini JSON parsing to ensure ONLY AI-selected place types are used in searches
+- ✅ **Markdown JSON Support**: Added parsing for Gemini responses wrapped in ```json code blocks
+- ✅ **Exact Category Matching**: System now searches Google Places API for ONLY the AI-selected categories
+- ✅ **No Default Contamination**: Eliminated unwanted restaurant/bar/park defaults when specific categories are requested
+- ✅ **Enhanced Logging**: Added comprehensive logging to track exactly which place types are being searched
+- ✅ **Temple Example**: Fixed issue where requesting "only temples" was still returning restaurants and bars
+- ✅ **Pure AI Selection**: Event plans now strictly respect AI-analyzed place type preferences
+- ✅ **Strict Validation**: Added filtering to ensure only requested place types are included in results
+- ✅ **Better Error Messages**: Enhanced error handling when no places of requested types are found
+- ✅ **Both Endpoints**: Applied fixes to both single event plan and multiple routes generation
+- ✅ **Anti-Creative Mode**: Added strict instructions to prevent Gemini from interpreting parks as temples
+
+### Merge Conflict Resolution 
+- **🔧 Critical Fix**: Resolved merge conflicts in `generate-event-plan/route.ts` causing TypeScript compilation errors
+- ✅ **Clean Build**: Eliminated all merge conflict markers and syntax errors
+- ✅ **Function Accessibility**: Fixed undefined function errors for `selectPlaceTypesWithGemini` and `extractLocationsFromPlan`
+- ✅ **Consistent Defaults**: Standardized all fallback place types to use diverse categories (tourist_attraction, park, museum)
+- ✅ **Template Literal Fixes**: Corrected broken string concatenation in fallback plan generation
+- ✅ **Code Quality**: Removed duplicate code blocks and ensured proper TypeScript compliance
+
 ### Default Map Location Set to New York City
 - **🗽 NYC Default View**: Google Maps now defaults to New York City when first loading the website
 - ✅ **Consistent Starting Point**: Map centers on Manhattan (40.7128, -74.006) with zoom level 12
 - ✅ **Enhanced User Experience**: Users immediately see a recognizable location instead of a blank or random map area
 - ✅ **Coordinates Alignment**: Matches the default starting location coordinates used in the Activity Planner form
 
-### Intelligent Place Type Selection
-- **🧠 AI-Powered Category Selection**: Gemini AI now dynamically selects the most relevant place types based on your event description
+### Intelligent Place Type Selection (Now Fully Functional)
+- **🧠 AI-Powered Category Selection**: Gemini AI dynamically selects the most relevant place types based on your event description
 - ✅ **Smart Event Analysis**: System analyzes event themes to choose from 96+ place categories including restaurants, museums, parks, entertainment venues, shopping, wellness, and more
 - ✅ **Contextual Matching**: Automatically adapts place search based on event type (romantic dates, family outings, business events, cultural activities, etc.)
 - ✅ **Intelligent Filtering**: Considers age appropriateness, event theme, and activity preferences for optimal venue selection
 - ✅ **Fallback Protection**: Robust error handling ensures system works even if AI selection fails
 - ✅ **Enhanced Relevance**: Dramatically improves event plan quality by targeting specific venue types for each event
-- ✅ **Multiple Route Support**: AI place type selection now works for both single event plans and multiple route generation
+- ✅ **Multiple Route Support**: AI place type selection works for both single event plans and multiple route generation
+- ✅ **Fixed Implementation**: System now properly uses AI-selected categories instead of defaulting to restaurants/parks/clubs
 
 ### Complete Event Planning Automation
 - **Fully Automated Event Planning Workflow** - Single-click comprehensive event planning
