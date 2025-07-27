@@ -493,15 +493,15 @@ async function generateEventPlanWithGemini(params: {
 
     // Filter out bars if age range includes people below 21
     let filteredPlaces = params.places;
-    const ageRangeText = params.ageRange || "";
+    const ageRangeText = String(params.ageRange || "");
     const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
                           ageRangeText.toLowerCase().includes("18-20") ||
                           ageRangeText.toLowerCase().includes("16-20") ||
                           ageRangeText.toLowerCase().includes("all ages") ||
                           ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                          ageRangeText.includes("children") ||
-                          ageRangeText.includes("kids") ||
-                          ageRangeText.includes("family");
+                          ageRangeText.toLowerCase().includes("children") ||
+                          ageRangeText.toLowerCase().includes("kids") ||
+                          ageRangeText.toLowerCase().includes("family");
 
     if (includesMinors) {
       filteredPlaces = params.places.filter(place => {
@@ -797,15 +797,15 @@ function generateFallbackPlan(params: {
   } = params;
 
   // Filter out bars if age range includes people below 21
-  const ageRangeText = ageRange || "";
+  const ageRangeText = String(ageRange || "");
   const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
                         ageRangeText.toLowerCase().includes("18-20") ||
                         ageRangeText.toLowerCase().includes("16-20") ||
                         ageRangeText.toLowerCase().includes("all ages") ||
                         ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                        ageRangeText.includes("children") ||
-                        ageRangeText.includes("kids") ||
-                        ageRangeText.includes("family");
+                        ageRangeText.toLowerCase().includes("children") ||
+                        ageRangeText.toLowerCase().includes("kids") ||
+                        ageRangeText.toLowerCase().includes("family");
 
   let filteredPlaces = places;
   if (includesMinors) {
