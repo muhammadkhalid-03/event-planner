@@ -61,7 +61,7 @@ export default function RouteCarousel({
       return route.routeName;
     }
     if (route.eventDescription) {
-      return route.eventDescription.length > 30 
+      return route.eventDescription.length > 30
         ? route.eventDescription.substring(0, 30) + "..."
         : route.eventDescription;
     }
@@ -71,13 +71,15 @@ export default function RouteCarousel({
   return (
     <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg p-2 mx-auto w-full max-w-4xl">
       <div className="flex items-center justify-between px-2">
-        <button 
-          onClick={() => onSelect((currentIndex - 1 + routes.length) % routes.length)}
+        <button
+          onClick={() =>
+            onSelect((currentIndex - 1 + routes.length) % routes.length)
+          }
           className="p-2 rounded-full hover:bg-gray-100"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        
+
         <div className="flex flex-1 overflow-x-auto gap-2 py-1 px-4 scrollbar-hide">
           {routes.map((route, index) => (
             <button
@@ -98,8 +100,8 @@ export default function RouteCarousel({
             </button>
           ))}
         </div>
-        
-        <button 
+
+        <button
           onClick={() => onSelect((currentIndex + 1) % routes.length)}
           className="p-2 rounded-full hover:bg-gray-100"
         >

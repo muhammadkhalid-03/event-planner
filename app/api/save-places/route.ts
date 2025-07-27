@@ -1,11 +1,11 @@
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import { NextRequest, NextResponse } from 'next/server';
+import { writeFile } from "fs/promises";
+import path from "path";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    
+
     const timestamp = Date.now();
     const placeData = {
       timestamp,
@@ -40,28 +40,30 @@ export async function POST(request: NextRequest) {
         goodForChildren: place.goodForChildren,
         goodForGroups: place.goodForGroups,
         restroom: place.restroom,
-        detailsFetchedAt: place.detailsFetchedAt
-      }))
+        detailsFetchedAt: place.detailsFetchedAt,
+      })),
     };
 
     // Use the provided fileName or create a default one
-    const fileName = data.fileName ? `${data.fileName}-${timestamp}.json` : `places-${timestamp}.json`;
-    const filePath = path.join(process.cwd(), 'api_logs', fileName);
-    
+    const fileName = data.fileName
+      ? `${data.fileName}-${timestamp}.json`
+      : `places-${timestamp}.json`;
+    const filePath = path.join(process.cwd(), "api_logs", fileName);
+
     await writeFile(filePath, JSON.stringify(placeData, null, 2));
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: `Place data saved to ${fileName}`,
       fileName,
       placesCount: data.places.length,
-      placeType: data.placeType
+      placeType: data.placeType,
     });
   } catch (error) {
-    console.error('Error saving place data:', error);
+    console.error("Error saving place data:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to save place data' },
-      { status: 500 }
+      { success: false, error: "Failed to save place data" },
+      { status: 500 },
     );
   }
-} 
+}

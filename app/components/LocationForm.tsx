@@ -25,8 +25,8 @@ interface EventPlanData {
   budget: number;
   eventDescription: string;
   eventDate: string;
-   startTime: string;
-   endTime: string;
+  startTime: string;
+  endTime: string;
   suggestedPlan: string;
   plannedLocations?: Array<{
     id: string;
@@ -110,10 +110,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     location: defaultLocation,
   });
 
-
   const [eventDate, setEventDate] = useState<string>("");
-  const[startTime, setStartTime] = useState<string>("");
-  const[endTime, setEndTime] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [radius, setRadius] = useState<number>(5000);
   const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
@@ -150,19 +149,22 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       return;
     }
 
-    if(!eventDate || !startTime || !endTime){
+    if (!eventDate || !startTime || !endTime) {
       setPlanError("Please select a valid event date and time");
       return;
     }
 
     const start = new Date(`${eventDate} ${startTime}`);
     const end = new Date(`${eventDate} ${endTime}`);
-    const hourRange = Math.max(Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)), 0);
+    const hourRange = Math.max(
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)),
+      0,
+    );
 
     setIsGeneratingPlan(true);
     setPlanError(null);
     setSuggestedPlan(
-      "🔍 Searching for nearby places...\n🤖 Generating multiple route options..."
+      "🔍 Searching for nearby places...\n🤖 Generating multiple route options...",
     );
 
     try {
@@ -214,18 +216,18 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         });
 
         console.log(
-          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
+          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`,
         );
       } else {
         setPlanError(result.error || "Failed to generate route options");
         setSuggestedPlan(
-          "❌ Failed to generate route options. Please try again."
+          "❌ Failed to generate route options. Please try again.",
         );
       }
     } catch (error) {
       console.error("Error generating route options:", error);
       setPlanError(
-        "Network error. Please check your connection and try again."
+        "Network error. Please check your connection and try again.",
       );
       setSuggestedPlan("❌ Network error occurred. Please try again.");
     } finally {
@@ -347,11 +349,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             Event Date
           </label>
           <input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            type="date"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
@@ -361,11 +363,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
               Start Time
             </label>
             <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -374,11 +376,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
               End Time
             </label>
             <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
@@ -412,11 +414,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             Radius (meters) : {radius}
           </label>
           <Slider
-              min={10}
-              max={5000}
-              step={10}
-              value={radius}
-              onChange={(value) => setRadius(value as number)}
+            min={10}
+            max={5000}
+            step={10}
+            value={radius}
+            onChange={(value) => setRadius(value as number)}
           />
         </div>
         <div>

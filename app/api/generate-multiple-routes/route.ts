@@ -1,29 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { NextRequest, NextResponse } from "next/server";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 // Available place types from Google Places API
 const AVAILABLE_PLACE_TYPES = [
-  'accounting', 'airport', 'amusement_park', 'aquarium', 'art_gallery', 'atm', 'bakery', 'bank', 'bar', 'beauty_salon',
-  'bicycle_store', 'book_store', 'bowling_alley', 'bus_station', 'cafe', 'campground', 'car_dealer', 'car_rental',
-  'car_repair', 'car_wash', 'casino', 'cemetery', 'church', 'city_hall', 'clothing_store', 'convenience_store',
-  'courthouse', 'dentist', 'department_store', 'doctor', 'drugstore', 'electrician', 'electronics_store', 'embassy',
-  'fire_station', 'florist', 'funeral_home', 'furniture_store', 'gas_station', 'gym', 'hair_care', 'hardware_store',
-  'hindu_temple', 'home_goods_store', 'hospital', 'insurance_agency', 'jewelry_store', 'laundry', 'lawyer', 'library',
-  'light_rail_station', 'liquor_store', 'local_government_office', 'locksmith', 'lodging', 'meal_delivery',
-  'meal_takeaway', 'mosque', 'movie_rental', 'movie_theater', 'moving_company', 'museum', 'night_club', 'painter',
-  'park', 'parking', 'pet_store', 'pharmacy', 'physiotherapist', 'plumber', 'police', 'post_office', 'primary_school',
-  'real_estate_agency', 'restaurant', 'roofing_contractor', 'rv_park', 'school', 'secondary_school', 'shoe_store',
-  'shopping_mall', 'spa', 'stadium', 'storage', 'store', 'subway_station', 'supermarket', 'synagogue', 'taxi_stand',
-  'tourist_attraction', 'train_station', 'transit_station', 'travel_agency', 'university', 'veterinary_care', 'zoo'
+  "accounting",
+  "airport",
+  "amusement_park",
+  "aquarium",
+  "art_gallery",
+  "atm",
+  "bakery",
+  "bank",
+  "bar",
+  "beauty_salon",
+  "bicycle_store",
+  "book_store",
+  "bowling_alley",
+  "bus_station",
+  "cafe",
+  "campground",
+  "car_dealer",
+  "car_rental",
+  "car_repair",
+  "car_wash",
+  "casino",
+  "cemetery",
+  "church",
+  "city_hall",
+  "clothing_store",
+  "convenience_store",
+  "courthouse",
+  "dentist",
+  "department_store",
+  "doctor",
+  "drugstore",
+  "electrician",
+  "electronics_store",
+  "embassy",
+  "fire_station",
+  "florist",
+  "funeral_home",
+  "furniture_store",
+  "gas_station",
+  "gym",
+  "hair_care",
+  "hardware_store",
+  "hindu_temple",
+  "home_goods_store",
+  "hospital",
+  "insurance_agency",
+  "jewelry_store",
+  "laundry",
+  "lawyer",
+  "library",
+  "light_rail_station",
+  "liquor_store",
+  "local_government_office",
+  "locksmith",
+  "lodging",
+  "meal_delivery",
+  "meal_takeaway",
+  "mosque",
+  "movie_rental",
+  "movie_theater",
+  "moving_company",
+  "museum",
+  "night_club",
+  "painter",
+  "park",
+  "parking",
+  "pet_store",
+  "pharmacy",
+  "physiotherapist",
+  "plumber",
+  "police",
+  "post_office",
+  "primary_school",
+  "real_estate_agency",
+  "restaurant",
+  "roofing_contractor",
+  "rv_park",
+  "school",
+  "secondary_school",
+  "shoe_store",
+  "shopping_mall",
+  "spa",
+  "stadium",
+  "storage",
+  "store",
+  "subway_station",
+  "supermarket",
+  "synagogue",
+  "taxi_stand",
+  "tourist_attraction",
+  "train_station",
+  "transit_station",
+  "travel_agency",
+  "university",
+  "veterinary_care",
+  "zoo",
 ];
 
 export async function POST(request: NextRequest) {
   try {
-    const { 
-      startingLocation, 
-      hourRange, 
-      numberOfPeople, 
+    const {
+      startingLocation,
+      hourRange,
+      numberOfPeople,
       radius,
       ageRange,
       budget,
@@ -31,7 +115,7 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
       eventDescription,
-      numberOfRoutes = 3 // Default to 3 routes
+      numberOfRoutes = 3, // Default to 3 routes
     } = await request.json();
 
     console.log("📍 Received multiple routes request:", {
@@ -52,7 +136,7 @@ export async function POST(request: NextRequest) {
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
         { success: false, error: "Starting location is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,18 +146,24 @@ export async function POST(request: NextRequest) {
     let selectedPlaceTypes: string[];
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
-      console.log(`🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(', ')}`);
-      
+      console.log(
+        `🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(", ")}`,
+      );
+
       // Additional validation - ensure no empty results
       if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
-        console.warn("⚠️ Gemini returned empty place types array, using generic defaults");
+        console.warn(
+          "⚠️ Gemini returned empty place types array, using generic defaults",
+        );
         selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
       }
     } catch (error) {
       console.error("❌ Failed to select place types with Gemini:", error);
       // Use more diverse defaults instead of restaurant-heavy ones
       selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
-      console.log(`🔄 Using fallback place types: ${selectedPlaceTypes.join(', ')}`);
+      console.log(
+        `🔄 Using fallback place types: ${selectedPlaceTypes.join(", ")}`,
+      );
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
@@ -87,7 +177,7 @@ export async function POST(request: NextRequest) {
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
         { success: false, error: "No places found in the specified area" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -100,7 +190,7 @@ export async function POST(request: NextRequest) {
       timestamp,
       searchLocation: startingLocation.location,
       searchRadius: radius,
-      placeType: 'multiple-routes-planning',
+      placeType: "multiple-routes-planning",
       eventParameters: {
         hourRange,
         numberOfPeople,
@@ -110,7 +200,7 @@ export async function POST(request: NextRequest) {
         startTime,
         endTime,
         eventDescription,
-        startingLocation
+        startingLocation,
       },
       searchMetadata: {
         totalFound: placesData.length,
@@ -126,11 +216,16 @@ export async function POST(request: NextRequest) {
     console.log(`💾 Saved places data to ${fileName}`);
 
     console.log(`📊 Original places data: ${placesData.length} places`);
-    console.log(`📝 Sample places:`, placesData.slice(0, 3).map(p => ({ name: p.displayName, type: p.placeType })));
+    console.log(
+      `📝 Sample places:`,
+      placesData
+        .slice(0, 3)
+        .map((p) => ({ name: p.displayName, type: p.placeType })),
+    );
 
     // Step 3: Generate multiple different route options using the same criteria
     const routes = [];
-    
+
     // Create shuffled versions of the places data for variety while maintaining quality
     const shuffledPlacesVersions = [];
     for (let i = 0; i < numberOfRoutes; i++) {
@@ -140,10 +235,10 @@ export async function POST(request: NextRequest) {
         .slice(0, Math.min(12, placesData.length)); // Take top 12 for selection variety
       shuffledPlacesVersions.push(shuffledPlaces);
     }
-    
+
     for (let i = 0; i < numberOfRoutes; i++) {
       console.log(`🛣️ Generating route option ${i + 1}/${numberOfRoutes}...`);
-      
+
       // Use different starting points in the shuffled data for variety
       const startIndex = i * 3; // Offset starting position for each route
       let filteredPlaces = shuffledPlacesVersions[i]
@@ -153,24 +248,28 @@ export async function POST(request: NextRequest) {
 
       // CRITICAL: Remove any duplicates from filtered places based on place ID
       filteredPlaces = filteredPlaces.filter(
-        (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+        (place, index, self) =>
+          index === self.findIndex((p) => p.id === place.id),
       );
 
       // If we don't have enough places, add more from the original data
       if (filteredPlaces.length < 3) {
         const additionalPlaces = placesData
-          .filter(p => !filteredPlaces.find(fp => fp.id === p.id))
+          .filter((p) => !filteredPlaces.find((fp) => fp.id === p.id))
           .sort((a, b) => (b.rating || 0) - (a.rating || 0))
           .slice(0, 6);
         filteredPlaces = [...filteredPlaces, ...additionalPlaces];
-        
+
         // Final deduplication after adding additional places
         filteredPlaces = filteredPlaces.filter(
-          (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+          (place, index, self) =>
+            index === self.findIndex((p) => p.id === place.id),
         );
       }
 
-      console.log(`✅ Selected ${filteredPlaces.length} unique venues for route option ${i + 1}`);
+      console.log(
+        `✅ Selected ${filteredPlaces.length} unique venues for route option ${i + 1}`,
+      );
 
       // Generate event plan for this route
       const eventPlan = await generateEventPlanWithGemini({
@@ -223,10 +322,10 @@ export async function POST(request: NextRequest) {
       };
 
       routes.push(routeData);
-      
+
       // Add delay between API calls to avoid rate limiting
       if (i < numberOfRoutes - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
@@ -261,7 +360,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to generate multiple routes. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -303,7 +402,7 @@ async function searchNearbyPlaces(params: {
             .map((place: any) => {
               // Use the actual place type from Google Places API instead of hardcoding
               const primaryType = placeType; // Use the search type as the primary type
-              
+
               return {
                 id: place.place_id,
                 displayName: place.name || `Unknown ${primaryType}`,
@@ -334,7 +433,8 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+      (place, index, self) =>
+        index === self.findIndex((p) => p.id === place.id),
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
@@ -357,15 +457,17 @@ async function generateEventPlanWithGemini(params: {
   budget?: number;
 }) {
   try {
-    console.log(`🤖 Starting Gemini event plan generation for route ${params.routeNumber}/${params.totalRoutes}`);
+    console.log(
+      `🤖 Starting Gemini event plan generation for route ${params.routeNumber}/${params.totalRoutes}`,
+    );
 
     if (!process.env.GEMINI_API_KEY) {
-      console.error('❌ GEMINI API key not found in environment variables');
+      console.error("❌ GEMINI API key not found in environment variables");
       return generateFallbackPlan(params);
     }
 
     const routeName = `Option ${params.routeNumber}`;
-    
+
     // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
     const systemInstruction = {
       parts: [
@@ -376,9 +478,9 @@ async function generateEventPlanWithGemini(params: {
           - Cultural and experiential insights
           - Logistical optimization for group travel
           
-          Always prioritize feasibility over idealism, ensuring all recommendations are practical and achievable within given constraints.`
-        }
-      ]
+          Always prioritize feasibility over idealism, ensuring all recommendations are practical and achievable within given constraints.`,
+        },
+      ],
     };
 
     const eventPlanPrompt = `
@@ -392,7 +494,7 @@ Create a unique and engaging plan that offers a different experience from the ot
 - **Duration**: ${params.hourRange} hours total
 - **Group Size**: ${params.numberOfPeople} people  
 - **Event Type**: ${params.eventDescription}
-- **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : 'Budget not specified - provide cost estimates'}
+- **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : "Budget not specified - provide cost estimates"}
 - **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
 - **Available Locations**: 
 ${JSON.stringify(params.places, null, 2)}
@@ -413,10 +515,10 @@ Before creating the itinerary, analyze:
 - Plan for group coordination needs
 
 ### 3. BUDGET CONSCIOUSNESS
-- Prioritize venues with appropriate price points for the ${params.budget ? `$${params.budget} per person budget` : 'specified budget range'}
-- ${params.budget ? `Ensure estimated costs stay within $${params.budget} per person (total group budget: $${params.budget * params.numberOfPeople})` : 'Suggest cost-effective alternatives when available'}
-- Consider group discounts but maintain per-person budget of ${params.budget ? `$${params.budget}` : 'specified amount'}
-- ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : 'Estimate total approximate costs per person'}
+- Prioritize venues with appropriate price points for the ${params.budget ? `$${params.budget} per person budget` : "specified budget range"}
+- ${params.budget ? `Ensure estimated costs stay within $${params.budget} per person (total group budget: $${params.budget * params.numberOfPeople})` : "Suggest cost-effective alternatives when available"}
+- Consider group discounts but maintain per-person budget of ${params.budget ? `$${params.budget}` : "specified amount"}
+- ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : "Estimate total approximate costs per person"}
 
 ## OUTPUT FORMAT
 Respond ONLY with a JSON object following this exact structure:
@@ -456,7 +558,7 @@ Respond ONLY with a JSON object following this exact structure:
 3. Verify venue names and addresses match the provided data exactly
 4. Calculate realistic travel times between locations
 5. Consider ${params.numberOfPeople} people for all logistics and costs
-6. ${params.budget ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person` : 'Provide realistic cost estimates for budget planning'}
+6. ${params.budget ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person` : "Provide realistic cost estimates for budget planning"}
 7. Create a distinctive and enjoyable route that offers variety from other options
 8. Include practical considerations like bathroom breaks, meal timing, etc.
 9. **NEVER include the same venue twice in the itinerary** - each venue must be unique within the plan
@@ -492,7 +594,7 @@ Begin analysis and create the JSON response now.`;
               threshold: "BLOCK_NONE",
             },
             {
-              category: "HARM_CATEGORY_HARASSMENT", 
+              category: "HARM_CATEGORY_HARASSMENT",
               threshold: "BLOCK_NONE",
             },
             {
@@ -505,7 +607,7 @@ Begin analysis and create the JSON response now.`;
             },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -526,7 +628,7 @@ Begin analysis and create the JSON response now.`;
     try {
       const parsedPlan = JSON.parse(responseText);
       console.log("✅ Gemini API call successful - JSON parsed");
-      
+
       // Convert structured JSON back to text format for compatibility with existing code
       return convertJsonPlanToText(parsedPlan);
     } catch (parseError) {
@@ -534,92 +636,99 @@ Begin analysis and create the JSON response now.`;
       console.log("Raw response:", responseText);
       return generateFallbackPlan(params);
     }
-
   } catch (error) {
     console.error("❌ Error in Gemini API call:", error);
     return generateFallbackPlan(params);
   }
 }
 
-
-
 // Helper function to convert structured JSON plan back to text format for compatibility
 function convertJsonPlanToText(parsedPlan: any): string {
   try {
-    let textPlan = '';
-    
+    let textPlan = "";
+
     // Add route description
     if (parsedPlan.routeDescription) {
-      textPlan += parsedPlan.routeDescription + '\n\n';
+      textPlan += parsedPlan.routeDescription + "\n\n";
     }
-    
+
     // Add budget and travel info if available
     if (parsedPlan.estimatedBudgetPerPerson || parsedPlan.totalTravelTime) {
-      textPlan += `Budget estimate: ${parsedPlan.estimatedBudgetPerPerson || 'Not specified'} per person\n`;
-      textPlan += `Total travel time: ${parsedPlan.totalTravelTime || 'Not specified'}\n\n`;
+      textPlan += `Budget estimate: ${parsedPlan.estimatedBudgetPerPerson || "Not specified"} per person\n`;
+      textPlan += `Total travel time: ${parsedPlan.totalTravelTime || "Not specified"}\n\n`;
     }
-    
+
     // Add itinerary with duplicate detection and removal
     if (parsedPlan.itinerary && Array.isArray(parsedPlan.itinerary)) {
       // Remove any duplicate venues from the itinerary as a safety check
       const seenVenues = new Set<string>();
       const uniqueItinerary = parsedPlan.itinerary.filter((item: any) => {
-        const venueKey = `${item.venueName || 'Unknown'}-${item.address || ''}`.toLowerCase();
+        const venueKey =
+          `${item.venueName || "Unknown"}-${item.address || ""}`.toLowerCase();
         if (seenVenues.has(venueKey)) {
-          console.warn(`🚨 Duplicate venue detected and removed from itinerary: ${item.venueName}`);
+          console.warn(
+            `🚨 Duplicate venue detected and removed from itinerary: ${item.venueName}`,
+          );
           return false;
         }
         seenVenues.add(venueKey);
         return true;
       });
-      
+
       uniqueItinerary.forEach((item: any, index: number) => {
-        textPlan += `${index + 1}. ${item.venueName || 'Unknown Venue'}`;
+        textPlan += `${index + 1}. ${item.venueName || "Unknown Venue"}`;
         if (item.address) {
           textPlan += ` - ${item.address}`;
         }
-        textPlan += '\n';
-        
+        textPlan += "\n";
+
         if (item.description) {
           textPlan += `   ${item.description}\n`;
         }
-        
+
         if (item.duration || item.estimatedCost) {
-          textPlan += `   Duration: ${item.duration || 'Not specified'} minutes`;
+          textPlan += `   Duration: ${item.duration || "Not specified"} minutes`;
           if (item.estimatedCost) {
             textPlan += ` | Cost: ${item.estimatedCost}`;
           }
-          textPlan += '\n';
+          textPlan += "\n";
         }
-        
-        textPlan += '\n';
+
+        textPlan += "\n";
       });
-      
+
       if (uniqueItinerary.length !== parsedPlan.itinerary.length) {
-        console.log(`✅ Removed ${parsedPlan.itinerary.length - uniqueItinerary.length} duplicate venues from itinerary`);
+        console.log(
+          `✅ Removed ${parsedPlan.itinerary.length - uniqueItinerary.length} duplicate venues from itinerary`,
+        );
       }
     }
-    
+
     // Add practical tips if available
-    if (parsedPlan.practicalTips && Array.isArray(parsedPlan.practicalTips) && parsedPlan.practicalTips.length > 0) {
-      textPlan += 'Practical Tips:\n';
+    if (
+      parsedPlan.practicalTips &&
+      Array.isArray(parsedPlan.practicalTips) &&
+      parsedPlan.practicalTips.length > 0
+    ) {
+      textPlan += "Practical Tips:\n";
       parsedPlan.practicalTips.forEach((tip: string) => {
         textPlan += `- ${tip}\n`;
       });
-      textPlan += '\n';
+      textPlan += "\n";
     }
-    
+
     // Add conclusion
     if (parsedPlan.conclusion) {
       textPlan += parsedPlan.conclusion;
     } else {
-      textPlan += 'I have created 3 different route options and you can edit each one. I can generate additional plans if needed.';
+      textPlan +=
+        "I have created 3 different route options and you can edit each one. I can generate additional plans if needed.";
     }
-    
+
     return textPlan;
   } catch (error) {
-    console.error('Error converting JSON plan to text:', error);
-    return 'Plan generated successfully but formatting error occurred. Please try regenerating the plan.';
+    console.error("Error converting JSON plan to text:", error);
+    return "Plan generated successfully but formatting error occurred. Please try regenerating the plan.";
   }
 }
 
@@ -636,12 +745,19 @@ function generateFallbackPlan(params: {
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
-  const { places, hourRange, numberOfPeople, eventDescription, routeNumber, totalRoutes } = params;
+  const {
+    places,
+    hourRange,
+    numberOfPeople,
+    eventDescription,
+    routeNumber,
+    totalRoutes,
+  } = params;
   const routeName = `Option ${routeNumber}`;
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
-  places.forEach(place => {
+  places.forEach((place) => {
     if (!placesByType[place.placeType]) {
       placesByType[place.placeType] = [];
     }
@@ -649,7 +765,7 @@ function generateFallbackPlan(params: {
   });
 
   // Sort places within each type by rating
-  Object.keys(placesByType).forEach(type => {
+  Object.keys(placesByType).forEach((type) => {
     placesByType[type].sort((a, b) => (b.rating || 0) - (a.rating || 0));
   });
 
@@ -659,45 +775,62 @@ function generateFallbackPlan(params: {
   // Select best places from each type, considering event duration
   if (hourRange >= 2 && availableTypes.length > 0) {
     // For longer events, try to include variety from different types
-    const placesPerType = Math.max(1, Math.floor(Math.min(8, hourRange) / availableTypes.length));
-    
-    availableTypes.forEach(type => {
+    const placesPerType = Math.max(
+      1,
+      Math.floor(Math.min(8, hourRange) / availableTypes.length),
+    );
+
+    availableTypes.forEach((type) => {
       const topPlacesOfType = placesByType[type].slice(0, placesPerType);
       selectedPlaces.push(...topPlacesOfType);
     });
   }
 
   // If we don't have enough places or for shorter events, just take the highest rated overall
-  if (selectedPlaces.length === 0 || selectedPlaces.length < Math.min(3, hourRange)) {
-    const allPlacesSorted = places.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  if (
+    selectedPlaces.length === 0 ||
+    selectedPlaces.length < Math.min(3, hourRange)
+  ) {
+    const allPlacesSorted = places.sort(
+      (a, b) => (b.rating || 0) - (a.rating || 0),
+    );
     const additionalPlaces = allPlacesSorted
-      .filter(p => !selectedPlaces.find(sp => sp.id === p.id))
+      .filter((p) => !selectedPlaces.find((sp) => sp.id === p.id))
       .slice(0, Math.max(3, Math.min(8, hourRange)) - selectedPlaces.length);
     selectedPlaces.push(...additionalPlaces);
   }
 
   // Limit to reasonable number of places based on time available
-  const finalPlaces = selectedPlaces.slice(0, Math.min(8, Math.max(2, hourRange)));
+  const finalPlaces = selectedPlaces.slice(
+    0,
+    Math.min(8, Math.max(2, hourRange)),
+  );
 
-  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${params.budget ? ` with a $${params.budget} per person budget` : ''}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${params.budget ? ` with a $${params.budget} per person budget` : ""}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
-${params.budget ? `Budget Overview: With $${params.budget} per person budget, that's a total of $${params.budget * numberOfPeople} for your group of ${numberOfPeople} people for this ${hourRange}-hour experience.
-
-` : ''}${finalPlaces
-  .map(
-    (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
-      place.formattedAddress || place.address || "Address not available"
-    }
-   ${place.rating 
-     ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities` 
-     : `Selected ${place.placeType} venue based on location and type`}
-   Estimated time: ${Math.floor(
-     hourRange / Math.max(finalPlaces.length, 1)
-   )} hour(s)
+${
+  params.budget
+    ? `Budget Overview: With $${params.budget} per person budget, that's a total of $${params.budget * numberOfPeople} for your group of ${numberOfPeople} people for this ${hourRange}-hour experience.
 
 `
-  )
-  .join("")}You can choose to edit your plan or make another one!`;
+    : ""
+}${finalPlaces
+    .map(
+      (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
+        place.formattedAddress || place.address || "Address not available"
+      }
+   ${
+     place.rating
+       ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities`
+       : `Selected ${place.placeType} venue based on location and type`
+   }
+   Estimated time: ${Math.floor(
+     hourRange / Math.max(finalPlaces.length, 1),
+   )} hour(s)
+
+`,
+    )
+    .join("")}You can choose to edit your plan or make another one!`;
 }
 
 // Helper function to extract locations from the generated plan with ordering
@@ -738,7 +871,8 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
 
     // Remove duplicates based on place ID (in case a venue is mentioned multiple times)
     const uniqueMatches = matches.filter(
-      (match, index, self) => index === self.findIndex((m) => m.place.id === match.place.id)
+      (match, index, self) =>
+        index === self.findIndex((m) => m.place.id === match.place.id),
     );
 
     // Add order number to each location
@@ -746,11 +880,13 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
       ...match.data,
       order: index + 1, // 1-based numbering
     }));
-    
+
     if (uniqueMatches.length !== matches.length) {
-      console.log(`✅ Removed ${matches.length - uniqueMatches.length} duplicate venue mentions from extracted locations`);
+      console.log(
+        `✅ Removed ${matches.length - uniqueMatches.length} duplicate venue mentions from extracted locations`,
+      );
     }
-    
+
     console.log("OrderedLocations:", orderedLocations);
 
     return orderedLocations;
@@ -760,9 +896,11 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
   }
 }
 
-async function selectPlaceTypesWithGemini(eventDescription: string): Promise<string[]> {
+async function selectPlaceTypesWithGemini(
+  eventDescription: string,
+): Promise<string[]> {
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
-  
+
   if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
     return ["tourist_attraction", "park", "museum"]; // Default to diverse types
@@ -779,7 +917,7 @@ You are an expert event planner. Analyze this event description and select the m
 EVENT DESCRIPTION: "${eventDescription}"
 
 AVAILABLE PLACE TYPES:
-${AVAILABLE_PLACE_TYPES.join(', ')}
+${AVAILABLE_PLACE_TYPES.join(", ")}
 
 SELECTION RULES:
 1. Choose 3-5 place types that best match the event theme and activities
@@ -807,85 +945,99 @@ Example format: ["restaurant", "park", "museum"]
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     console.log("🔄 Calling Gemini API for place type selection...");
-    
+
     const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: prompt }],
-              },
-            ],
-            generationConfig: {
-              maxOutputTokens: 100,
-              temperature: 0.3, // Lower temperature for more consistent results
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt }],
             },
-          }),
-        }
+          ],
+          generationConfig: {
+            maxOutputTokens: 100,
+            temperature: 0.3, // Lower temperature for more consistent results
+          },
+        }),
+      },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ Gemini API error for place types: ${response.status} - ${errorText}`);
+      console.error(
+        `❌ Gemini API error for place types: ${response.status} - ${errorText}`,
+      );
       throw new Error(`Gemini place type selection failed: ${response.status}`);
     }
 
-  const result = await response.json();
-  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    const result = await response.json();
+    const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
 
-  let selectedTypes: string[];
-  try {
-    // Handle markdown-wrapped JSON responses
-    let jsonText = rawText.trim();
-    
-    // Remove markdown code block markers if present
-    if (jsonText.startsWith("```json")) {
-      jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    } else if (jsonText.startsWith("```")) {
-      jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
-    }
-    
-    console.log("🔍 Extracted JSON text for parsing:", jsonText);
-    
-    const parsed = JSON.parse(jsonText);
-    // Validate that it's an array of strings
-    if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-      selectedTypes = parsed;
-      console.log("✅ Successfully parsed Gemini place types:", selectedTypes);
-    } else {
-      console.warn("Gemini returned invalid format for place types:", rawText);
+    let selectedTypes: string[];
+    try {
+      // Handle markdown-wrapped JSON responses
+      let jsonText = rawText.trim();
+
+      // Remove markdown code block markers if present
+      if (jsonText.startsWith("```json")) {
+        jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (jsonText.startsWith("```")) {
+        jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
+
+      console.log("🔍 Extracted JSON text for parsing:", jsonText);
+
+      const parsed = JSON.parse(jsonText);
+      // Validate that it's an array of strings
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((item) => typeof item === "string")
+      ) {
+        selectedTypes = parsed;
+        console.log(
+          "✅ Successfully parsed Gemini place types:",
+          selectedTypes,
+        );
+      } else {
+        console.warn(
+          "Gemini returned invalid format for place types:",
+          rawText,
+        );
+        selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
+      }
+    } catch (e) {
+      console.warn("Gemini returned non-JSON output for place types:", rawText);
+      console.warn("JSON parsing error:", e);
       selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
     }
-  } catch (e) {
-    console.warn("Gemini returned non-JSON output for place types:", rawText);
-    console.warn("JSON parsing error:", e);
-    selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
-  }
 
-  // Validate and filter selected types
-  const validSelectedTypes = selectedTypes.filter(type => 
-    AVAILABLE_PLACE_TYPES.includes(type)
-  );
-  
-  if (validSelectedTypes.length === 0) {
-    console.warn("No valid place types selected by Gemini, using defaults");
-    return ["tourist_attraction", "park", "museum"];
-  }
+    // Validate and filter selected types
+    const validSelectedTypes = selectedTypes.filter((type) =>
+      AVAILABLE_PLACE_TYPES.includes(type),
+    );
 
-  // Ensure we only have up to 5 unique types
-  const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
-  if (uniqueSelectedTypes.length > 5) {
-    console.warn(`Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes.slice(0, 5).join(', ')}`);
-    return uniqueSelectedTypes.slice(0, 5);
-  }
+    if (validSelectedTypes.length === 0) {
+      console.warn("No valid place types selected by Gemini, using defaults");
+      return ["tourist_attraction", "park", "museum"];
+    }
 
-  console.log(`✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(', ')}`);
-  return uniqueSelectedTypes;
-  
+    // Ensure we only have up to 5 unique types
+    const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
+    if (uniqueSelectedTypes.length > 5) {
+      console.warn(
+        `Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes.slice(0, 5).join(", ")}`,
+      );
+      return uniqueSelectedTypes.slice(0, 5);
+    }
+
+    console.log(
+      `✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(", ")}`,
+    );
+    return uniqueSelectedTypes;
   } catch (error) {
     console.error("❌ Error in place type selection:", error);
     // Return default types on any error

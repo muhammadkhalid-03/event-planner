@@ -64,7 +64,7 @@ export default function MapView() {
         }
       }
     },
-    [mapRef, setSelectedLocation]
+    [mapRef, setSelectedLocation],
   );
 
   const mapLoadedRef = useRef(false);
@@ -87,7 +87,7 @@ export default function MapView() {
         }
       }
     },
-    [setMapRef]
+    [setMapRef],
   ); // Keep dependencies minimal
 
   // Reset directions when locations change

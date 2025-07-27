@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     if (!plan || !email) {
       return NextResponse.json(
         { success: false, error: "Plan and email are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
 
     // For now, we'll simulate email sending
     // In a real implementation, you would integrate with a service like SendGrid, Mailgun, etc.
-    
+
     // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("✅ Email sent successfully (simulated)");
     console.log("📄 Plan content:", plan.substring(0, 100) + "...");
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to send email. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

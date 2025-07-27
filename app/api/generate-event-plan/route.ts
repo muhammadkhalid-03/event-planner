@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
         { success: false, error: "Starting location is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -144,22 +144,30 @@ export async function POST(request: NextRequest) {
     let selectedPlaceTypes: string[];
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
-      console.log(`🤖 Gemini selected place types: ${selectedPlaceTypes.join(', ')}`);
-      
+      console.log(
+        `🤖 Gemini selected place types: ${selectedPlaceTypes.join(", ")}`,
+      );
+
       // Additional validation - ensure no empty results
       if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
-        console.warn("⚠️ Gemini returned empty place types array, using generic defaults");
+        console.warn(
+          "⚠️ Gemini returned empty place types array, using generic defaults",
+        );
         selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
       }
     } catch (error) {
       console.error("❌ Failed to select place types with Gemini:", error);
       // Use more diverse defaults instead of restaurant-heavy ones
       selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
-      console.log(`🔄 Using fallback place types: ${selectedPlaceTypes.join(', ')}`);
+      console.log(
+        `🔄 Using fallback place types: ${selectedPlaceTypes.join(", ")}`,
+      );
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
-    console.log(`🔍 Searching for places using ONLY these AI-selected types: [${selectedPlaceTypes.join(', ')}]`);
+    console.log(
+      `🔍 Searching for places using ONLY these AI-selected types: [${selectedPlaceTypes.join(", ")}]`,
+    );
     const placesData = await searchNearbyPlaces({
       latitude: startingLocation.location.lat,
       longitude: startingLocation.location.lng,
@@ -169,21 +177,27 @@ export async function POST(request: NextRequest) {
 
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `No ${selectedPlaceTypes.join(', ')} found in the specified area. Try expanding your search radius or modifying your event description.`,
+        {
+          success: false,
+          error: `No ${selectedPlaceTypes.join(", ")} found in the specified area. Try expanding your search radius or modifying your event description.`,
           searchedPlaceTypes: selectedPlaceTypes,
-          searchRadius: radius
+          searchRadius: radius,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
-    console.log(`📋 Place types breakdown:`, placesData.reduce((acc, place) => {
-      acc[place.placeType] = (acc[place.placeType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>));
+    console.log(
+      `📋 Place types breakdown:`,
+      placesData.reduce(
+        (acc, place) => {
+          acc[place.placeType] = (acc[place.placeType] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+    );
 
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
@@ -227,13 +241,13 @@ export async function POST(request: NextRequest) {
       endTime,
     });
     console.log(
-      `🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`
+      `🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`,
     );
 
     let eventPlan;
     if (filteredPlaces.length === 0) {
       console.warn(
-        "⚠️ No places passed the Gemini filter, using original places for event planning"
+        "⚠️ No places passed the Gemini filter, using original places for event planning",
       );
       // Use original places if filtering removed everything
       eventPlan = await generateEventPlanWithGemini({
@@ -288,7 +302,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to generate event plan. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -302,7 +316,9 @@ async function searchNearbyPlaces(params: {
 }) {
   try {
     console.log("🔍 Searching for nearby places using Google Places API...");
-    console.log(`📋 Will search for EXACTLY these place types: [${params.placeTypes.join(', ')}]`);
+    console.log(
+      `📋 Will search for EXACTLY these place types: [${params.placeTypes.join(", ")}]`,
+    );
 
     // Import Google Places library (this is server-side, so we use a different approach)
     // For server-side implementation, we'll call the Places API directly via HTTP
@@ -316,21 +332,27 @@ async function searchNearbyPlaces(params: {
     // Search for each place type separately to ensure we get results for each category
     for (const placeType of params.placeTypes) {
       try {
-        console.log(`🔍 Searching Google Places API for place type: "${placeType}"`);
+        console.log(
+          `🔍 Searching Google Places API for place type: "${placeType}"`,
+        );
         // Use the simpler Nearby Search endpoint that's more reliable
         const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${params.latitude},${params.longitude}&radius=${params.radiusInMeters}&type=${placeType}&key=${apiKey}`;
 
         const response = await fetch(url);
 
         if (!response.ok) {
-          console.warn(`❌ Error searching for ${placeType}: ${response.status}`);
+          console.warn(
+            `❌ Error searching for ${placeType}: ${response.status}`,
+          );
           continue;
         }
 
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
-          console.log(`✅ Found ${data.results.length} places for type "${placeType}"`);
+          console.log(
+            `✅ Found ${data.results.length} places for type "${placeType}"`,
+          );
         } else {
           console.log(`⚠️ No places found for type "${placeType}"`);
         }
@@ -360,7 +382,9 @@ async function searchNearbyPlaces(params: {
                 detailsFetchedAt: new Date().toISOString(),
               };
 
-              console.log(`📍 Found "${formattedPlace.displayName}" categorized as "${primaryType}" with Google types: [${place.types?.join(', ') || 'none'}]`);
+              console.log(
+                `📍 Found "${formattedPlace.displayName}" categorized as "${primaryType}" with Google types: [${place.types?.join(", ") || "none"}]`,
+              );
               return formattedPlace;
             });
 
@@ -376,19 +400,24 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+      (place, index, self) =>
+        index === self.findIndex((p) => p.id === place.id),
     );
 
     // Validate that we only have places of the requested types
-    const validPlaces = uniquePlaces.filter(place => 
-      params.placeTypes.includes(place.placeType)
+    const validPlaces = uniquePlaces.filter((place) =>
+      params.placeTypes.includes(place.placeType),
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
-    console.log(`✅ Validated ${validPlaces.length} places match requested types: [${params.placeTypes.join(', ')}]`);
-    
+    console.log(
+      `✅ Validated ${validPlaces.length} places match requested types: [${params.placeTypes.join(", ")}]`,
+    );
+
     if (validPlaces.length < uniquePlaces.length) {
-      console.warn(`⚠️ Filtered out ${uniquePlaces.length - validPlaces.length} places that didn't match requested types`);
+      console.warn(
+        `⚠️ Filtered out ${uniquePlaces.length - validPlaces.length} places that didn't match requested types`,
+      );
     }
 
     return validPlaces;
@@ -421,12 +450,12 @@ async function filterPlacesWithGemini(params: {
 
   console.log(`🔍 Starting Gemini filtering with ${places.length} places`);
   console.log(
-    `📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`
+    `📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`,
   );
 
   if (!process.env.GEMINI_API_KEY) {
     console.warn(
-      "⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places"
+      "⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places",
     );
     return places;
   }
@@ -473,7 +502,7 @@ Return JSON array of IDs like:
           temperature: 0.4,
         },
       }),
-    }
+    },
   );
 
   if (!response.ok)
@@ -494,11 +523,11 @@ Return JSON array of IDs like:
   const filteredPlaces = places.filter((p) => allowedIds.has(p.id));
 
   console.log(
-    `✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`
+    `✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`,
   );
   console.log(
     `📍 Selected places:`,
-    filteredPlaces.map((p) => ({ name: p.displayName, type: p.placeType }))
+    filteredPlaces.map((p) => ({ name: p.displayName, type: p.placeType })),
   );
 
   return filteredPlaces;
@@ -613,7 +642,7 @@ CRITICAL REQUIREMENTS:
             },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -635,7 +664,7 @@ CRITICAL REQUIREMENTS:
     const result = await response.json();
     console.log(
       `📥 Gemini API response received. Response structure:`,
-      Object.keys(result)
+      Object.keys(result),
     );
 
     // Extract response text from Gemini's structure
@@ -649,7 +678,7 @@ CRITICAL REQUIREMENTS:
 
     console.log("✅ Gemini API call successful");
     console.log(
-      `📄 Generated event plan preview: ${responseText.substring(0, 200)}...`
+      `📄 Generated event plan preview: ${responseText.substring(0, 200)}...`,
     );
     return responseText;
   } catch (error) {
@@ -685,7 +714,7 @@ function generateFallbackPlan(params: {
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
-  places.forEach(place => {
+  places.forEach((place) => {
     if (!placesByType[place.placeType]) {
       placesByType[place.placeType] = [];
     }
@@ -693,7 +722,7 @@ function generateFallbackPlan(params: {
   });
 
   // Sort places within each type by rating
-  Object.keys(placesByType).forEach(type => {
+  Object.keys(placesByType).forEach((type) => {
     placesByType[type].sort((a, b) => (b.rating || 0) - (a.rating || 0));
   });
 
@@ -703,25 +732,36 @@ function generateFallbackPlan(params: {
   // Select best places from each type, considering event duration
   if (hourRange >= 2 && availableTypes.length > 0) {
     // For longer events, try to include variety from different types
-    const placesPerType = Math.max(1, Math.floor(Math.min(8, hourRange) / availableTypes.length));
-    
-    availableTypes.forEach(type => {
+    const placesPerType = Math.max(
+      1,
+      Math.floor(Math.min(8, hourRange) / availableTypes.length),
+    );
+
+    availableTypes.forEach((type) => {
       const topPlacesOfType = placesByType[type].slice(0, placesPerType);
       selectedPlaces.push(...topPlacesOfType);
     });
   }
 
   // If we don't have enough places or for shorter events, just take the highest rated overall
-  if (selectedPlaces.length === 0 || selectedPlaces.length < Math.min(3, hourRange)) {
-    const allPlacesSorted = places.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  if (
+    selectedPlaces.length === 0 ||
+    selectedPlaces.length < Math.min(3, hourRange)
+  ) {
+    const allPlacesSorted = places.sort(
+      (a, b) => (b.rating || 0) - (a.rating || 0),
+    );
     const additionalPlaces = allPlacesSorted
-      .filter(p => !selectedPlaces.find(sp => sp.id === p.id))
+      .filter((p) => !selectedPlaces.find((sp) => sp.id === p.id))
       .slice(0, Math.max(3, Math.min(8, hourRange)) - selectedPlaces.length);
     selectedPlaces.push(...additionalPlaces);
   }
 
   // Limit to reasonable number of places based on time available
-  const finalPlaces = selectedPlaces.slice(0, Math.min(8, Math.max(2, hourRange)));
+  const finalPlaces = selectedPlaces.slice(
+    0,
+    Math.min(8, Math.max(2, hourRange)),
+  );
 
   return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
@@ -736,10 +776,10 @@ ${finalPlaces
        : `Selected ${place.placeType} venue based on location and type`
    }
    Estimated time: ${Math.floor(
-     hourRange / Math.max(finalPlaces.length, 1)
+     hourRange / Math.max(finalPlaces.length, 1),
    )} hour(s)
 
-`
+`,
   )
   .join("")}You can choose to edit your plan or make another one!`;
 }
@@ -795,7 +835,7 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
 }
 
 async function selectPlaceTypesWithGemini(
-  eventDescription: string
+  eventDescription: string,
 ): Promise<string[]> {
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
 
@@ -861,13 +901,13 @@ Example format: ["restaurant", "park", "museum"]
             temperature: 0.3, // Lower temperature for more consistent results
           },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(
-        `❌ Gemini API error for place types: ${response.status} - ${errorText}`
+        `❌ Gemini API error for place types: ${response.status} - ${errorText}`,
       );
       throw new Error(`Gemini place type selection failed: ${response.status}`);
     }
@@ -879,23 +919,32 @@ Example format: ["restaurant", "park", "museum"]
     try {
       // Handle markdown-wrapped JSON responses
       let jsonText = rawText.trim();
-      
+
       // Remove markdown code block markers if present
       if (jsonText.startsWith("```json")) {
         jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
       } else if (jsonText.startsWith("```")) {
         jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
       }
-      
+
       console.log("🔍 Extracted JSON text for parsing:", jsonText);
-      
+
       const parsed = JSON.parse(jsonText);
       // Validate that it's an array of strings
-      if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((item) => typeof item === "string")
+      ) {
         selectedTypes = parsed;
-        console.log("✅ Successfully parsed Gemini place types:", selectedTypes);
+        console.log(
+          "✅ Successfully parsed Gemini place types:",
+          selectedTypes,
+        );
       } else {
-        console.warn("Gemini returned invalid format for place types:", rawText);
+        console.warn(
+          "Gemini returned invalid format for place types:",
+          rawText,
+        );
         selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
       }
     } catch (e) {
@@ -905,10 +954,10 @@ Example format: ["restaurant", "park", "museum"]
     }
 
     // Validate and filter selected types
-    const validSelectedTypes = selectedTypes.filter(type => 
-      AVAILABLE_PLACE_TYPES.includes(type)
+    const validSelectedTypes = selectedTypes.filter((type) =>
+      AVAILABLE_PLACE_TYPES.includes(type),
     );
-    
+
     if (validSelectedTypes.length === 0) {
       console.warn("No valid place types selected by Gemini, using defaults");
       return ["tourist_attraction", "park", "museum"];
@@ -920,7 +969,7 @@ Example format: ["restaurant", "park", "museum"]
       console.warn(
         `Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes
           .slice(0, 5)
-          .join(", ")}`
+          .join(", ")}`,
       );
       return uniqueSelectedTypes.slice(0, 5);
     }
@@ -928,7 +977,7 @@ Example format: ["restaurant", "park", "museum"]
     console.log(
       `✅ Gemini selected ${
         uniqueSelectedTypes.length
-      } valid place types: ${uniqueSelectedTypes.join(", ")}`
+      } valid place types: ${uniqueSelectedTypes.join(", ")}`,
     );
     return uniqueSelectedTypes;
   } catch (error) {
