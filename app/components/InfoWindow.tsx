@@ -13,7 +13,7 @@ const isGooglePlaceId = (id: string | undefined): boolean => {
       (id.startsWith("ChIJ") ||
         id.startsWith("GhIJ") ||
         id.startsWith("EhIJ") ||
-        id.startsWith("EkIJ"))
+        id.startsWith("EkIJ")),
   );
 };
 
@@ -21,7 +21,7 @@ const isGooglePlaceId = (id: string | undefined): boolean => {
 const fetchPlacePhotos = async (placeId: string): Promise<string[]> => {
   try {
     const { Place } = (await google.maps.importLibrary(
-      "places"
+      "places",
     )) as google.maps.PlacesLibrary;
 
     const place = new Place({
@@ -80,13 +80,13 @@ const PhotoGallery: React.FC<{ placeId: string }> = ({ placeId }) => {
 
   const nextPhoto = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === photos.length - 1 ? 0 : prevIndex + 1
+      prevIndex === photos.length - 1 ? 0 : prevIndex + 1,
     );
   };
 
   const prevPhoto = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? photos.length - 1 : prevIndex - 1
+      prevIndex === 0 ? photos.length - 1 : prevIndex - 1,
     );
   };
 

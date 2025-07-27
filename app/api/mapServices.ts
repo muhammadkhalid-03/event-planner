@@ -52,7 +52,7 @@ export async function getRoute(sourceData: LatLng, waypoints: Waypoint[]) {
   try {
     const response = await axios.post(url, data, { headers });
     const decodedPolyline = decode(
-      response.data.routes[0].polyline.encodedPolyline
+      response.data.routes[0].polyline.encodedPolyline,
     ); // returns an array of [lat, lng] tuples
     const path = decodedPolyline.map(([lat, lng]) => ({ lat, lng }));
     return path;

@@ -18,7 +18,7 @@ export const PlacesSearch: React.FC = () => {
   } | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailedPlaces, setDetailedPlaces] = useState<DetailedPlaceResult[]>(
-    []
+    [],
   );
   const [selectedPlaceTypes, setSelectedPlaceTypes] = useState<string[]>([
     "restaurant",
@@ -41,11 +41,11 @@ export const PlacesSearch: React.FC = () => {
 
   const fetchPlaceDetails = async (
     placeId: string,
-    placeType: string
+    placeType: string,
   ): Promise<DetailedPlaceResult | null> => {
     try {
       const { Place } = (await google.maps.importLibrary(
-        "places"
+        "places",
       )) as google.maps.PlacesLibrary;
 
       // Create a new Place instance with the place ID
@@ -146,7 +146,7 @@ export const PlacesSearch: React.FC = () => {
 
       // Fetch detailed information for each place
       console.log(
-        `Fetching details for ${filteredPlaces.length} ${placeTypeFilter} places...`
+        `Fetching details for ${filteredPlaces.length} ${placeTypeFilter} places...`,
       );
       const detailedPlaces: DetailedPlaceResult[] = [];
 
@@ -155,7 +155,7 @@ export const PlacesSearch: React.FC = () => {
         console.log(
           `Fetching details for ${place.displayName} (${i + 1}/${
             filteredPlaces.length
-          })`
+          })`,
         );
 
         const details = await fetchPlaceDetails(place.id, place.placeType);
@@ -173,7 +173,7 @@ export const PlacesSearch: React.FC = () => {
       setDetailedPlaces((prev) => {
         // Remove existing places of the same type and add new ones
         const filtered = prev.filter(
-          (p) => p.placeType !== placeTypeFilter || placeTypeFilter === "all"
+          (p) => p.placeType !== placeTypeFilter || placeTypeFilter === "all",
         );
         return [...filtered, ...detailedPlaces];
       });
@@ -212,7 +212,7 @@ export const PlacesSearch: React.FC = () => {
 
       if (result.success) {
         console.log(
-          `Successfully saved ${detailedPlaces.length} ${placeTypeFilter} places with detailed information`
+          `Successfully saved ${detailedPlaces.length} ${placeTypeFilter} places with detailed information`,
         );
         console.log(result.message);
       } else {
@@ -249,7 +249,7 @@ export const PlacesSearch: React.FC = () => {
               reject(new Error("Geocoding failed: " + status));
             }
           });
-        }
+        },
       );
 
       if (result.length > 0) {
@@ -303,9 +303,9 @@ export const PlacesSearch: React.FC = () => {
         (error) => {
           console.error("Geolocation error:", error);
           alert(
-            "Failed to get current location. Please enter an address manually."
+            "Failed to get current location. Please enter an address manually.",
           );
-        }
+        },
       );
     } else {
       alert("Geolocation is not supported by this browser.");
@@ -313,21 +313,27 @@ export const PlacesSearch: React.FC = () => {
   };
 
   // Group places by type for display
-  const groupedPlaces = places.reduce((acc, place) => {
-    if (!acc[place.placeType]) {
-      acc[place.placeType] = [];
-    }
-    acc[place.placeType].push(place);
-    return acc;
-  }, {} as Record<string, typeof places>);
+  const groupedPlaces = places.reduce(
+    (acc, place) => {
+      if (!acc[place.placeType]) {
+        acc[place.placeType] = [];
+      }
+      acc[place.placeType].push(place);
+      return acc;
+    },
+    {} as Record<string, typeof places>,
+  );
 
-  const groupedDetailedPlaces = detailedPlaces.reduce((acc, place) => {
-    if (!acc[place.placeType]) {
-      acc[place.placeType] = [];
-    }
-    acc[place.placeType].push(place);
-    return acc;
-  }, {} as Record<string, typeof detailedPlaces>);
+  const groupedDetailedPlaces = detailedPlaces.reduce(
+    (acc, place) => {
+      if (!acc[place.placeType]) {
+        acc[place.placeType] = [];
+      }
+      acc[place.placeType].push(place);
+      return acc;
+    },
+    {} as Record<string, typeof detailedPlaces>,
+  );
 
   const getPlaceTypeIcon = (type: string) => {
     switch (type) {
@@ -429,8 +435,8 @@ export const PlacesSearch: React.FC = () => {
             {isSearching
               ? "Searching..."
               : isLoadingDetails
-              ? "Loading Details..."
-              : "Search Places"}
+                ? "Loading Details..."
+                : "Search Places"}
           </button>
 
           <button

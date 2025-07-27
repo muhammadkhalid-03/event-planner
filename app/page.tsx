@@ -106,7 +106,7 @@ export default function Home() {
   const { locations, drawerOpen, setDrawerOpen, setLocations } =
     usePlacesStore();
   const [eventPlanData, setEventPlanData] = useState<EventPlanData | null>(
-    null
+    null,
   );
   useEffect(() => {
     if (locations.length > 0) {
@@ -142,7 +142,7 @@ export default function Home() {
       setEventPlanData(newRoutes[0]); // Set the first route as current
 
       console.log(
-        `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`
+        `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`,
       );
     } else {
       // Fallback to single route behavior
@@ -350,7 +350,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto p-4">
           {apiIsLoaded && <LocationForm onSubmit={handleEventPlanSubmit} />}
         </div>
-        </div>
-      </main>
+      </div>
+    </main>
   );
 }
