@@ -9,6 +9,7 @@ import usePlacesAutocomplete, {
 } from "use-places-autocomplete";
 import { usePlacesStore } from "../stores/placesStore";
 import { sendEmail } from "../utils/send-email";
+import { Resend } from "resend";
 
 interface LocationData {
   country: string;
@@ -25,8 +26,8 @@ interface EventPlanData {
   budget: number;
   eventDescription: string;
   eventDate: string;
-   startTime: string;
-   endTime: string;
+  startTime: string;
+  endTime: string;
   suggestedPlan: string;
   plannedLocations?: Array<{
     id: string;
@@ -110,10 +111,9 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     location: defaultLocation,
   });
 
-
   const [eventDate, setEventDate] = useState<string>("");
-  const[startTime, setStartTime] = useState<string>("");
-  const[endTime, setEndTime] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [radius, setRadius] = useState<number>(1000);
   const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
@@ -150,14 +150,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       return;
     }
 
-    if(!eventDate || !startTime || !endTime){
+    if (!eventDate || !startTime || !endTime) {
       setPlanError("Please select a valid event date and time");
       return;
     }
 
     const start = new Date(`${eventDate} ${startTime}`);
     const end = new Date(`${eventDate} ${endTime}`);
-    const hourRange = Math.max(Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)), 0);
+    const hourRange = Math.max(
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)),
+      0
+    );
 
     setIsGeneratingPlan(true);
     setPlanError(null);
@@ -247,8 +250,10 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     setIsSendingEmail(true);
     try {
       await sendEmail({ plan: suggestedPlan, email: userEmail });
+      alert("Email sent");
     } catch (error) {
       console.error("Error sending email:", error);
+      alert("Failed to send email. Please try again.");
     } finally {
       setIsSendingEmail(false);
     }
@@ -347,11 +352,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             Event Date
           </label>
           <input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            type="date"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
@@ -361,11 +366,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
               Start Time
             </label>
             <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -374,11 +379,11 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
               End Time
             </label>
             <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
