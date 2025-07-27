@@ -93,6 +93,12 @@ export default function MapView() {
     setDirectionsResponse(null);
   }, [locations]);
 
+  // Reset street view when locations change (new route generated)
+  useEffect(() => {
+    setStreetViewVisible(false);
+    setSelectedLocation(null); // Also clear selected location for clean state
+  }, [locations, setSelectedLocation]);
+
   // Existing effect to trigger directions request
   useEffect(() => {
     if (
