@@ -119,6 +119,7 @@ export default function Home() {
 
   // Handle new event plan
   const handleEventPlanSubmit = (data: EventPlanData) => {
+    // If we have multiple routes from the new API, replace the carousel
     if (data.allRoutes && data.allRoutes.length > 0) {
       const newRoutes = data.allRoutes.map((route, index) => ({
         startingLocation: data.startingLocation,
@@ -137,21 +138,29 @@ export default function Home() {
         routeName: route.routeName,
       }));
 
-      setRoutes((prev) => [...prev, ...newRoutes]);
-      setCurrentRouteIndex(routes.length); // Set to the first new route
+      setRoutes(newRoutes); // REPLACE instead of append
+      setCurrentRouteIndex(0); // Always start at the first new route
       setEventPlanData(newRoutes[0]); // Set the first route as current
 
       console.log(
-        `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`,
+        `📍 Replaced with ${newRoutes.length} new route options in carousel.`,
       );
     } else {
       // Fallback to single route behavior
-      setRoutes((prev) => [...prev, data]);
-      setCurrentRouteIndex(routes.length);
-      setCurrentLocationIndex(0);
+      setRoutes([data]);
+      setCurrentRouteIndex(0);
+      setEventPlanData(data);
     }
 
-    if (data.plannedLocations) setLocations(data.plannedLocations);
+    if (data.plannedLocations && data.plannedLocations.length > 0) {
+      console.log(
+        `📍 Displaying ${data.plannedLocations.length} planned locations on map`,
+      );
+    }
+
+    if (data.placesFound) {
+      console.log(`🔍 Found ${data.placesFound} total places in the area`);
+    }
   };
 
   // Switch between different routes (plans)

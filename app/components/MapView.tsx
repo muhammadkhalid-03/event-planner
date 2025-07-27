@@ -64,7 +64,7 @@ export default function MapView() {
         }
       }
     },
-    [mapRef, setSelectedLocation],
+    [mapRef, setSelectedLocation]
   );
 
   const mapLoadedRef = useRef(false);
@@ -84,8 +84,8 @@ export default function MapView() {
         }
       }
     },
-    [setMapRef],
-  );
+    [setMapRef]
+  ); // Keep dependencies minimal
 
   // Reset directions when locations change
   useEffect(() => {
@@ -227,14 +227,14 @@ export default function MapView() {
               position={
                 new google.maps.LatLng(
                   selectedLocation.location.lat,
-                  selectedLocation.location.lng,
+                  selectedLocation.location.lng
                 )
               }
               onClose={() => setSelectedLocation(null)}
               index={locations.findIndex(
                 (loc) =>
                   loc.location.lat === selectedLocation.location.lat &&
-                  loc.location.lng === selectedLocation.location.lng,
+                  loc.location.lng === selectedLocation.location.lng
               )}
               onStreetView={() => {
                 setSelectedLocation(selectedLocation);

@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
         plannedLocations,
         placesFound: placesData.length,
         routeNumber: i + 1,
-        routeName: `Option ${i + 1}`,
+        routeName: `Planned Route ${i + 1}`,
         metadata: {
           timestamp,
           searchLocation: startingLocation.location,
@@ -464,8 +464,8 @@ async function generateEventPlanWithGemini(params: {
       return generateFallbackPlan(params);
     }
 
-    const routeName = `Option ${params.routeNumber}`;
-
+    const routeName = `Planned Route ${params.routeNumber}`;
+    
     // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
     const systemInstruction = {
       parts: [
@@ -485,8 +485,8 @@ async function generateEventPlanWithGemini(params: {
 # TRAVEL PLANNING TASK
 
 ## ROUTE CONTEXT
-Route Option ${params.routeNumber} of ${params.totalRoutes}
-Create a unique and engaging plan that offers a different experience from the other route options.
+        Planned Route ${params.routeNumber} of ${params.totalRoutes}
+        Create a unique and engaging plan that offers a different experience from the other planned routes.
 
 ## INPUT PARAMETERS
 - **Duration**: ${params.hourRange} hours total
@@ -547,7 +547,7 @@ Respond ONLY with a JSON object following this exact structure:
   "practicalTips": [
     "specific advice for this route and group size"
   ],
-  "conclusion": "I have created 3 different route options and you can edit each one. I can generate additional plans if needed."
+          "conclusion": "I have created 3 different planned routes and you can edit each one. I can generate additional plans if needed."
 }
 
 ## CRITICAL INSTRUCTIONS
@@ -720,8 +720,7 @@ function convertJsonPlanToText(parsedPlan: any): string {
     if (parsedPlan.conclusion) {
       textPlan += parsedPlan.conclusion;
     } else {
-      textPlan +=
-        "I have created 3 different route options and you can edit each one. I can generate additional plans if needed.";
+      textPlan += 'I have created 3 different planned routes and you can edit each one. I can generate additional plans if needed.';
     }
 
     return textPlan;
@@ -752,7 +751,7 @@ function generateFallbackPlan(params: {
     routeNumber,
     totalRoutes,
   } = params;
-  const routeName = `Option ${routeNumber}`;
+  const routeName = `Planned Route ${routeNumber}`;
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
@@ -824,7 +823,7 @@ ${
        : `Selected ${place.placeType} venue based on location and type`
    }
    Estimated time: ${Math.floor(
-     hourRange / Math.max(selectedPlaces.length, 1),
+     hourRange / Math.max(finalPlaces.length, 1),
    )} hour(s)
 
 `,
