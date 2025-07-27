@@ -35,7 +35,18 @@ interface PlacesStoreState {
 
 interface PlacesStore {
   locations: PlannedLocation[];
-  setLocations: (locations: PlannedLocation[]) => void;
+  setLocations: (locations: Array<{
+      id: string;
+      name: string;
+      location: { lat: number; lng: number };
+      type: string;
+      address?: string;
+      rating?: number;
+      order?: number;
+      tags?: string[];
+      user_rating_total?: number;
+      price_level?: number
+  }>) => void;
   plannedLocations: PlannedLocation[];
   setPlannedLocations: (locations: PlannedLocation[]) => void;
   selectedLocation: PlannedLocation | null;

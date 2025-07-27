@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-// Available place types from Google Places API
+
 const AVAILABLE_PLACE_TYPES = [
   "accounting",
   "airport",
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       numberOfRoutes = 3, // Default to 3 routes
     } = await request.json();
 
-    console.log("📍 Received multiple routes request:", {
+    console.log("Received multiple routes request:", {
       startingLocation,
       hourRange,
       numberOfPeople,
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       numberOfRoutes,
     });
 
-    // Validate required inputs
+
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
         { success: false, error: "Starting location is required" },
@@ -415,7 +415,7 @@ async function searchNearbyPlaces(params: {
                 userRatingCount: place.user_ratings_total,
                 priceLevel: place.price_level,
                 types: place.types || [],
-                placeType: primaryType, // This now reflects the actual AI-selected type
+                placeType: primaryType,
                 businessStatus: place.business_status,
                 photos: place.photos,
                 detailsFetchedAt: new Date().toISOString(),
@@ -825,7 +825,7 @@ ${
        : `Selected ${place.placeType} venue based on location and type`
    }
    Estimated time: ${Math.floor(
-     hourRange / Math.max(finalPlaces.length, 1)
+     hourRange / Math.max(selectedPlaces.length, 1)
    )} hour(s)
 
 `
@@ -914,14 +914,15 @@ async function selectPlaceTypesWithGemini(
 ): Promise<string[]> {
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
 
+
   if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
-    return ["tourist_attraction", "park", "museum"]; // Default to diverse types
+    return ["restaurant", "park", "tourist_attraction"];
   }
 
   if (!eventDescription || eventDescription.trim().length === 0) {
     console.warn("⚠️ Empty event description, using default place types");
-    return ["tourist_attraction", "park", "museum"];
+    return ["restaurant", "park", "tourist_attraction"];
   }
 
   const prompt = `
@@ -933,31 +934,22 @@ AVAILABLE PLACE TYPES:
 ${AVAILABLE_PLACE_TYPES.join(", ")}
 
 SELECTION RULES:
-1. Choose 3-5 place types that best match the event theme and activities
-2. Consider the event's purpose, target audience, and typical activities
-3. For dining events: include "restaurant", "cafe", "bar" as appropriate
-4. For cultural events: include "museum", "art_gallery", "library", "tourist_attraction"
-5. For entertainment: include "amusement_park", "bowling_alley", "movie_theater", "night_club"
-6. For outdoor activities: include "park", "zoo", "stadium", "campground"
-7. For shopping: include "shopping_mall", "store", "book_store", "clothing_store"
-8. For wellness: include "spa", "gym", "beauty_salon"
-9. For family events: avoid adult-only venues like "night_club", "bar", "casino"
-10. For business events: include "restaurant", "hotel", "conference_center" type venues
+1. Choose 3-5 place types that best match the event theme and activities.
+2. Consider event purpose, age range, budget, and timing.
+3. Avoid adult-only places if event mentions children (e.g., avoid "bar", "casino", "night_club").
+4. Always return a JSON array of strings without extra commentary.
 
-EXAMPLES:
+Examples:
 - "romantic date night" → ["restaurant", "park", "art_gallery", "movie_theater", "bar"]
 - "kids birthday party" → ["amusement_park", "restaurant", "park", "zoo", "bowling_alley"]
-- "business networking" → ["restaurant", "bar", "art_gallery", "museum"]
-- "family day out" → ["park", "zoo", "restaurant", "museum", "amusement_park"]
-- "cultural exploration" → ["museum", "art_gallery", "tourist_attraction", "library", "restaurant"]
 
-Return ONLY a JSON array of place type strings. No explanation needed.
-Example format: ["restaurant", "park", "museum"]
+Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
 `;
 
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     console.log("🔄 Calling Gemini API for place type selection...");
+
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -1053,7 +1045,6 @@ Example format: ["restaurant", "park", "museum"]
     return uniqueSelectedTypes;
   } catch (error) {
     console.error("❌ Error in place type selection:", error);
-    // Return default types on any error
     return ["restaurant", "park", "tourist_attraction"];
   }
 }

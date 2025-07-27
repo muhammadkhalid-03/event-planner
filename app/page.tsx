@@ -115,11 +115,11 @@ export default function Home() {
   }, [locations]);
   const [routes, setRoutes] = useState<EventPlanData[]>([]);
   const [currentRouteIndex, setCurrentRouteIndex] = useState(0);
+  const [currentLocationIndex, setCurrentLocationIndex] = useState(0);
 
+  // Handle new event plan
   const handleEventPlanSubmit = (data: EventPlanData) => {
-    // If we have multiple routes from the new API, add them all to the carousel
     if (data.allRoutes && data.allRoutes.length > 0) {
-      // Convert the route data to the expected format
       const newRoutes = data.allRoutes.map((route, index) => ({
         startingLocation: data.startingLocation,
         hourRange: data.hourRange,
@@ -148,20 +148,13 @@ export default function Home() {
       // Fallback to single route behavior
       setRoutes((prev) => [...prev, data]);
       setCurrentRouteIndex(routes.length);
-      setEventPlanData(data);
+      setCurrentLocationIndex(0);
     }
 
-    if (data.plannedLocations && data.plannedLocations.length > 0) {
-      console.log(
-        `📍 Displaying ${data.plannedLocations.length} planned locations on map`
-      );
-    }
-
-    if (data.placesFound) {
-      console.log(`🔍 Found ${data.placesFound} total places in the area`);
-    }
+    if (data.plannedLocations) setLocations(data.plannedLocations);
   };
 
+  // Switch between different routes (plans)
   const handleRouteChange = (index: number) => {
     setCurrentRouteIndex(index);
     setEventPlanData(routes[index]);
@@ -357,7 +350,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto p-4">
           {apiIsLoaded && <LocationForm onSubmit={handleEventPlanSubmit} />}
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
   );
 }

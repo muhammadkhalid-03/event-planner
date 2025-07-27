@@ -2,13 +2,12 @@
 /// <reference types="google.maps" />
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   GoogleMap,
   Marker,
   DirectionsService,
   DirectionsRenderer,
-  InfoWindow,
   StreetViewPanorama,
   OverlayView,
 } from "@react-google-maps/api";
@@ -17,6 +16,7 @@ import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import { PlannedLocation, usePlacesStore } from "../stores/placesStore";
 import { useMapRefStore } from "../stores/mapRefStore";
 import { Badge } from "../../components/ui/badge";
+import InfoWindow from "./InfoWindow";
 
 const polylineOptions = {
   strokeColor: "#4285F4",
@@ -79,16 +79,13 @@ export default function MapView() {
 
         if (locations && locations.length > 0) {
           const bounds = new window.google.maps.LatLngBounds();
-          // if (sourceLocation) {
-          //   bounds.extend(sourceLocation);
-          // }
           locations.forEach((l) => bounds.extend(l.location));
           map.fitBounds(bounds);
         }
       }
     },
     [setMapRef]
-  ); // Keep dependencies minimal
+  );
 
   // Reset directions when locations change
   useEffect(() => {
@@ -99,7 +96,6 @@ export default function MapView() {
   // Existing effect to trigger directions request
   useEffect(() => {
     if (
-      // sourceLocation &&
       locations &&
       locations.length > 0 &&
       !directionsRequested &&
@@ -165,10 +161,10 @@ export default function MapView() {
             directionsRequested &&
             locations &&
             locations.length > 0 &&
-            startingLocation && ( // <-- Make sure startingLocation exists
+            startingLocation && (
               <DirectionsService
                 options={{
-                  origin: startingLocation, // <-- Use the actual starting location
+                  origin: startingLocation,
                   destination: locations[locations.length - 1].location,
                   waypoints: locations.slice(0, -1).map((wp) => ({
                     location: wp.location,
@@ -180,6 +176,7 @@ export default function MapView() {
                 callback={directionsCallback}
               />
             )}
+
           {directionsResponse && (
             <DirectionsRenderer
               options={{
@@ -190,56 +187,15 @@ export default function MapView() {
               }}
             />
           )}
+
           {locations.map((location, index) => (
             <div key={`waypoint-${index}`}>
               <Marker
                 position={location.location}
                 onClick={() => handleMarkerClick(location)}
-              >
-                {selectedLocation &&
-                  selectedLocation.location.lat === location.location.lat &&
-                  selectedLocation.location.lng === location.location.lng && (
-                    <InfoWindow
-                      position={location.location}
-                      onCloseClick={() => setSelectedLocation(null)}
-                    >
-                      <div className="flex flex-col items-start gap-2 min-w-[180px]">
-                        {/* Order badge and name */}
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-red-600 text-white rounded-full px-2 py-1 shadow-lg">
-                            {index + 1}
-                          </Badge>
-                          <span className="font-semibold text-base">
-                            {location.name || "Location"}
-                          </span>
-                        </div>
-                        {/* Tags (if any) */}
-                        <div className="flex flex-wrap gap-1">
-                          {location.tags?.slice(0, 2).map((tag: string) => (
-                            <Badge variant="secondary" key={tag}>
-                              {tag[0].toUpperCase() +
-                                tag.slice(1).replace(/_/g, " ")}
-                            </Badge>
-                          ))}
-                          {location.tags?.length > 2 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{location.tags.length - 2} more
-                            </span>
-                          )}
-                        </div>
-                        {/* Actions */}
-                        <div className="flex gap-2 mt-1">
-                          <button
-                            className="bg-muted text-primary rounded px-2 py-1 text-xs"
-                            onClick={() => setStreetViewVisible(true)}
-                          >
-                            Street View
-                          </button>
-                        </div>
-                      </div>
-                    </InfoWindow>
-                  )}
-              </Marker>
+              />
+
+              {/* Number badge overlay */}
               <OverlayView
                 position={location.location}
                 mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
@@ -257,6 +213,30 @@ export default function MapView() {
               </OverlayView>
             </div>
           ))}
+
+          {/* InfoWindow Component */}
+          {selectedLocation && (
+            <InfoWindow
+              location={selectedLocation}
+              position={
+                new google.maps.LatLng(
+                  selectedLocation.location.lat,
+                  selectedLocation.location.lng
+                )
+              }
+              onClose={() => setSelectedLocation(null)}
+              index={locations.findIndex(
+                (loc) =>
+                  loc.location.lat === selectedLocation.location.lat &&
+                  loc.location.lng === selectedLocation.location.lng
+              )}
+              onStreetView={() => {
+                setSelectedLocation(selectedLocation);
+                setStreetViewVisible(true);
+              }}
+            />
+          )}
+
           {streetViewVisible && selectedLocation && (
             <StreetViewPanorama
               options={{
