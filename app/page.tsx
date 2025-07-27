@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
 import Link from "next/link";
-import RouteSelector from "./components/RouteSelector";
 import { usePlacesStore } from "./stores/placesStore";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import RouteCarousel from "./components/RouteCarousel";
@@ -61,17 +60,11 @@ interface EventPlanData {
 
 export default function Home() {
   const apiIsLoaded = useApiIsLoaded();
-  const { locations, drawerOpen, setDrawerOpen, setLocations } = usePlacesStore();
+  const { locations, setLocations } = usePlacesStore();
 
   const [routes, setRoutes] = useState<EventPlanData[]>([]);
   const [currentRouteIndex, setCurrentRouteIndex] = useState(0);
   const [currentLocationIndex, setCurrentLocationIndex] = useState(0);
-
-  useEffect(() => {
-    if (locations.length > 0) {
-      setDrawerOpen(true);
-    }
-  }, [locations, setDrawerOpen]);
 
   // Handle new event plan
   const handleEventPlanSubmit = (data: EventPlanData) => {
@@ -185,10 +178,6 @@ export default function Home() {
                 />
               </div>
           )}
-
-          <div className="absolute bottom-0 left-0 right-0 z-10">
-            <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
-          </div>
         </div>
 
         {/* Sidebar */}

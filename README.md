@@ -20,7 +20,15 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Fixed Dynamic Place Type Implementation (Latest)
+### Removed "Select a Business" Popup (Latest)
+- **🚫 UI Simplification**: Removed the "Select a Business" popup modal that appeared at the bottom of the screen
+- ✅ **Cleaner Interface**: Eliminated the persistent bottom bar that said "Select a location to view more information"
+- ✅ **Streamlined Experience**: Users no longer see the popup drawer when clicking on map locations
+- ✅ **Maintained Functionality**: All other features remain intact - event planning, map interactions, and location display continue to work normally
+- ✅ **Reduced Clutter**: Simplified the main interface by removing the RouteSelector component entirely
+- ✅ **Performance Improvement**: Removed unnecessary state management and rendering for the popup component
+
+### Fixed Dynamic Place Type Implementation
 - **🔧 Critical Bug Fix**: Fixed hardcoded place type limitation that was ignoring Gemini's AI selections
 - ✅ **True Dynamic Categorization**: Places stored in API logs now reflect the actual place types selected by Gemini AI
 - ✅ **Eliminated Hardcoded Restrictions**: Removed forced categorization into only "restaurant", "park", and "club"
