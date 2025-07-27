@@ -144,18 +144,22 @@ export async function POST(request: NextRequest) {
     let selectedPlaceTypes: string[];
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
-      console.log(
-        `🤖 Gemini selected place types: ${selectedPlaceTypes.join(", ")}`
-      );
+      console.log(`🤖 Gemini selected place types: ${selectedPlaceTypes.join(', ')}`);
+      
+      // Additional validation - ensure no empty results
+      if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
+        console.warn("⚠️ Gemini returned empty place types array, using generic defaults");
+        selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
+      }
     } catch (error) {
-      console.warn(
-        "❌ Failed to select place types with Gemini, using defaults:",
-        error
-      );
-      selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"];
+      console.error("❌ Failed to select place types with Gemini:", error);
+      // Use more diverse defaults instead of restaurant-heavy ones
+      selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
+      console.log(`🔄 Using fallback place types: ${selectedPlaceTypes.join(', ')}`);
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
+    console.log(`🔍 Searching for places using ONLY these AI-selected types: [${selectedPlaceTypes.join(', ')}]`);
     const placesData = await searchNearbyPlaces({
       latitude: startingLocation.location.lat,
       longitude: startingLocation.location.lng,
@@ -165,12 +169,21 @@ export async function POST(request: NextRequest) {
 
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No places found in the specified area" },
+        { 
+          success: false, 
+          error: `No ${selectedPlaceTypes.join(', ')} found in the specified area. Try expanding your search radius or modifying your event description.`,
+          searchedPlaceTypes: selectedPlaceTypes,
+          searchRadius: radius
+        },
         { status: 404 }
       );
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
+    console.log(`📋 Place types breakdown:`, placesData.reduce((acc, place) => {
+      acc[place.placeType] = (acc[place.placeType] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>));
 
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
@@ -289,6 +302,7 @@ async function searchNearbyPlaces(params: {
 }) {
   try {
     console.log("🔍 Searching for nearby places using Google Places API...");
+    console.log(`📋 Will search for EXACTLY these place types: [${params.placeTypes.join(', ')}]`);
 
     // Import Google Places library (this is server-side, so we use a different approach)
     // For server-side implementation, we'll call the Places API directly via HTTP
@@ -302,28 +316,33 @@ async function searchNearbyPlaces(params: {
     // Search for each place type separately to ensure we get results for each category
     for (const placeType of params.placeTypes) {
       try {
+        console.log(`🔍 Searching Google Places API for place type: "${placeType}"`);
         // Use the simpler Nearby Search endpoint that's more reliable
         const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${params.latitude},${params.longitude}&radius=${params.radiusInMeters}&type=${placeType}&key=${apiKey}`;
 
         const response = await fetch(url);
 
         if (!response.ok) {
-          console.warn(`Error searching for ${placeType}: ${response.status}`);
+          console.warn(`❌ Error searching for ${placeType}: ${response.status}`);
           continue;
         }
 
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
+          console.log(`✅ Found ${data.results.length} places for type "${placeType}"`);
+        } else {
+          console.log(`⚠️ No places found for type "${placeType}"`);
+        }
+
+        if (data.results && data.results.length > 0) {
           const formattedPlaces = data.results
             .filter((place: any) => place.place_id && place.geometry)
             .map((place: any) => {
-              // Determine the primary place type for display
-              let primaryType = "restaurant";
-              if (placeType === "park") primaryType = "park";
-              if (placeType === "night_club") primaryType = "club";
+              // Use the actual place type from Google Places API instead of hardcoding
+              const primaryType = placeType; // Use the search type as the primary type
 
-              return {
+              const formattedPlace = {
                 id: place.place_id,
                 displayName: place.name || `Unknown ${primaryType}`,
                 formattedAddress: place.vicinity || place.formatted_address,
@@ -335,11 +354,14 @@ async function searchNearbyPlaces(params: {
                 userRatingCount: place.user_ratings_total,
                 priceLevel: place.price_level,
                 types: place.types || [],
-                placeType: primaryType,
+                placeType: primaryType, // This now reflects the actual AI-selected type
                 businessStatus: place.business_status,
                 photos: place.photos,
                 detailsFetchedAt: new Date().toISOString(),
               };
+
+              console.log(`📍 Found "${formattedPlace.displayName}" categorized as "${primaryType}" with Google types: [${place.types?.join(', ') || 'none'}]`);
+              return formattedPlace;
             });
 
           allPlaces.push(...formattedPlaces);
@@ -357,8 +379,19 @@ async function searchNearbyPlaces(params: {
       (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
+    // Validate that we only have places of the requested types
+    const validPlaces = uniquePlaces.filter(place => 
+      params.placeTypes.includes(place.placeType)
+    );
+
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
-    return uniquePlaces;
+    console.log(`✅ Validated ${validPlaces.length} places match requested types: [${params.placeTypes.join(', ')}]`);
+    
+    if (validPlaces.length < uniquePlaces.length) {
+      console.warn(`⚠️ Filtered out ${uniquePlaces.length - validPlaces.length} places that didn't match requested types`);
+    }
+
+    return validPlaces;
   } catch (error) {
     console.error("Error searching places:", error);
     throw new Error("Failed to search for nearby places");
@@ -520,16 +553,19 @@ Then list all events in this format:
 
 End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
 
-REQUIREMENTS: 
-- Use ONLY the places provided in the data
-- Include specific names and addresses exactly as provided
+CRITICAL REQUIREMENTS: 
+- Use ONLY the places provided in the data below - DO NOT make up or suggest any venues not in this list
+- Include specific names and addresses exactly as provided in the data
 - Use numbered format for venues (1., 2., 3., etc.)
 - Mention venue names clearly and exactly as they appear in the data
+- DO NOT interpret parks as temples or change the nature of venues
+- If the provided places don't match the event description well, mention this limitation
 - Create a realistic timeline that accounts for travel between locations
 - Make the plan engaging and tailored to the event description: "${
       params.eventDescription
     }"
 - NO hashtags, asterisks, dashes, or any markdown formatting
+- VALIDATE: Every venue mentioned must exist in the provided places data
 `;
 
     console.log("🤖 Calling Gemini API...", eventPlanPrompt);
@@ -647,35 +683,49 @@ function generateFallbackPlan(params: {
 
   const { places, hourRange, numberOfPeople, eventDescription } = params;
 
-  // Sort places by rating (if available) and type diversity
-  const restaurants = places
-    .filter((p) => p.placeType === "restaurant")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  const parks = places
-    .filter((p) => p.placeType === "park")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  const clubs = places
-    .filter((p) => p.placeType === "club")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  // Group places by their actual types (dynamic, not hardcoded)
+  const placesByType: { [key: string]: any[] } = {};
+  places.forEach(place => {
+    if (!placesByType[place.placeType]) {
+      placesByType[place.placeType] = [];
+    }
+    placesByType[place.placeType].push(place);
+  });
 
-  const selectedPlaces = [];
+  // Sort places within each type by rating
+  Object.keys(placesByType).forEach(type => {
+    placesByType[type].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  });
 
-  // Select best places based on event duration
-  if (hourRange >= 3 && restaurants.length > 0)
-    selectedPlaces.push(restaurants[0]);
-  if (hourRange >= 2 && parks.length > 0) selectedPlaces.push(parks[0]);
-  if (hourRange >= 4 && clubs.length > 0) selectedPlaces.push(clubs[0]);
+  const selectedPlaces: any[] = [];
+  const availableTypes = Object.keys(placesByType);
 
-  // If no places selected, use any available
-  if (selectedPlaces.length === 0 && places.length > 0) {
-    selectedPlaces.push(places[0]);
+  // Select best places from each type, considering event duration
+  if (hourRange >= 2 && availableTypes.length > 0) {
+    // For longer events, try to include variety from different types
+    const placesPerType = Math.max(1, Math.floor(Math.min(8, hourRange) / availableTypes.length));
+    
+    availableTypes.forEach(type => {
+      const topPlacesOfType = placesByType[type].slice(0, placesPerType);
+      selectedPlaces.push(...topPlacesOfType);
+    });
   }
 
-  return `Here's your ${hourRange}-hour ${
-    eventDescription || "event"
-  } plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+  // If we don't have enough places or for shorter events, just take the highest rated overall
+  if (selectedPlaces.length === 0 || selectedPlaces.length < Math.min(3, hourRange)) {
+    const allPlacesSorted = places.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const additionalPlaces = allPlacesSorted
+      .filter(p => !selectedPlaces.find(sp => sp.id === p.id))
+      .slice(0, Math.max(3, Math.min(8, hourRange)) - selectedPlaces.length);
+    selectedPlaces.push(...additionalPlaces);
+  }
 
-${selectedPlaces
+  // Limit to reasonable number of places based on time available
+  const finalPlaces = selectedPlaces.slice(0, Math.min(8, Math.max(2, hourRange)));
+
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+
+${finalPlaces
   .map(
     (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
       place.formattedAddress || place.address || "Address not available"
@@ -686,7 +736,7 @@ ${selectedPlaces
        : `Selected ${place.placeType} venue based on location and type`
    }
    Estimated time: ${Math.floor(
-     hourRange / Math.max(selectedPlaces.length, 1)
+     hourRange / Math.max(finalPlaces.length, 1)
    )} hour(s)
 
 `
@@ -751,12 +801,12 @@ async function selectPlaceTypesWithGemini(
 
   if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
-    return ["restaurant", "park", "tourist_attraction"]; // Default to common types
+    return ["tourist_attraction", "park", "museum"]; // Default to diverse types
   }
 
   if (!eventDescription || eventDescription.trim().length === 0) {
     console.warn("⚠️ Empty event description, using default place types");
-    return ["restaurant", "park", "tourist_attraction"];
+    return ["tourist_attraction", "park", "museum"];
   }
 
   const prompt = `
@@ -827,33 +877,41 @@ Example format: ["restaurant", "park", "museum"]
 
     let selectedTypes: string[];
     try {
-      const parsed = JSON.parse(rawText);
+      // Handle markdown-wrapped JSON responses
+      let jsonText = rawText.trim();
+      
+      // Remove markdown code block markers if present
+      if (jsonText.startsWith("```json")) {
+        jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (jsonText.startsWith("```")) {
+        jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
+      
+      console.log("🔍 Extracted JSON text for parsing:", jsonText);
+      
+      const parsed = JSON.parse(jsonText);
       // Validate that it's an array of strings
-      if (
-        Array.isArray(parsed) &&
-        parsed.every((item) => typeof item === "string")
-      ) {
+      if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
         selectedTypes = parsed;
+        console.log("✅ Successfully parsed Gemini place types:", selectedTypes);
       } else {
-        console.warn(
-          "Gemini returned invalid format for place types:",
-          rawText
-        );
-        selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+        console.warn("Gemini returned invalid format for place types:", rawText);
+        selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
       }
     } catch (e) {
       console.warn("Gemini returned non-JSON output for place types:", rawText);
-      selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+      console.warn("JSON parsing error:", e);
+      selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
     }
 
     // Validate and filter selected types
-    const validSelectedTypes = selectedTypes.filter((type) =>
+    const validSelectedTypes = selectedTypes.filter(type => 
       AVAILABLE_PLACE_TYPES.includes(type)
     );
-
+    
     if (validSelectedTypes.length === 0) {
       console.warn("No valid place types selected by Gemini, using defaults");
-      return ["restaurant", "park", "tourist_attraction"];
+      return ["tourist_attraction", "park", "museum"];
     }
 
     // Ensure we only have up to 5 unique types
@@ -876,6 +934,6 @@ Example format: ["restaurant", "park", "museum"]
   } catch (error) {
     console.error("❌ Error in place type selection:", error);
     // Return default types on any error
-    return ["restaurant", "park", "tourist_attraction"];
+    return ["tourist_attraction", "park", "museum"];
   }
 }
