@@ -111,12 +111,17 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   });
 
 
-  const [eventDate, setEventDate] = useState<string>("");
-  const[startTime, setStartTime] = useState<string>("");
-  const[endTime, setEndTime] = useState<string>("");
-  const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
-  const [radius, setRadius] = useState<number>(1000);
-  const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
+  // Get tomorrow's date for testing
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowString = tomorrow.toISOString().split('T')[0];
+
+  const [eventDate, setEventDate] = useState<string>(tomorrowString);
+  const[startTime, setStartTime] = useState<string>("18:00");
+  const[endTime, setEndTime] = useState<string>("22:00");
+  const [numberOfPeople, setNumberOfPeople] = useState<number>(4);
+  const [radius, setRadius] = useState<number>(5000);
+  const [ageRange, setAgeRange] = useState<[number, number]>([25, 35]);
   const [budget, setBudget] = useState<number>(1000);
 
   const [eventDescription, setEventDescription] = useState<string>("");
