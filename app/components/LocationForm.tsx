@@ -115,7 +115,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const[startTime, setStartTime] = useState<string>("");
   const[endTime, setEndTime] = useState<string>("");
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
-  const [radius, setRadius] = useState<number>(1000);
+  const [radius, setRadius] = useState<number>(5000);
   const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
   const [budget, setBudget] = useState<number>(1000);
 
@@ -290,7 +290,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         // Update the store with the new starting location
         setStoreStartingLocation({ lat, lng });
 
-        console.log(`📍 Starting Location Coordinates: `, { lat, lng });
+        console.log(`Starting Location Coordinates: `, { lat, lng });
       });
     };
 
@@ -409,19 +409,14 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             htmlFor="radius"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Radius (meters)
+            Radius (meters) : {radius}
           </label>
-          <input
-            type="number"
-            id="radius"
-            name="radius"
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value) || 0)}
-            min="100"
-            max="5000"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Search radius from starting location"
+          <Slider
+              min={10}
+              max={5000}
+              step={10}
+              value={radius}
+              onChange={(value) => setRadius(value as number)}
           />
         </div>
         <div>
