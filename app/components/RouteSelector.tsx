@@ -24,28 +24,14 @@ export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
       setOpen(true);
     }
   }, [selectedLocation]);
+
+  // Only render if there's a selected location
+  if (!selectedLocation) {
+    return null;
+  }
+
   return (
     <>
-      {/* Always-visible summary bar */}
-      <div
-        className="fixed bottom-0 left-16 right-96 bg-white shadow rounded-t-lg cursor-pointer z-40 flex items-center justify-between"
-        style={{ left: "4rem", right: "24rem" }}
-        onClick={() => setOpen(true)}
-      >
-        <div className="p-4 text-center">
-          <span className="font-semibold">
-            Select a location to view more information
-          </span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-2"
-          onClick={() => setOpen(true)}
-        >
-          <ChevronUp className="w-4 h-4" />
-        </Button>
-      </div>
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
         <SheetContent
           side="bottom"
@@ -60,46 +46,41 @@ export default function RouteSelector({ open, setOpen }: RouteSelectorProps) {
             <div className="flex flex-col justify-start items-start gap-2">
               <div className="flex w-full flex-wrap gap-2">
                 <SheetTitle>
-                  {selectedLocation?.name || "Select a business"}
+                  {selectedLocation.name}
                 </SheetTitle>
               </div>
               <div className="flex w-full flex-wrap gap-2">
-                {selectedLocation &&
-                  selectedLocation?.tags?.map((tag: string) => (
-                    <Badge variant="secondary" key={tag}>
-                      {tag[0].toUpperCase() + tag.slice(1).replace(/_/g, " ")}
-                    </Badge>
-                  ))}
+                {selectedLocation.tags?.map((tag: string) => (
+                  <Badge variant="secondary" key={tag}>
+                    {tag[0].toUpperCase() + tag.slice(1).replace(/_/g, " ")}
+                  </Badge>
+                ))}
               </div>
             </div>
-            {selectedLocation && (
-              <div className="flex flex-col justify-start items-start gap-2">
-                <div className="flex flex-row justify-start items-center gap-2">
-                  <p className="text-sm text-muted-foreground">Price Level: </p>
-                  <p className="text-sm text-muted-foreground text-green-500">
-                    {selectedLocation?.price_level === undefined ||
-                    selectedLocation?.price_level === null
-                      ? "N/A"
-                      : selectedLocation?.price_level === 0
-                      ? "Free"
-                      : "$".repeat(selectedLocation?.price_level)}
-                  </p>
-                </div>
-                <div className="flex flex-row justify-start items-center gap-2">
-                  <p className="text-sm text-muted-foreground">Rating: </p>
-                  <p className="text-sm text-muted-foreground flex flex-row justify-start items-center gap-2">
-                    {selectedLocation?.rating}
-                    <Star className="w-4 h-4" color="#FFD700" fill="yellow" />(
-                    {selectedLocation?.user_rating_total} reviews)
-                  </p>
-                </div>
+            <div className="flex flex-col justify-start items-start gap-2">
+              <div className="flex flex-row justify-start items-center gap-2">
+                <p className="text-sm text-muted-foreground">Price Level: </p>
+                <p className="text-sm text-muted-foreground text-green-500">
+                  {selectedLocation.price_level === undefined ||
+                  selectedLocation.price_level === null
+                    ? "N/A"
+                    : selectedLocation.price_level === 0
+                    ? "Free"
+                    : "$".repeat(selectedLocation.price_level)}
+                </p>
               </div>
-            )}
-            {selectedLocation && (
-              <SheetDescription>
-                {selectedLocation?.formatted_address}
-              </SheetDescription>
-            )}
+              <div className="flex flex-row justify-start items-center gap-2">
+                <p className="text-sm text-muted-foreground">Rating: </p>
+                <p className="text-sm text-muted-foreground flex flex-row justify-start items-center gap-2">
+                  {selectedLocation.rating}
+                  <Star className="w-4 h-4" color="#FFD700" fill="yellow" />(
+                  {selectedLocation.user_rating_total} reviews)
+                </p>
+              </div>
+            </div>
+            <SheetDescription>
+              {selectedLocation.formatted_address}
+            </SheetDescription>
           </SheetHeader>
         </SheetContent>
       </Sheet>
