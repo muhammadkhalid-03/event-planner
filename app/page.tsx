@@ -293,54 +293,58 @@ export default function Home() {
     price_level: location.price_level,
     order: location.order || 0,
   })) || [];
-
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
         <MapView />
         
-        {/* Route Editor at top */}
+        {/* Compact Route Editor */}
         {currentRouteLocations.length > 0 && (
-          <div className="absolute top-4 left-0 right-0 z-30">
-            <RouteEditor
-              locations={currentRouteLocations}
-              onLocationsChange={handleRouteLocationsChange}
-              onRegeneratePoint={handleRegeneratePoint}
-              onAddPoint={handleAddPoint}
-            />
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-3xl px-2">
+            <div className="text-xs"> {/* Global text size reduction */}
+              <RouteEditor
+                locations={currentRouteLocations}
+                onLocationsChange={handleRouteLocationsChange}
+                onRegeneratePoint={handleRegeneratePoint}
+                onAddPoint={handleAddPoint}
+                compact={true}  // Pass compact prop to RouteEditor
+              />
+            </div>
           </div>
         )}
         
-        {/* Route Carousel at bottom */}
-        {routes.length > 0 && (
-          <div className="absolute bottom-16 left-0 right-0 z-20">
-            <RouteCarousel 
-              routes={routes} 
-              currentIndex={currentRouteIndex}
-              onSelect={handleRouteChange}
-            />
+        {/* Bottom Controls */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center space-y-3 pb-4">
+          {/* Route Carousel with padding */}
+          {routes.length > 0 && (
+            <div className="w-full max-w-4xl px-2 mb-4"> {/* Added bottom margin */}
+              <RouteCarousel 
+                routes={routes} 
+                currentIndex={currentRouteIndex}
+                onSelect={handleRouteChange}
+              />
+            </div>
+          )}
+          
+          {/* Route Selector */}
+          <div className="z-30">
+            <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
           </div>
-        )}
-        <div className="absolute bottom-4 z-10">
-          <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
         </div>
       </div>
-      <div className="w-96 border-l border-gray-200 bg-white shadow-lg">
-        <div className="h-full p-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Activity Planner
-            </h1>
-            <p className="text-gray-600">
-              Plan your perfect event with AI assistance
-            </p>
-            <Link
-              href="/places"
-              className="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              PLACES API
-            </Link>
-          </div>
+      
+      {/* Sidebar */}
+      <div className="w-80 border-l border-gray-200 bg-white shadow-lg flex flex-col max-h-screen">
+        <div className="p-4 pb-0 flex-shrink-0">
+          <h1 className="text-xl font-bold text-gray-900">
+            Activity Planner
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Plan your perfect event with AI assistance
+          </p>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
           {apiIsLoaded && <LocationForm onSubmit={handleEventPlanSubmit} />}
         </div>
       </div>
