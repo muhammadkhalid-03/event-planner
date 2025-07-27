@@ -128,82 +128,49 @@ export async function POST(request: NextRequest) {
     console.log(`📊 Original places data: ${placesData.length} places`);
     console.log(`📝 Sample places:`, placesData.slice(0, 3).map(p => ({ name: p.displayName, type: p.placeType })));
 
-    // Step 3: Generate multiple different route options
+    // Step 3: Generate multiple different route options using the same criteria
     const routes = [];
+    
+    // Create shuffled versions of the places data for variety while maintaining quality
+    const shuffledPlacesVersions = [];
+    for (let i = 0; i < numberOfRoutes; i++) {
+      const shuffledPlaces = [...placesData]
+        .sort(() => Math.random() - 0.5) // Randomize order
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0)) // Still prioritize highly rated places
+        .slice(0, Math.min(12, placesData.length)); // Take top 12 for selection variety
+      shuffledPlacesVersions.push(shuffledPlaces);
+    }
     
     for (let i = 0; i < numberOfRoutes; i++) {
       console.log(`🛣️ Generating route option ${i + 1}/${numberOfRoutes}...`);
       
-      // Create different filtering strategies for variety
-      const filterStrategy = i % 3; // 3 different strategies
-      let filteredPlaces: any[];
-      
-      // Get unique place types from the data
-      const availablePlaceTypes = Array.from(new Set(placesData.map(p => p.placeType)));
-      console.log(`📋 Available place types for route ${i + 1}:`, availablePlaceTypes);
-      
-      switch (filterStrategy) {
-        case 0:
-          // Strategy 1: Focus on high-rated places across all types
-          filteredPlaces = placesData
-            .filter(p => p.rating && p.rating >= 4.0)
-            .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-            .slice(0, 8);
-          break;
-        case 1:
-          // Strategy 2: Focus on diverse place types (ensure variety)
-          const placesByType: { [key: string]: any[] } = {};
-          
-          // Group places by type
-          placesData.forEach(place => {
-            if (!placesByType[place.placeType]) {
-              placesByType[place.placeType] = [];
-            }
-            placesByType[place.placeType].push(place);
-          });
-          
-          // Take top-rated places from each type
-          filteredPlaces = [];
-          availablePlaceTypes.forEach(type => {
-            const placesOfType = placesByType[type]
-              ?.sort((a, b) => (b.rating || 0) - (a.rating || 0))
-              .slice(0, 3) || [];
-            filteredPlaces.push(...placesOfType);
-          });
-          
-          // Limit total to 8 places, prioritizing variety
-          if (filteredPlaces.length > 8) {
-            // Take at least one from each type, then fill remaining slots with highest rated
-            const oneFromEach = availablePlaceTypes.map(type => 
-              placesByType[type]?.sort((a, b) => (b.rating || 0) - (a.rating || 0))[0]
-            ).filter(Boolean);
-            
-            const remaining = filteredPlaces
-              .filter(p => !oneFromEach.find(oe => oe.id === p.id))
-              .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-              .slice(0, 8 - oneFromEach.length);
-              
-            filteredPlaces = [...oneFromEach, ...remaining];
-          }
-          break;
-        case 2:
-          // Strategy 3: Budget-focused (lower price levels)
-          filteredPlaces = placesData
-            .filter(p => !p.priceLevel || p.priceLevel <= 2)
-            .sort((a, b) => (a.priceLevel || 0) - (b.priceLevel || 0))
-            .slice(0, 8);
-          break;
-        default:
-          filteredPlaces = placesData.slice(0, 8);
-      }
+      // Use different starting points in the shuffled data for variety
+      const startIndex = i * 3; // Offset starting position for each route
+      let filteredPlaces = shuffledPlacesVersions[i]
+        .slice(startIndex)
+        .concat(shuffledPlacesVersions[i].slice(0, startIndex)) // Wrap around if needed
+        .slice(0, 8); // Take up to 8 places
 
-      // If filtering resulted in too few places, add some from the original list
+      // CRITICAL: Remove any duplicates from filtered places based on place ID
+      filteredPlaces = filteredPlaces.filter(
+        (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+      );
+
+      // If we don't have enough places, add more from the original data
       if (filteredPlaces.length < 3) {
         const additionalPlaces = placesData
           .filter(p => !filteredPlaces.find(fp => fp.id === p.id))
-          .slice(0, 5);
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 6);
         filteredPlaces = [...filteredPlaces, ...additionalPlaces];
+        
+        // Final deduplication after adding additional places
+        filteredPlaces = filteredPlaces.filter(
+          (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+        );
       }
+
+      console.log(`✅ Selected ${filteredPlaces.length} unique venues for route option ${i + 1}`);
 
       // Generate event plan for this route
       const eventPlan = await generateEventPlanWithGemini({
@@ -214,6 +181,7 @@ export async function POST(request: NextRequest) {
         startingLocation,
         routeNumber: i + 1,
         totalRoutes: numberOfRoutes,
+        budget,
       });
 
       // Extract planned locations for this route
@@ -235,7 +203,7 @@ export async function POST(request: NextRequest) {
         plannedLocations,
         placesFound: placesData.length,
         routeNumber: i + 1,
-        routeName: getRouteName(i + 1, filterStrategy),
+        routeName: `Option ${i + 1}`,
         metadata: {
           timestamp,
           searchLocation: startingLocation.location,
@@ -250,9 +218,7 @@ export async function POST(request: NextRequest) {
             ageRange,
             budget,
           },
-          filterStrategy,
           selectedPlaceTypes,
-          availablePlaceTypes,
         },
       };
 
@@ -388,6 +354,7 @@ async function generateEventPlanWithGemini(params: {
   startingLocation: any;
   routeNumber: number;
   totalRoutes: number;
+  budget?: number;
 }) {
   try {
     console.log(`🤖 Starting Gemini event plan generation for route ${params.routeNumber}/${params.totalRoutes}`);
@@ -397,55 +364,107 @@ async function generateEventPlanWithGemini(params: {
       return generateFallbackPlan(params);
     }
 
-    const routeName = getRouteName(params.routeNumber, (params.routeNumber - 1) % 3);
+    const routeName = `Option ${params.routeNumber}`;
     
+    // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
+    const systemInstruction = {
+      parts: [
+        {
+          text: `You are an expert travel planner specializing in creating practical, budget-conscious itineraries. Your expertise includes:
+          - Analyzing location data for optimal routing and timing
+          - Budget estimation based on local price levels
+          - Cultural and experiential insights
+          - Logistical optimization for group travel
+          
+          Always prioritize feasibility over idealism, ensuring all recommendations are practical and achievable within given constraints.`
+        }
+      ]
+    };
+
     const eventPlanPrompt = `
-You are an expert event planner. Create a detailed, personalized event plan using the provided place data.
+# TRAVEL PLANNING TASK
 
-This is route option ${params.routeNumber} of ${params.totalRoutes} - make it unique and different from other options!
+## ROUTE CONTEXT
+Route Option ${params.routeNumber} of ${params.totalRoutes}
+Create a unique and engaging plan that offers a different experience from the other route options.
 
-EVENT REQUIREMENTS:
-- Duration: ${params.hourRange} hours
-- Group Size: ${params.numberOfPeople} people
-- Event Description: ${params.eventDescription}
-- Starting Location: ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
-- Route Style: ${routeName}
-
-AVAILABLE PLACES DATA:
+## INPUT PARAMETERS
+- **Duration**: ${params.hourRange} hours total
+- **Group Size**: ${params.numberOfPeople} people  
+- **Event Type**: ${params.eventDescription}
+- **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : 'Budget not specified - provide cost estimates'}
+- **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
+- **Available Locations**: 
 ${JSON.stringify(params.places, null, 2)}
 
-IMPORTANT FORMATTING REQUIREMENTS:
-- DO NOT use any hashtags (#), asterisks (*), or any markdown formatting
-- DO NOT use bullet points with dashes (-) or asterisks (*)
-- Use plain text only
-- Follow this exact format:
+## PLANNING REQUIREMENTS
 
-FORMAT:
-Start with a 2-3 line description of the evening events.
+### 1. CONSTRAINT ANALYSIS
+Before creating the itinerary, analyze:
+- Travel distances between locations (estimate travel times)
+- Price levels for dining/activities based on location data
+- Opening hours and availability
+- Group logistics for ${params.numberOfPeople} people
 
-Then list all events in this format:
-1. Venue Name - Address
-   Why this location and what to do here
-   Estimated time: X hours
+### 2. ROUTE OPTIMIZATION  
+- Minimize unnecessary travel between distant locations
+- Consider traffic patterns and transit efficiency
+- Allocate realistic time buffers between activities
+- Plan for group coordination needs
 
-2. Venue Name - Address  
-   Why this location and what to do here
-   Estimated time: X hours
+### 3. BUDGET CONSCIOUSNESS
+- Prioritize venues with appropriate price points for the ${params.budget ? `$${params.budget} per person budget` : 'specified budget range'}
+- ${params.budget ? `Ensure estimated costs stay within $${params.budget} per person (total group budget: $${params.budget * params.numberOfPeople})` : 'Suggest cost-effective alternatives when available'}
+- Consider group discounts but maintain per-person budget of ${params.budget ? `$${params.budget}` : 'specified amount'}
+- ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : 'Estimate total approximate costs per person'}
 
-End with: "I have made 3 different plans and you can edit each one. I can make more plans if needed."
+## OUTPUT FORMAT
+Respond ONLY with a JSON object following this exact structure:
 
-REQUIREMENTS: 
-- Use ONLY the places provided in the data
-- Include specific names and addresses exactly as provided
-- Use numbered format for venues (1., 2., 3., etc.)
-- Mention venue names clearly and exactly as they appear in the data
-- Create a realistic timeline that accounts for travel between locations
-- Make this route unique and different from other options
-- Focus on the ${routeName} style for this route
-- NO hashtags, asterisks, dashes, or any markdown formatting
-`;
+{
+  "routeDescription": "2-3 sentence overview of this route option",
+  "estimatedBudgetPerPerson": "numerical estimate in local currency",
+  "totalTravelTime": "estimated time spent in transit",
+  "itinerary": [
+    {
+      "sequence": 1,
+      "venueName": "exact name from location data", 
+      "address": "exact address from location data",
+      "arrivalTime": "suggested time (HH:MM format)",
+      "duration": "time to spend here (in minutes)",
+      "description": "why this venue was chosen and what to do here",
+      "estimatedCost": "approximate cost per person",
+      "travelToNext": "estimated travel time to next location (minutes)",
+      "travelMethod": "recommended transportation method"
+    }
+  ],
+  "alternativeOptions": [
+    {
+      "venueName": "backup option from available data",
+      "reason": "why this could substitute if needed"
+    }
+  ],
+  "practicalTips": [
+    "specific advice for this route and group size"
+  ],
+  "conclusion": "I have created 3 different route options and you can edit each one. I can generate additional plans if needed."
+}
 
-    console.log("🤖 Calling Gemini API...");
+## CRITICAL INSTRUCTIONS
+1. Use ONLY venues from the provided location data
+2. Ensure total planned time does not exceed ${params.hourRange} hours
+3. Verify venue names and addresses match the provided data exactly
+4. Calculate realistic travel times between locations
+5. Consider ${params.numberOfPeople} people for all logistics and costs
+6. ${params.budget ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person` : 'Provide realistic cost estimates for budget planning'}
+7. Create a distinctive and enjoyable route that offers variety from other options
+8. Include practical considerations like bathroom breaks, meal timing, etc.
+9. **NEVER include the same venue twice in the itinerary** - each venue must be unique within the plan
+10. **Each venue name and address must be exactly as provided** - no variations or alternative names
+
+Begin analysis and create the JSON response now.`;
+
+    console.log("🤖 Calling Gemini API with improved prompt...");
 
     const apiKey = process.env.GEMINI_API_KEY;
     const response = await fetch(
@@ -454,13 +473,7 @@ REQUIREMENTS:
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              {
-                text: "You are an expert event planner with deep knowledge of creating memorable experiences using specific venues and logistics.",
-              },
-            ],
-          },
+          systemInstruction: systemInstruction,
           contents: [
             {
               role: "user",
@@ -468,8 +481,10 @@ REQUIREMENTS:
             },
           ],
           generationConfig: {
-            maxOutputTokens: 3000,
-            temperature: 0.8, // Slightly higher temperature for more variety
+            maxOutputTokens: 4000,
+            temperature: 0.3, // Reduced for more consistent, structured output
+            topP: 0.8,
+            responseMimeType: "application/json", // Force JSON output
           },
           safetySettings: [
             {
@@ -477,7 +492,7 @@ REQUIREMENTS:
               threshold: "BLOCK_NONE",
             },
             {
-              category: "HARM_CATEGORY_HARASSMENT",
+              category: "HARM_CATEGORY_HARASSMENT", 
               threshold: "BLOCK_NONE",
             },
             {
@@ -507,23 +522,105 @@ REQUIREMENTS:
       return generateFallbackPlan(params);
     }
 
-    console.log("✅ Gemini API call successful");
-    return responseText;
+    // Parse and validate JSON response
+    try {
+      const parsedPlan = JSON.parse(responseText);
+      console.log("✅ Gemini API call successful - JSON parsed");
+      
+      // Convert structured JSON back to text format for compatibility with existing code
+      return convertJsonPlanToText(parsedPlan);
+    } catch (parseError) {
+      console.error("❌ Failed to parse JSON response:", parseError);
+      console.log("Raw response:", responseText);
+      return generateFallbackPlan(params);
+    }
+
   } catch (error) {
     console.error("❌ Error in Gemini API call:", error);
     return generateFallbackPlan(params);
   }
 }
 
-// Helper function to get route name based on route number and strategy
-function getRouteName(routeNumber: number, strategy: number): string {
-  const strategyNames = [
-    "Premium Experience", // High-rated places
-    "Diverse Adventure",  // Mixed place types
-    "Budget-Friendly"     // Lower price levels
-  ];
-  
-  return `${strategyNames[strategy]} - Option ${routeNumber}`;
+
+
+// Helper function to convert structured JSON plan back to text format for compatibility
+function convertJsonPlanToText(parsedPlan: any): string {
+  try {
+    let textPlan = '';
+    
+    // Add route description
+    if (parsedPlan.routeDescription) {
+      textPlan += parsedPlan.routeDescription + '\n\n';
+    }
+    
+    // Add budget and travel info if available
+    if (parsedPlan.estimatedBudgetPerPerson || parsedPlan.totalTravelTime) {
+      textPlan += `Budget estimate: ${parsedPlan.estimatedBudgetPerPerson || 'Not specified'} per person\n`;
+      textPlan += `Total travel time: ${parsedPlan.totalTravelTime || 'Not specified'}\n\n`;
+    }
+    
+    // Add itinerary with duplicate detection and removal
+    if (parsedPlan.itinerary && Array.isArray(parsedPlan.itinerary)) {
+      // Remove any duplicate venues from the itinerary as a safety check
+      const seenVenues = new Set<string>();
+      const uniqueItinerary = parsedPlan.itinerary.filter((item: any) => {
+        const venueKey = `${item.venueName || 'Unknown'}-${item.address || ''}`.toLowerCase();
+        if (seenVenues.has(venueKey)) {
+          console.warn(`🚨 Duplicate venue detected and removed from itinerary: ${item.venueName}`);
+          return false;
+        }
+        seenVenues.add(venueKey);
+        return true;
+      });
+      
+      uniqueItinerary.forEach((item: any, index: number) => {
+        textPlan += `${index + 1}. ${item.venueName || 'Unknown Venue'}`;
+        if (item.address) {
+          textPlan += ` - ${item.address}`;
+        }
+        textPlan += '\n';
+        
+        if (item.description) {
+          textPlan += `   ${item.description}\n`;
+        }
+        
+        if (item.duration || item.estimatedCost) {
+          textPlan += `   Duration: ${item.duration || 'Not specified'} minutes`;
+          if (item.estimatedCost) {
+            textPlan += ` | Cost: ${item.estimatedCost}`;
+          }
+          textPlan += '\n';
+        }
+        
+        textPlan += '\n';
+      });
+      
+      if (uniqueItinerary.length !== parsedPlan.itinerary.length) {
+        console.log(`✅ Removed ${parsedPlan.itinerary.length - uniqueItinerary.length} duplicate venues from itinerary`);
+      }
+    }
+    
+    // Add practical tips if available
+    if (parsedPlan.practicalTips && Array.isArray(parsedPlan.practicalTips) && parsedPlan.practicalTips.length > 0) {
+      textPlan += 'Practical Tips:\n';
+      parsedPlan.practicalTips.forEach((tip: string) => {
+        textPlan += `- ${tip}\n`;
+      });
+      textPlan += '\n';
+    }
+    
+    // Add conclusion
+    if (parsedPlan.conclusion) {
+      textPlan += parsedPlan.conclusion;
+    } else {
+      textPlan += 'I have created 3 different route options and you can edit each one. I can generate additional plans if needed.';
+    }
+    
+    return textPlan;
+  } catch (error) {
+    console.error('Error converting JSON plan to text:', error);
+    return 'Plan generated successfully but formatting error occurred. Please try regenerating the plan.';
+  }
 }
 
 // Fallback function to generate a basic plan when GEMINI API is unavailable
@@ -535,11 +632,12 @@ function generateFallbackPlan(params: {
   startingLocation: any;
   routeNumber: number;
   totalRoutes: number;
+  budget?: number;
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
   const { places, hourRange, numberOfPeople, eventDescription, routeNumber, totalRoutes } = params;
-  const routeName = getRouteName(routeNumber, (routeNumber - 1) % 3);
+  const routeName = `Option ${routeNumber}`;
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
@@ -581,9 +679,11 @@ function generateFallbackPlan(params: {
   // Limit to reasonable number of places based on time available
   const finalPlaces = selectedPlaces.slice(0, Math.min(8, Math.max(2, hourRange)));
 
-  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${params.budget ? ` with a $${params.budget} per person budget` : ''}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
-${finalPlaces
+${params.budget ? `Budget Overview: With $${params.budget} per person budget, that's a total of $${params.budget * numberOfPeople} for your group of ${numberOfPeople} people for this ${hourRange}-hour experience.
+
+` : ''}${finalPlaces
   .map(
     (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
       place.formattedAddress || place.address || "Address not available"
@@ -636,11 +736,21 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
     // Sort by position in the plan text (earliest mention first)
     matches.sort((a, b) => a.position - b.position);
 
+    // Remove duplicates based on place ID (in case a venue is mentioned multiple times)
+    const uniqueMatches = matches.filter(
+      (match, index, self) => index === self.findIndex((m) => m.place.id === match.place.id)
+    );
+
     // Add order number to each location
-    const orderedLocations = matches.map((match, index) => ({
+    const orderedLocations = uniqueMatches.map((match, index) => ({
       ...match.data,
       order: index + 1, // 1-based numbering
     }));
+    
+    if (uniqueMatches.length !== matches.length) {
+      console.log(`✅ Removed ${matches.length - uniqueMatches.length} duplicate venue mentions from extracted locations`);
+    }
+    
     console.log("OrderedLocations:", orderedLocations);
 
     return orderedLocations;
