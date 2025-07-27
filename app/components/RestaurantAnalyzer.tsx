@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface EventPlanResult {
   success: boolean;
@@ -11,69 +11,69 @@ interface EventPlanResult {
 }
 
 export default function EventPlanner() {
-  const [customTask, setCustomTask] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [customTask, setCustomTask] = useState("");
+  const [fileName, setFileName] = useState("");
   const [availableFiles, setAvailableFiles] = useState<string[]>([]);
   const [result, setResult] = useState<EventPlanResult | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Event planning specific fields
   const [numberOfLocations, setNumberOfLocations] = useState(3);
-  const [timeDuration, setTimeDuration] = useState('4 hours');
-  const [eventType, setEventType] = useState('general');
-  const [groupSize, setGroupSize] = useState('2-4 people');
-  const [budget, setBudget] = useState('moderate');
+  const [timeDuration, setTimeDuration] = useState("4 hours");
+  const [eventType, setEventType] = useState("general");
+  const [groupSize, setGroupSize] = useState("2-4 people");
+  const [budget, setBudget] = useState("moderate");
 
   const eventTypes = [
-    'general',
-    'romantic-date',
-    'family-outing',
-    'friends-hangout',
-    'business-event',
-    'tourist-visit',
-    'birthday-celebration',
-    'first-date',
-    'group-celebration'
+    "general",
+    "romantic-date",
+    "family-outing",
+    "friends-hangout",
+    "business-event",
+    "tourist-visit",
+    "birthday-celebration",
+    "first-date",
+    "group-celebration",
   ];
 
   const timeDurations = [
-    '2 hours',
-    '4 hours',
-    '6 hours',
-    '8 hours',
-    'Half day (4-6 hours)',
-    'Full day (8+ hours)',
-    'Weekend (2 days)',
-    'Custom duration'
+    "2 hours",
+    "4 hours",
+    "6 hours",
+    "8 hours",
+    "Half day (4-6 hours)",
+    "Full day (8+ hours)",
+    "Weekend (2 days)",
+    "Custom duration",
   ];
 
   const budgetOptions = [
-    'budget-friendly',
-    'moderate',
-    'upscale',
-    'luxury',
-    'mixed-budget'
+    "budget-friendly",
+    "moderate",
+    "upscale",
+    "luxury",
+    "mixed-budget",
   ];
 
   const groupSizes = [
-    '1 person',
-    '2-4 people',
-    '5-8 people',
-    '9-15 people',
-    '16+ people'
+    "1 person",
+    "2-4 people",
+    "5-8 people",
+    "9-15 people",
+    "16+ people",
   ];
 
   const predefinedEventPlans = [
-    'Perfect romantic evening with dinner and scenic spots',
-    'Family-friendly day out with parks, restaurants, and activities',
-    'Night out with friends including dinner, drinks, and entertainment',
-    'Business event plan with professional dining and networking venues',
-    'Tourist itinerary showcasing the best local attractions and dining',
-    'Birthday celebration plan with venues for different age groups',
-    'First date plan with comfortable, conversation-friendly locations',
-    'Weekend getaway plan with diverse activities and dining options',
-    'Group celebration with venues that can accommodate large parties',
-    'Local food tour with highly-rated restaurants and unique dining experiences'
+    "Perfect romantic evening with dinner and scenic spots",
+    "Family-friendly day out with parks, restaurants, and activities",
+    "Night out with friends including dinner, drinks, and entertainment",
+    "Business event plan with professional dining and networking venues",
+    "Tourist itinerary showcasing the best local attractions and dining",
+    "Birthday celebration plan with venues for different age groups",
+    "First date plan with comfortable, conversation-friendly locations",
+    "Weekend getaway plan with diverse activities and dining options",
+    "Group celebration with venues that can accommodate large parties",
+    "Local food tour with highly-rated restaurants and unique dining experiences",
   ];
 
   // Load available place files on component mount
@@ -81,7 +81,7 @@ export default function EventPlanner() {
     const fetchAvailableFiles = async () => {
       try {
         // First try to get all place files from the api_logs directory
-        const response = await fetch('/api/list-place-files');
+        const response = await fetch("/api/list-place-files");
         if (response.ok) {
           const data = await response.json();
           setAvailableFiles(data.files || []);
@@ -90,10 +90,10 @@ export default function EventPlanner() {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch available files:', error);
+        console.error("Failed to fetch available files:", error);
         // Fallback to restaurant files if place files API doesn't exist yet
         try {
-          const response = await fetch('/api/list-restaurant-files');
+          const response = await fetch("/api/list-restaurant-files");
           if (response.ok) {
             const data = await response.json();
             setAvailableFiles(data.files || []);
@@ -102,18 +102,21 @@ export default function EventPlanner() {
             }
           }
         } catch (fallbackError) {
-          console.error('Failed to fetch restaurant files as fallback:', fallbackError);
-          setFileName('places.json');
+          console.error(
+            "Failed to fetch restaurant files as fallback:",
+            fallbackError,
+          );
+          setFileName("places.json");
         }
       }
     };
-    
+
     fetchAvailableFiles();
   }, []);
 
   const generateEventPlan = async () => {
     if (!fileName.trim()) {
-      alert('Please select a place data file');
+      alert("Please select a place data file");
       return;
     }
 
@@ -121,13 +124,14 @@ export default function EventPlanner() {
     setResult(null);
 
     // Create a comprehensive event planning prompt
-    const eventPlanningPrompt = customTask.trim() || 
-      `Create an ideal ${eventType.replace('-', ' ')} event plan for ${groupSize} with a ${budget} budget lasting ${timeDuration}. 
+    const eventPlanningPrompt =
+      customTask.trim() ||
+      `Create an ideal ${eventType.replace("-", " ")} event plan for ${groupSize} with a ${budget} budget lasting ${timeDuration}. 
       Plan should include ${numberOfLocations} locations using the available places data. 
       Consider travel time between locations, operating hours, and create a logical flow for the event.
       
       Requirements:
-      - Event type: ${eventType.replace('-', ' ')}
+      - Event type: ${eventType.replace("-", " ")}
       - Duration: ${timeDuration}
       - Number of locations: ${numberOfLocations}
       - Group size: ${groupSize}
@@ -146,10 +150,10 @@ export default function EventPlanner() {
       // Try the new event planning API first, fallback to existing analyzers
       let response;
       try {
-        response = await fetch('/api/create-event-plan', {
-          method: 'POST',
+        response = await fetch("/api/create-event-plan", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             task: eventPlanningPrompt,
@@ -159,16 +163,16 @@ export default function EventPlanner() {
               numberOfLocations,
               timeDuration,
               groupSize,
-              budget
-            }
+              budget,
+            },
           }),
         });
       } catch (error) {
         // Fallback to existing API endpoints
-        response = await fetch('/api/analyze-places', {
-          method: 'POST',
+        response = await fetch("/api/analyze-places", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             task: eventPlanningPrompt,
@@ -179,10 +183,10 @@ export default function EventPlanner() {
 
       if (!response.ok) {
         // Final fallback to restaurant analyzer
-        response = await fetch('/api/analyze-restaurants', {
-          method: 'POST',
+        response = await fetch("/api/analyze-restaurants", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             task: eventPlanningPrompt,
@@ -196,7 +200,7 @@ export default function EventPlanner() {
     } catch (error) {
       setResult({
         success: false,
-        error: 'Failed to create event plan'
+        error: "Failed to create event plan",
       });
     } finally {
       setLoading(false);
@@ -206,7 +210,10 @@ export default function EventPlanner() {
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 flex items-center">
-        🎯 AI Event Planner <span className="text-sm font-normal text-gray-500 ml-2">(Powered by Gemini)</span>
+        🎯 AI Event Planner{" "}
+        <span className="text-sm font-normal text-gray-500 ml-2">
+          (Powered by Gemini)
+        </span>
       </h2>
 
       {/* File Selection */}
@@ -230,7 +237,8 @@ export default function EventPlanner() {
         ) : (
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <p className="text-yellow-800 text-sm">
-              ⚠️ No place data files found. Please search for places first using the Places Search page.
+              ⚠️ No place data files found. Please search for places first using
+              the Places Search page.
             </p>
           </div>
         )}
@@ -249,7 +257,9 @@ export default function EventPlanner() {
           >
             {eventTypes.map((type) => (
               <option key={type} value={type}>
-                {type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {type
+                  .replace("-", " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase())}
               </option>
             ))}
           </select>
@@ -283,7 +293,7 @@ export default function EventPlanner() {
           >
             {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
               <option key={num} value={num}>
-                {num} location{num !== 1 ? 's' : ''}
+                {num} location{num !== 1 ? "s" : ""}
               </option>
             ))}
           </select>
@@ -317,7 +327,9 @@ export default function EventPlanner() {
           >
             {budgetOptions.map((option) => (
               <option key={option} value={option}>
-                {option.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {option
+                  .replace("-", " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase())}
               </option>
             ))}
           </select>
@@ -363,14 +375,30 @@ export default function EventPlanner() {
       >
         {loading ? (
           <span className="flex items-center justify-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
             Creating Your Event Plan...
           </span>
         ) : (
-          '🎯 Create My Event Plan'
+          "🎯 Create My Event Plan"
         )}
       </button>
 
@@ -384,7 +412,8 @@ export default function EventPlanner() {
                   ✅ Your Event Plan is Ready!
                 </h3>
                 <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded-full">
-                  📍 {result.placeCount || result.restaurantCount || 'Multiple'} locations analyzed
+                  📍 {result.placeCount || result.restaurantCount || "Multiple"}{" "}
+                  locations analyzed
                 </span>
               </div>
               <div className="bg-white p-6 rounded-lg border shadow-sm">
@@ -400,11 +429,13 @@ export default function EventPlanner() {
               <h3 className="text-xl font-bold text-red-600 mb-3 flex items-center">
                 ❌ Event Planning Failed
               </h3>
-              <p className="text-red-600 bg-red-50 p-4 rounded-md">{result.error}</p>
+              <p className="text-red-600 bg-red-50 p-4 rounded-md">
+                {result.error}
+              </p>
             </div>
           )}
         </div>
       )}
     </div>
   );
-} 
+}

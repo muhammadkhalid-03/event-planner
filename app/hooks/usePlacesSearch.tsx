@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from 'react';
-import { useGoogleMaps } from '../contexts/GoogleMapsContext';
+import { useState, useCallback } from "react";
+import { useGoogleMaps } from "../contexts/GoogleMapsContext";
 
 export interface PlaceResult {
   id: string;
@@ -84,9 +84,9 @@ export interface PlacesSearchParams {
 
 // Available place types with their Google Places API equivalents
 export const PLACE_TYPES = {
-  restaurants: 'restaurant',
-  parks: 'park',
-  clubs: 'night_club'
+  restaurants: "restaurant",
+  parks: "park",
+  clubs: "night_club",
 } as const;
 
 export const usePlacesSearch = () => {
@@ -95,94 +95,108 @@ export const usePlacesSearch = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  const searchNearbyPlaces = useCallback(async (params: PlacesSearchParams): Promise<PlaceResult[]> => {
-    if (!isLoaded || loadError) {
-      setSearchError('Google Maps API not loaded');
-      return [];
-    }
-
-    setIsSearching(true);
-    setSearchError(null);
-    setPlaces([]);
-
-    try {
-      const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
-      
-      // Default to all types if none specified
-      const searchTypes = params.placeTypes || Object.values(PLACE_TYPES);
-      
-      const allPlaces: PlaceResult[] = [];
-      
-      // Search for each place type separately to ensure we get results for each category
-      for (const placeType of searchTypes) {
-        const request = {
-          fields: ['id', 'displayName', 'location', 'businessStatus', 'types'],
-          locationRestriction: {
-            center: {
-              lat: params.latitude,
-              lng: params.longitude,
-            },
-            radius: params.radiusInMeters,
-          },
-          includedPrimaryTypes: [placeType],
-          maxResultCount: 20,
-          rankPreference: SearchNearbyRankPreference.POPULARITY,
-          language: 'en-US',
-          region: 'us',
-        };
-
-        try {
-          // @ts-ignore
-          const { places: searchResults } = await Place.searchNearby(request);
-          
-          if (searchResults && searchResults.length > 0) {
-            const formattedPlaces: PlaceResult[] = searchResults
-              .filter(place => place.id && place.location)
-              .map((place) => {
-                // Determine the primary place type for display
-                let primaryType = 'restaurant';
-                if (placeType === 'park') primaryType = 'park';
-                if (placeType === 'night_club') primaryType = 'club';
-                
-                return {
-                  id: place.id!,
-                  displayName: place.displayName || `Unknown ${primaryType}`,
-                  location: {
-                    latitude: place.location!.lat(),
-                    longitude: place.location!.lng(),
-                  },
-                  businessStatus: place.businessStatus ?? undefined,
-                  placeType: primaryType,
-                  types: place.types || []
-                }
-              });
-            
-            allPlaces.push(...formattedPlaces);
-          }
-        } catch (typeError) {
-          console.warn(`Error searching for ${placeType}:`, typeError);
-        }
-        
-        // Add a small delay between searches to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+  const searchNearbyPlaces = useCallback(
+    async (params: PlacesSearchParams): Promise<PlaceResult[]> => {
+      if (!isLoaded || loadError) {
+        setSearchError("Google Maps API not loaded");
+        return [];
       }
-      
-      // Remove duplicates based on place ID
-      const uniquePlaces = allPlaces.filter((place, index, self) => 
-        index === self.findIndex(p => p.id === place.id)
-      );
-      
-      setPlaces(uniquePlaces);
-      return uniquePlaces;
-      
-    } catch (error) {
-      console.error('Places search error:', error);
-      setSearchError(error instanceof Error ? error.message : 'Failed to search places');
-      return [];
-    } finally {
-      setIsSearching(false);
-    }
-  }, [isLoaded, loadError]);
+
+      setIsSearching(true);
+      setSearchError(null);
+      setPlaces([]);
+
+      try {
+        const { Place, SearchNearbyRankPreference } =
+          (await google.maps.importLibrary(
+            "places",
+          )) as google.maps.PlacesLibrary;
+
+        // Default to all types if none specified
+        const searchTypes = params.placeTypes || Object.values(PLACE_TYPES);
+
+        const allPlaces: PlaceResult[] = [];
+
+        // Search for each place type separately to ensure we get results for each category
+        for (const placeType of searchTypes) {
+          const request = {
+            fields: [
+              "id",
+              "displayName",
+              "location",
+              "businessStatus",
+              "types",
+            ],
+            locationRestriction: {
+              center: {
+                lat: params.latitude,
+                lng: params.longitude,
+              },
+              radius: params.radiusInMeters,
+            },
+            includedPrimaryTypes: [placeType],
+            maxResultCount: 20,
+            rankPreference: SearchNearbyRankPreference.POPULARITY,
+            language: "en-US",
+            region: "us",
+          };
+
+          try {
+            // @ts-ignore
+            const { places: searchResults } = await Place.searchNearby(request);
+
+            if (searchResults && searchResults.length > 0) {
+              const formattedPlaces: PlaceResult[] = searchResults
+                .filter((place) => place.id && place.location)
+                .map((place) => {
+                  // Determine the primary place type for display
+                  let primaryType = "restaurant";
+                  if (placeType === "park") primaryType = "park";
+                  if (placeType === "night_club") primaryType = "club";
+
+                  return {
+                    id: place.id!,
+                    displayName: place.displayName || `Unknown ${primaryType}`,
+                    location: {
+                      latitude: place.location!.lat(),
+                      longitude: place.location!.lng(),
+                    },
+                    businessStatus: place.businessStatus ?? undefined,
+                    placeType: primaryType,
+                    types: place.types || [],
+                  };
+                });
+
+              allPlaces.push(...formattedPlaces);
+            }
+          } catch (typeError) {
+            console.warn(`Error searching for ${placeType}:`, typeError);
+          }
+
+          // Add a small delay between searches to avoid rate limiting
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        // Remove duplicates based on place ID
+        const uniquePlaces = allPlaces.filter(
+          (place, index, self) =>
+            index === self.findIndex((p) => p.id === place.id),
+        );
+
+        setPlaces(uniquePlaces);
+        return uniquePlaces;
+      } catch (error) {
+        console.error("Places search error:", error);
+        setSearchError(
+          error instanceof Error ? error.message : "Failed to search places",
+        );
+        return [];
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [isLoaded, loadError],
+  );
 
   return {
     places,

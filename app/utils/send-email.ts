@@ -18,11 +18,11 @@ export async function sendEmail(data: {
     }
 
     const result = await response.json();
-    
+
     if (!result.success) {
       throw new Error(result.error || "Failed to send email");
     }
-    
+
     console.log(result.message);
     alert(result.message);
   } catch (error) {

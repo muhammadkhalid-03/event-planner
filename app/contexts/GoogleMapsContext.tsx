@@ -34,9 +34,9 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     // Check if Google Maps API key is available
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-    if (!apiKey || apiKey === 'your_google_maps_api_key_here') {
+    if (!apiKey || apiKey === "your_google_maps_api_key_here") {
       setLoadError(
-        "Google Maps API key is missing or not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env.local file."
+        "Google Maps API key is missing or not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env.local file.",
       );
       return;
     }
@@ -49,12 +49,12 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 
     // Check if script is already being loaded
     const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]'
+      'script[src*="maps.googleapis.com"]',
     );
     if (existingScript) {
       existingScript.addEventListener("load", () => setIsLoaded(true));
       existingScript.addEventListener("error", () =>
-        setLoadError("Failed to load Google Maps")
+        setLoadError("Failed to load Google Maps"),
       );
       return;
     }
@@ -71,7 +71,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 
     script.onerror = () => {
       setLoadError(
-        "Failed to load Google Maps. Please check your API key and ensure the Maps JavaScript API is enabled."
+        "Failed to load Google Maps. Please check your API key and ensure the Maps JavaScript API is enabled.",
       );
     };
 

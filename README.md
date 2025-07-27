@@ -114,9 +114,10 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 - ✅ **Complete Route Integrity**: All route modifications maintain the event's original theme and venue categories
 
 ### Multiple Routes Generation with AI Place Type Selection
+
 - **🛣️ Multiple Route Options**: Generate 3 different route plans with varying strategies for the same event
 - ✅ **AI-Powered Place Selection**: Each route uses the same intelligent place type selection based on event description
-- ✅ **Diverse Route Strategies**: 
+- ✅ **Diverse Route Strategies**:
   - Premium Experience (high-rated venues)
   - Diverse Adventure (mixed place types)
   - Budget-Friendly (lower cost options)

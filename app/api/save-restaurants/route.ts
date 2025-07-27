@@ -1,11 +1,11 @@
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import { NextRequest, NextResponse } from 'next/server';
+import { writeFile } from "fs/promises";
+import path from "path";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    
+
     const timestamp = Date.now();
     const restaurantData = {
       timestamp,
@@ -18,24 +18,24 @@ export async function POST(request: NextRequest) {
         rating: restaurant.rating,
         priceLevel: restaurant.priceLevel,
         types: restaurant.types,
-      }))
+      })),
     };
 
     const fileName = `restaurants-${timestamp}.json`;
-    const filePath = path.join(process.cwd(), 'api_logs', fileName);
-    
+    const filePath = path.join(process.cwd(), "api_logs", fileName);
+
     await writeFile(filePath, JSON.stringify(restaurantData, null, 2));
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: `Restaurant data saved to ${fileName}`,
-      fileName 
+      fileName,
     });
   } catch (error) {
-    console.error('Error saving restaurant data:', error);
+    console.error("Error saving restaurant data:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to save restaurant data' },
-      { status: 500 }
+      { success: false, error: "Failed to save restaurant data" },
+      { status: 500 },
     );
   }
-} 
+}

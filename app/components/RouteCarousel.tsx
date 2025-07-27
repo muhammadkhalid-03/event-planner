@@ -61,7 +61,7 @@ export default function RouteCarousel({
       return route.routeName;
     }
     if (route.eventDescription) {
-      return route.eventDescription.length > 30 
+      return route.eventDescription.length > 30
         ? route.eventDescription.substring(0, 30) + "..."
         : route.eventDescription;
     }

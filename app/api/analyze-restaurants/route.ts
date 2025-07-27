@@ -1,28 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { NextRequest, NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 
 // Initialize Gemini client
 function getGeminiClient() {
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy-key-for-build');
+  return new GoogleGenerativeAI(
+    process.env.GEMINI_API_KEY || "dummy-key-for-build",
+  );
 }
-
 
 export async function POST(request: NextRequest) {
   try {
-    const { task, fileName = 'restaurants.json' } = await request.json();
+    const { task, fileName = "restaurants.json" } = await request.json();
 
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { success: false, error: 'Gemini API key not configured. Please set GEMINI_API_KEY environment variable.' },
-        { status: 400 }
+        {
+          success: false,
+          error:
+            "Gemini API key not configured. Please set GEMINI_API_KEY environment variable.",
+        },
+        { status: 400 },
       );
     }
 
-      // Read restaurant data
-    const filePath = path.join(process.cwd(), 'api_logs', fileName);
-    const fileContents = await fs.readFile(filePath, 'utf8');
+    // Read restaurant data
+    const filePath = path.join(process.cwd(), "api_logs", fileName);
+    const fileContents = await fs.readFile(filePath, "utf8");
     const fileData = JSON.parse(fileContents);
     const restaurantData = fileData.restaurants || fileData;
 
@@ -30,35 +39,44 @@ export async function POST(request: NextRequest) {
     const prompt = constructPrompt(task, restaurantData);
     const response = await processWithGemini(prompt);
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       result: response,
-      restaurantCount: restaurantData.length 
+      restaurantCount: restaurantData.length,
     });
-
   } catch (error: any) {
-    console.error('Error processing restaurant data:', error);
-    
+    console.error("Error processing restaurant data:", error);
+
     // Handle Gemini API errors
     if (error?.response?.status) {
       const status = error.response.status;
       if (status === 402 || status === 429) {
         return NextResponse.json(
-          { success: false, error: 'API quota exceeded. Please check your Google Cloud billing.' },
-          { status }
+          {
+            success: false,
+            error:
+              "API quota exceeded. Please check your Google Cloud billing.",
+          },
+          { status },
         );
       }
       if (status === 401 || status === 403) {
         return NextResponse.json(
-          { success: false, error: 'Invalid Gemini API key or permission denied.' },
-          { status }
+          {
+            success: false,
+            error: "Invalid Gemini API key or permission denied.",
+          },
+          { status },
         );
       }
     }
-    
+
     return NextResponse.json(
-      { success: false, error: 'Failed to process restaurant data. ' + error.message },
-      { status: 500 }
+      {
+        success: false,
+        error: "Failed to process restaurant data. " + error.message,
+      },
+      { status: 500 },
     );
   }
 }
@@ -66,7 +84,7 @@ export async function POST(request: NextRequest) {
 // Helper function to construct prompts
 function constructPrompt(task: string, restaurantData: any[]) {
   const dataPreview = JSON.stringify(restaurantData.slice(0, 3), null, 2);
-  
+
   return `
 You are a restaurant data analyst. I have a dataset of ${restaurantData.length} restaurants with the following structure:
 
@@ -108,20 +126,17 @@ async function processWithGemini(prompt: string) {
       {
         role: "user",
         parts: [{ text: prompt }],
-      }
+      },
     ],
     systemInstruction: {
       role: "system",
-      parts: [{ text: "You are an expert restaurant data analyst. Provide detailed, actionable insights based on the data. Use markdown formatting for headers, lists, and key points." }]
-    }
+      parts: [
+        {
+          text: "You are an expert restaurant data analyst. Provide detailed, actionable insights based on the data. Use markdown formatting for headers, lists, and key points.",
+        },
+      ],
+    },
   });
 
   return result.response.text();
 }
-
-
-
-
-
-
-
