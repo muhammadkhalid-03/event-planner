@@ -60,8 +60,24 @@ export default function RouteEditor({
         );
     }
 
+    // Show minimal collapsed view
+    if (isCollapsed) {
+        return (
+            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg p-3 mx-auto w-fit transition-all duration-300 ease-in-out">
+                <button
+                    onClick={() => setIsCollapsed(false)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all duration-200 hover:shadow-md"
+                    title="Expand Route Editor"
+                >
+                    <span className="font-medium text-indigo-700">Route Editor</span>
+                    <Plus className="w-4 h-4 text-indigo-600" />
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} min-w-[515px] ${
+        <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} min-w-[515px] transition-all duration-300 ease-in-out ${
             locations.length <= 3 
                 ? 'w-fit max-w-md min-w-[400px]' // Very small width for 3 or fewer locations with min-width
                 : locations.length <= 5 
@@ -73,6 +89,13 @@ export default function RouteEditor({
                     Route Editor
                 </h3>
                 <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setIsCollapsed(true)}
+                        className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                        title="Minimize Route Editor"
+                    >
+                        <Minus className="w-4 h-4" />
+                    </button>
                     {onAddPoint && (
                         <button
                             onClick={onAddPoint}
@@ -193,7 +216,7 @@ export default function RouteEditor({
                 ))}
             </div>
 
-            <div className="text-xs text-gray-500 mt-2 overflow-x-auto">
+            <div className="text-xs text-gray-500 mt-2 overflow-x-auto text-center">
                 <p>Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
             </div>
         </div>
@@ -325,7 +348,7 @@ export default function RouteEditor({
                     ))}
                 </div>
 
-                <div className="text-xs text-gray-500 mt-2 overflow-x-auto">
+                <div className="text-xs text-gray-500 mt-2 overflow-x-auto text-center">
                     <p>Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
                 </div>
             </div>
