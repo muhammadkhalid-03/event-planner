@@ -138,6 +138,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Hard-coded requirement: time range must be at least 1 hour long
+    if (!hourRange || hourRange < 1) {
+      return NextResponse.json(
+        { success: false, error: "Time range must be at least 1 hour long" },
+        { status: 400 },
+      );
+    }
+
     console.log("🎯 Starting multiple routes generation workflow...");
 
     // Step 1: Dynamically select place types based on event description
