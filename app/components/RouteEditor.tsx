@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Edit, Trash2, RefreshCw, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, RefreshCw, Plus } from "lucide-react";
 import { PlannedLocation } from "../stores/placesStore";
 
 interface RouteEditorProps {
@@ -50,20 +50,6 @@ export default function RouteEditor({
     setDragIndex(null);
   };
 
-  const handleEdit = (index: number) => {
-    setEditingIndex(index);
-  };
-
-  const handleEditSave = (index: number, updatedLocation: Partial<PlannedLocation>) => {
-    const newLocations = [...locations];
-    newLocations[index] = { ...newLocations[index], ...updatedLocation };
-    onLocationsChange(newLocations);
-    setEditingIndex(null);
-  };
-
-  const handleEditCancel = () => {
-    setEditingIndex(null);
-  };
   if (locations.length === 0) {
     return (
       <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg p-3 mx-auto w-full max-w-6xl ${compact ? 'mb-1' : 'mb-2'}`}>
@@ -102,7 +88,7 @@ export default function RouteEditor({
             onDragOver={(e) => handleDragOver(e, index)}
             onDragEnd={handleDragEnd}
             className={`flex-shrink-0 relative group ${
-              dragIndex === index ? "opacity-50" : ""
+              dragIndex === index ? "opacity-100" : ""
             }`}
           >
             {/* Connection line */}
@@ -112,14 +98,6 @@ export default function RouteEditor({
 
             {/* Route point card */}
             <div className={`bg-white border border-gray-200 rounded-lg ${compact ? 'p-1 min-w-[120px]' : 'p-3 min-w-[160px]'} shadow-sm hover:shadow transition-all`}>
-              {editingIndex === index ? (
-                <LocationEditForm
-                  location={location}
-                  onSave={(updatedLocation) => handleEditSave(index, updatedLocation)}
-                  onCancel={handleEditCancel}
-                  compact={compact}
-                />
-              ) : (
                 <div className="space-y-1">
                   {/* Order badge */}
                   <div className="flex items-center justify-between">
@@ -127,13 +105,6 @@ export default function RouteEditor({
                       {index + 1}
                     </div>
                     <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${compact ? 'scale-90' : ''}`}>
-                      <button
-                        onClick={() => handleEdit(index)}
-                        className="p-0.5 text-gray-500 hover:text-blue-600 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit className={compact ? "w-3 h-3" : "w-3.5 h-3.5"} />
-                      </button>
                       {onRegeneratePoint && (
                         <button
                           onClick={() => onRegeneratePoint(index)}
@@ -191,7 +162,6 @@ export default function RouteEditor({
                     </div>
                   )}
                 </div>
-              )}
             </div>
           </div>
         ))}
@@ -200,77 +170,10 @@ export default function RouteEditor({
       {/* Instructions */}
       {!compact && (
         <div className="text-xs text-gray-500 mt-2">
-          <p>💡 Drag cards to reorder • Click edit to modify • Use regenerate to get alternatives</p>
+          <p>💡 Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
         </div>
       )}
     </div>
   );
 }
 
-interface LocationEditFormProps {
-  location: PlannedLocation;
-  onSave: (updatedLocation: Partial<PlannedLocation>) => void;
-  onCancel: () => void;
-  compact?: boolean;
-}
-
-function LocationEditForm({ location, onSave, onCancel, compact = false }: LocationEditFormProps) {
-  const [name, setName] = useState(location.name);
-  const [address, setAddress] = useState(location.formatted_address || "");
-
-  const handleSave = () => {
-    onSave({
-      name,
-      formatted_address: address,
-    });
-  };
-
-  return (
-    <div className={`space-y-1 ${compact ? 'text-xs' : ''}`}>
-      <div>
-        <label className={`block font-medium text-gray-700 mb-0.5 ${compact ? 'text-[10px]' : 'text-xs'}`}>
-          Name
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={`w-full border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-            compact ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'
-          }`}
-        />
-      </div>
-      <div>
-        <label className={`block font-medium text-gray-700 mb-0.5 ${compact ? 'text-[10px]' : 'text-xs'}`}>
-          Address
-        </label>
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className={`w-full border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-            compact ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'
-          }`}
-        />
-      </div>
-      <div className="flex gap-1 pt-0.5">
-        <button
-          onClick={handleSave}
-          className={`flex-1 bg-blue-600 text-white rounded hover:bg-blue-700 ${
-            compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
-          }`}
-        >
-          Save
-        </button>
-        <button
-          onClick={onCancel}
-          className={`flex-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 ${
-            compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
-          }`}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
