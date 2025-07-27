@@ -62,9 +62,9 @@ export default function RouteEditor({
   return (
     <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} ${
       locations.length <= 3 
-        ? 'w-fit max-w-md' // Very small width for 3 or fewer locations
+        ? 'w-fit max-w-md min-w-[400px]' // Very small width for 3 or fewer locations with min-width
         : locations.length <= 5 
-          ? 'w-fit' // Small width for 4-5 locations
+          ? 'w-fit min-w-[500px]' // Small width for 4-5 locations with min-width
           : 'w-full max-w-6xl' // Full width with scroll for 6+ locations
     }`}>
       <div className={`flex items-center justify-between ${compact ? 'mb-2' : 'mb-3'}`}>
@@ -86,6 +86,8 @@ export default function RouteEditor({
 
       <div className={`flex items-center gap-4 pb-1 ${
         locations.length > 5 ? 'overflow-x-auto' : 'overflow-visible'
+      } ${
+        locations.length === 2 || 1 ? 'justify-center' : ''
       }`}>
         {locations.map((location, index) => (
           <div
@@ -105,9 +107,7 @@ export default function RouteEditor({
 
             {/* Route point card */}
             <div className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all ${
-              locations.length === 2 
-                ? compact ? 'p-1 w-48' : 'p-3 w-56' // Much wider cards for 2 locations
-                : compact ? 'p-1 w-32' : 'p-3 w-40' // Standard width for other cases
+              compact ? 'p-1 w-32' : 'p-3 w-40' // Standard width for all cases
             }`}>
                 <div className="space-y-1">
                   {/* Order badge */}
@@ -179,7 +179,7 @@ export default function RouteEditor({
       </div>
 
       {/* Instructions - show for all cases */}
-      <div className="text-xs text-gray-500 mt-2">
+      <div className="text-xs text-gray-500 mt-2 overflow-x-auto">
         <p> Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
       </div>
     </div>
