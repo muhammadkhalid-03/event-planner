@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import LocationForm from "./components/LocationForm";
 import MapView from "./components/MapView";
 import Link from "next/link";
-import RouteSelector from "./components/RouteSelector";
 import { usePlacesStore } from "./stores/placesStore";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import RouteCarousel from "./components/RouteCarousel";
@@ -104,7 +103,8 @@ interface EventPlanData {
 
 export default function Home() {
   const apiIsLoaded = useApiIsLoaded();
-  const { locations, drawerOpen, setDrawerOpen, setLocations } = usePlacesStore();
+  const { locations, drawerOpen, setDrawerOpen, setLocations } =
+    usePlacesStore();
   const [eventPlanData, setEventPlanData] = useState<EventPlanData | null>(
     null
   );
@@ -136,17 +136,17 @@ export default function Home() {
         routeNumber: route.routeNumber,
         routeName: route.routeName,
       }));
-      
-      setRoutes(prev => [...prev, ...newRoutes]);
+
+      setRoutes((prev) => [...prev, ...newRoutes]);
       setCurrentRouteIndex(routes.length); // Set to the first new route
       setEventPlanData(newRoutes[0]); // Set the first route as current
-      
+
       console.log(
         `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`
       );
     } else {
       // Fallback to single route behavior
-      setRoutes(prev => [...prev, data]);
+      setRoutes((prev) => [...prev, data]);
       setCurrentRouteIndex(routes.length);
       setEventPlanData(data);
     }
@@ -166,18 +166,19 @@ export default function Home() {
     setCurrentRouteIndex(index);
     setEventPlanData(routes[index]);
     // Update map with new route locations
-    const plannedLocations = routes[index].plannedLocations?.map(location => ({
-      id: location.id,
-      name: location.name,
-      location: location.location,
-      tags: location.tags || [],
-      type: location.type,
-      formatted_address: location.address,
-      rating: location.rating,
-      user_rating_total: location.user_rating_total,
-      price_level: location.price_level,
-      order: location.order || 0,
-    })) || [];
+    const plannedLocations =
+      routes[index].plannedLocations?.map((location) => ({
+        id: location.id,
+        name: location.name,
+        location: location.location,
+        tags: location.tags || [],
+        type: location.type,
+        formatted_address: location.address,
+        rating: location.rating,
+        user_rating_total: location.user_rating_total,
+        price_level: location.price_level,
+        order: location.order || 0,
+      })) || [];
     setLocations(plannedLocations);
   };
 
@@ -189,9 +190,9 @@ export default function Home() {
       plannedLocations: newLocations,
     };
     setRoutes(updatedRoutes);
-    
+
     // Update the map with the new locations
-    const plannedLocations = newLocations.map(location => ({
+    const plannedLocations = newLocations.map((location) => ({
       id: location.id,
       name: location.name,
       location: location.location,
@@ -211,7 +212,7 @@ export default function Home() {
 
     const currentRoute = routes[currentRouteIndex];
     const currentLocation = currentRoute.plannedLocations?.[index];
-    
+
     if (!currentLocation) return;
 
     try {
@@ -228,7 +229,11 @@ export default function Home() {
           startingLocation: currentRoute.startingLocation,
           radius: currentRoute.radius,
           index,
-          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || ["restaurant", "park", "night_club"],
+          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || [
+            "restaurant",
+            "park",
+            "night_club",
+          ],
         }),
       });
 
@@ -238,7 +243,7 @@ export default function Home() {
         // Update the specific location in the route
         const updatedLocations = [...(currentRoute.plannedLocations || [])];
         updatedLocations[index] = result.newLocation;
-        
+
         handleRouteLocationsChange(updatedLocations);
       }
     } catch (error) {
@@ -250,7 +255,7 @@ export default function Home() {
     if (!routes[currentRouteIndex]) return;
 
     const currentRoute = routes[currentRouteIndex];
-    
+
     try {
       // Call API to add a new point
       const response = await fetch("/api/add-point", {
@@ -263,7 +268,11 @@ export default function Home() {
           eventDescription: currentRoute.eventDescription,
           startingLocation: currentRoute.startingLocation,
           radius: currentRoute.radius,
-          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || ["restaurant", "park", "night_club"],
+          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || [
+            "restaurant",
+            "park",
+            "night_club",
+          ],
         }),
       });
 
@@ -271,8 +280,11 @@ export default function Home() {
 
       if (result.success && result.newLocation) {
         // Add the new location to the route
-        const updatedLocations = [...(currentRoute.plannedLocations || []), result.newLocation];
-        
+        const updatedLocations = [
+          ...(currentRoute.plannedLocations || []),
+          result.newLocation,
+        ];
+
         handleRouteLocationsChange(updatedLocations);
       }
     } catch (error) {
@@ -281,69 +293,67 @@ export default function Home() {
   };
 
   // Convert planned locations to the format expected by RouteEditor
-  const currentRouteLocations = routes[currentRouteIndex]?.plannedLocations?.map(location => ({
-    id: location.id,
-    name: location.name,
-    location: location.location,
-    tags: location.tags || [],
-    type: location.type,
-    formatted_address: location.address,
-    rating: location.rating,
-    user_rating_total: location.user_rating_total,
-    price_level: location.price_level,
-    order: location.order || 0,
-  })) || [];
+  const currentRouteLocations =
+    routes[currentRouteIndex]?.plannedLocations?.map((location) => ({
+      id: location.id,
+      name: location.name,
+      location: location.location,
+      tags: location.tags || [],
+      type: location.type,
+      formatted_address: location.address,
+      rating: location.rating,
+      user_rating_total: location.user_rating_total,
+      price_level: location.price_level,
+      order: location.order || 0,
+    })) || [];
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
         <MapView />
-        
+
         {/* Compact Route Editor */}
         {currentRouteLocations.length > 0 && (
           <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-3xl px-2">
-            <div className="text-xs"> {/* Global text size reduction */}
+            <div className="text-xs">
+              {" "}
+              {/* Global text size reduction */}
               <RouteEditor
                 locations={currentRouteLocations}
                 onLocationsChange={handleRouteLocationsChange}
                 onRegeneratePoint={handleRegeneratePoint}
                 onAddPoint={handleAddPoint}
-                compact={true}  // Pass compact prop to RouteEditor
+                compact={true} // Pass compact prop to RouteEditor
               />
             </div>
           </div>
         )}
-        
+
         {/* Bottom Controls */}
         <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center space-y-3 pb-4">
           {/* Route Carousel with padding */}
           {routes.length > 0 && (
-            <div className="w-full max-w-4xl px-2 mb-4"> {/* Added bottom margin */}
-              <RouteCarousel 
-                routes={routes} 
+            <div className="w-full max-w-4xl px-2 mb-4">
+              {" "}
+              {/* Added bottom margin */}
+              <RouteCarousel
+                routes={routes}
                 currentIndex={currentRouteIndex}
                 onSelect={handleRouteChange}
               />
             </div>
           )}
-          
-          {/* Route Selector */}
-          <div className="z-30">
-            <RouteSelector open={drawerOpen} setOpen={setDrawerOpen} />
-          </div>
         </div>
       </div>
-      
+
       {/* Sidebar */}
       <div className="w-80 border-l border-gray-200 bg-white shadow-lg flex flex-col max-h-screen">
         <div className="p-4 pb-0 flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-900">
-            Activity Planner
-          </h1>
+          <h1 className="text-xl font-bold text-gray-900">Activity Planner</h1>
           <p className="text-sm text-gray-600 mt-1">
             Plan your perfect event with AI assistance
           </p>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4">
           {apiIsLoaded && <LocationForm onSubmit={handleEventPlanSubmit} />}
         </div>
