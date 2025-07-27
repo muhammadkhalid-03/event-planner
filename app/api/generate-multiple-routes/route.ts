@@ -279,6 +279,7 @@ export async function POST(request: NextRequest) {
         routeNumber: i + 1,
         totalRoutes: numberOfRoutes,
         budget,
+        ageRange,
       });
 
       // Extract planned locations for this route
@@ -453,6 +454,7 @@ async function generateEventPlanWithGemini(params: {
   routeNumber: number;
   totalRoutes: number;
   budget?: number;
+  ageRange?: string;
 }) {
   try {
     console.log(
@@ -481,6 +483,30 @@ async function generateEventPlanWithGemini(params: {
       ],
     };
 
+    // Filter out bars if age range includes people below 21
+    let filteredPlaces = params.places;
+    const ageRangeText = params.ageRange || "";
+    const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
+                          ageRangeText.toLowerCase().includes("18-20") ||
+                          ageRangeText.toLowerCase().includes("16-20") ||
+                          ageRangeText.toLowerCase().includes("all ages") ||
+                          ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
+                          ageRangeText.includes("children") ||
+                          ageRangeText.includes("kids") ||
+                          ageRangeText.includes("family");
+
+    if (includesMinors) {
+      filteredPlaces = params.places.filter(place => {
+        const placeTypes = place.types || [];
+        const placeType = place.placeType || "";
+        return !placeTypes.includes("bar") && 
+               !placeTypes.includes("night_club") &&
+               placeType !== "bar" &&
+               placeType !== "night_club";
+      });
+      console.log(`🔒 Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`);
+    }
+
     const eventPlanPrompt = `
 # TRAVEL PLANNING TASK
 
@@ -491,11 +517,12 @@ async function generateEventPlanWithGemini(params: {
 ## INPUT PARAMETERS
 - **Duration**: ${params.hourRange} hours total
 - **Group Size**: ${params.numberOfPeople} people  
+- **Age Range**: ${params.ageRange || "Not specified"}
 - **Event Type**: ${params.eventDescription}
 - **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : "Budget not specified - provide cost estimates"}
 - **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
 - **Available Locations**: 
-${JSON.stringify(params.places, null, 2)}
+${JSON.stringify(filteredPlaces, null, 2)}
 
 ## PLANNING REQUIREMENTS
 
@@ -517,6 +544,12 @@ Before creating the itinerary, analyze:
 - ${params.budget ? `Ensure estimated costs stay within $${params.budget} per person (total group budget: $${params.budget * params.numberOfPeople})` : "Suggest cost-effective alternatives when available"}
 - Consider group discounts but maintain per-person budget of ${params.budget ? `$${params.budget}` : "specified amount"}
 - ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : "Estimate total approximate costs per person"}
+
+### 4. AGE-APPROPRIATE VENUE SELECTION
+- **Age Range Consideration**: ${params.ageRange || "Not specified"}
+- ${includesMinors ? "**IMPORTANT**: This group includes people under 21 - DO NOT suggest bars, night clubs, or alcohol-focused venues" : "Age range allows for all venue types including bars if appropriate for the event"}
+- Select venues that are suitable and accessible for the specified age range
+- Consider age-related preferences and restrictions when planning activities
 
 ## OUTPUT FORMAT
 Respond ONLY with a JSON object following this exact structure:
@@ -557,11 +590,12 @@ Respond ONLY with a JSON object following this exact structure:
 4. Calculate realistic travel times between locations
 5. Consider ${params.numberOfPeople} people for all logistics and costs
 6. ${params.budget ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person` : "Provide realistic cost estimates for budget planning"}
-7. Create a distinctive and enjoyable route that offers variety from other options
-8. Include practical considerations like bathroom breaks, meal timing, etc.
-9. If there are two locations with the same name, remove the location that is less popular
-10. **NEVER include the same venue twice in the itinerary** - each venue must be unique within the plan
-11. **Each venue name and address must be exactly as provided** - no variations or alternative names
+7. ${includesMinors ? `**AGE RESTRICTION**: This group includes people under 21 - bars, night clubs, and alcohol-focused venues are STRICTLY PROHIBITED` : "Consider age appropriateness for all venue selections"}
+8. Create a distinctive and enjoyable route that offers variety from other options
+9. Include practical considerations like bathroom breaks, meal timing, etc.
+10. If there are two locations with the same name, remove the location that is less popular
+11. **NEVER include the same venue twice in the itinerary** - each venue must be unique within the plan
+12. **Each venue name and address must be exactly as provided** - no variations or alternative names
 
 Begin analysis and create the JSON response now.`;
 
@@ -740,6 +774,7 @@ function generateFallbackPlan(params: {
   routeNumber: number;
   totalRoutes: number;
   budget?: number;
+  ageRange?: string;
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
@@ -750,12 +785,37 @@ function generateFallbackPlan(params: {
     eventDescription,
     routeNumber,
     totalRoutes,
+    ageRange,
   } = params;
+
+  // Filter out bars if age range includes people below 21
+  const ageRangeText = ageRange || "";
+  const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
+                        ageRangeText.toLowerCase().includes("18-20") ||
+                        ageRangeText.toLowerCase().includes("16-20") ||
+                        ageRangeText.toLowerCase().includes("all ages") ||
+                        ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
+                        ageRangeText.includes("children") ||
+                        ageRangeText.includes("kids") ||
+                        ageRangeText.includes("family");
+
+  let filteredPlaces = places;
+  if (includesMinors) {
+    filteredPlaces = places.filter(place => {
+      const placeTypes = place.types || [];
+      const placeType = place.placeType || "";
+      return !placeTypes.includes("bar") && 
+             !placeTypes.includes("night_club") &&
+             placeType !== "bar" &&
+             placeType !== "night_club";
+    });
+    console.log(`🔒 Fallback: Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`);
+  }
   const routeName = `Planned Route ${routeNumber}`;
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
-  places.forEach((place) => {
+  filteredPlaces.forEach((place) => {
     if (!placesByType[place.placeType]) {
       placesByType[place.placeType] = [];
     }
@@ -789,7 +849,7 @@ function generateFallbackPlan(params: {
     selectedPlaces.length === 0 ||
     selectedPlaces.length < Math.min(3, hourRange)
   ) {
-    const allPlacesSorted = places.sort(
+    const allPlacesSorted = filteredPlaces.sort(
       (a, b) => (b.rating || 0) - (a.rating || 0),
     );
     const additionalPlaces = allPlacesSorted
@@ -804,7 +864,7 @@ function generateFallbackPlan(params: {
     Math.min(8, Math.max(2, hourRange)),
   );
 
-  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${params.budget ? ` with a $${params.budget} per person budget` : ""}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${ageRange ? ` (age range: ${ageRange})` : ""}${params.budget ? ` with a $${params.budget} per person budget` : ""}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.${includesMinors ? " All venues are age-appropriate and do not include bars or night clubs." : ""}
 
 ${
   params.budget
