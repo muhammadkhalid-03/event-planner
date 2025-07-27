@@ -20,7 +20,33 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Removed "Select a Business" Popup (Latest)
+### Enhanced AI Event Planning with Structured JSON Output (Latest)
+- **🤖 Advanced Gemini Integration**: Completely redesigned event plan generation with sophisticated travel planning expertise
+- ✅ **Structured JSON Response**: AI now returns structured data with budget estimates, travel times, and detailed itineraries
+- ✅ **Professional System Instructions**: Added travel planning specialization context for more practical, feasible recommendations
+- ✅ **Budget Consciousness**: AI analyzes venue price levels and provides realistic cost estimates per person
+- ✅ **Route Optimization**: Intelligent analysis of travel distances, transit efficiency, and time buffers between locations
+- ✅ **Enhanced Planning Requirements**: Constraint analysis including group logistics, opening hours, and availability considerations
+- ✅ **Alternative Options**: Each plan includes backup venue suggestions with reasoning for substitutions
+- ✅ **Practical Tips**: Route-specific advice for group size, timing, and logistical considerations
+- ✅ **Improved Consistency**: Lower temperature (0.3) and JSON mime type for more reliable, structured output
+- ✅ **Comprehensive Documentation**: Detailed venue descriptions explaining how each location fits the route style
+- ✅ **Timeline Precision**: Specific arrival times, duration recommendations, and travel methods between venues
+- ✅ **Backward Compatibility**: JSON responses converted to text format maintaining compatibility with existing UI components
+- ✅ **Zero Duplicate Venues**: Multi-layer deduplication ensures no venue appears twice within any single route plan
+- ✅ **Comprehensive Duplicate Prevention**: 
+  - Pre-AI filtering removes duplicates from venue candidates
+  - AI prompt explicitly instructs against duplicate venues
+  - Post-AI processing removes any duplicate venues that slip through
+  - Location extraction deduplicates venues mentioned multiple times
+- ✅ **Smart Budget Integration**: AI planning now incorporates user's per-person budget from slider control
+  - Per-person budget amount passed to Gemini AI for cost-conscious planning
+  - Total group budget calculated automatically (budget × group size)
+  - Budget constraints explicitly enforced in AI instructions per individual
+  - Fallback plans include per-person budget considerations when AI is unavailable
+  - Cost estimates tailored to stay within specified per-person budget limits
+
+### Removed "Select a Business" Popup
 - **🚫 Cleaner Interface**: Removed the persistent "Select a Business" popup that appeared at the bottom of the screen
 - ✅ **Conditional Rendering**: RouteSelector component now only appears when a business/location is actually selected
 - ✅ **Removed Persistent Bar**: Eliminated the always-visible summary bar asking users to "Select a location to view more information"
