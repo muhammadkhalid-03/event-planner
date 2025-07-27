@@ -60,7 +60,13 @@ export default function RouteEditor({
   }
 
   return (
-    <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto w-full max-w-6xl ${compact ? 'mb-1' : 'mb-2'}`}>
+    <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} ${
+      locations.length <= 3 
+        ? 'w-fit max-w-md' // Very small width for 3 or fewer locations
+        : locations.length <= 5 
+          ? 'w-fit' // Small width for 4-5 locations
+          : 'w-full max-w-6xl' // Full width with scroll for 6+ locations
+    }`}>
       <div className={`flex items-center justify-between ${compact ? 'mb-2' : 'mb-3'}`}>
         <h3 className={`${compact ? 'text-sm' : 'text-lg'} font-semibold text-gray-800`}>
           Route Editor
@@ -78,7 +84,9 @@ export default function RouteEditor({
         </div>
       </div>
 
-      <div className="flex items-center gap-1 overflow-x-auto pb-1">
+      <div className={`flex items-center gap-4 pb-1 ${
+        locations.length > 5 ? 'overflow-x-auto' : 'overflow-visible'
+      }`}>
         {locations.map((location, index) => (
           <div
             key={`${location.id}-${index}`}
@@ -92,18 +100,22 @@ export default function RouteEditor({
           >
             {/* Connection line */}
             {index > 0 && (
-              <div className="absolute -left-1 top-1/2 w-3 h-0.5 bg-gray-300 transform -translate-y-1/2" />
+              <div className="absolute -left-4 top-1/2 w-4 h-0.5 bg-gray-300 transform -translate-y-1/2" />
             )}
 
             {/* Route point card */}
-            <div className={`bg-white border border-gray-200 rounded-lg ${compact ? 'p-1 min-w-[120px]' : 'p-3 min-w-[160px]'} shadow-sm hover:shadow transition-all`}>
+            <div className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all ${
+              locations.length === 2 
+                ? compact ? 'p-1 w-48' : 'p-3 w-56' // Much wider cards for 2 locations
+                : compact ? 'p-1 w-32' : 'p-3 w-40' // Standard width for other cases
+            }`}>
                 <div className="space-y-1">
                   {/* Order badge */}
                   <div className="flex items-center justify-between">
                     <div className={`${compact ? 'w-5 h-5 text-[10px]' : 'w-6 h-6 text-xs'} bg-blue-600 text-white rounded-full flex items-center justify-center font-bold`}>
                       {index + 1}
                     </div>
-                    <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${compact ? 'scale-90' : ''}`}>
+                    <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${compact ? 'scale-90' : ''}`}> 
                       {onRegeneratePoint && (
                         <button
                           onClick={() => onRegeneratePoint(index)}
@@ -145,7 +157,7 @@ export default function RouteEditor({
                   {/* Tags */}
                   {location.tags && location.tags.length > 0 && (
                     <div className="flex flex-wrap gap-0.5 mt-1">
-                      {location.tags.slice(0, 2).map((tag, tagIndex) => (
+                      {location.tags.slice(0, 1).map((tag, tagIndex) => (
                         <span
                           key={tagIndex}
                           className={`px-0.5 ${compact ? 'py-0 text-[9px]' : 'py-0.5 text-[10px]'} bg-gray-100 text-gray-600 rounded`}
@@ -153,9 +165,9 @@ export default function RouteEditor({
                           {tag}
                         </span>
                       ))}
-                      {location.tags.length > 2 && (
+                      {location.tags.length > 1 && (
                         <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} text-gray-500`}>
-                          +{location.tags.length - 2}
+                          +{location.tags.length - 1}
                         </span>
                       )}
                     </div>
@@ -166,12 +178,10 @@ export default function RouteEditor({
         ))}
       </div>
 
-      {/* Instructions */}
-      {!compact && (
-        <div className="text-xs text-gray-500 mt-2">
-          <p>💡 Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
-        </div>
-      )}
+      {/* Instructions - show for all cases */}
+      <div className="text-xs text-gray-500 mt-2">
+        <p> Drag cards to reorder • Click delete to remove • Use regenerate to get alternatives</p>
+      </div>
     </div>
   );
 }
