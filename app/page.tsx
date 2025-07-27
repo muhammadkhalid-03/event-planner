@@ -8,6 +8,7 @@ import RouteSelector from "./components/RouteSelector";
 import { usePlacesStore } from "./stores/placesStore";
 import { useApiIsLoaded } from "@vis.gl/react-google-maps";
 import RouteCarousel from "./components/RouteCarousel";
+import RouteEditor from "./components/RouteEditor";
 
 interface LocationData {
   country: string;
@@ -123,6 +124,9 @@ export default function Home() {
         numberOfPeople: data.numberOfPeople,
         radius: data.radius,
         eventDescription: data.eventDescription,
+        eventDate: data.eventDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
         suggestedPlan: route.suggestedPlan,
         plannedLocations: route.plannedLocations,
         placesFound: route.placesFound,
@@ -175,10 +179,133 @@ export default function Home() {
     setLocations(plannedLocations);
   };
 
+  const handleRouteLocationsChange = (newLocations: any[]) => {
+    // Update the current route with the new locations
+    const updatedRoutes = [...routes];
+    updatedRoutes[currentRouteIndex] = {
+      ...updatedRoutes[currentRouteIndex],
+      plannedLocations: newLocations,
+    };
+    setRoutes(updatedRoutes);
+    
+    // Update the map with the new locations
+    const plannedLocations = newLocations.map(location => ({
+      id: location.id,
+      name: location.name,
+      location: location.location,
+      tags: location.tags || [],
+      type: location.type,
+      formatted_address: location.formatted_address,
+      rating: location.rating,
+      user_rating_total: location.user_rating_total,
+      price_level: location.price_level,
+      order: location.order || 0,
+    }));
+    setLocations(plannedLocations);
+  };
+
+  const handleRegeneratePoint = async (index: number) => {
+    if (!routes[currentRouteIndex]) return;
+
+    const currentRoute = routes[currentRouteIndex];
+    const currentLocation = currentRoute.plannedLocations?.[index];
+    
+    if (!currentLocation) return;
+
+    try {
+      // Call API to regenerate a single point
+      const response = await fetch("/api/regenerate-point", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentLocation,
+          eventDescription: currentRoute.eventDescription,
+          startingLocation: currentRoute.startingLocation,
+          radius: currentRoute.radius,
+          index,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.newLocation) {
+        // Update the specific location in the route
+        const updatedLocations = [...(currentRoute.plannedLocations || [])];
+        updatedLocations[index] = result.newLocation;
+        
+        handleRouteLocationsChange(updatedLocations);
+      }
+    } catch (error) {
+      console.error("Error regenerating point:", error);
+    }
+  };
+
+  const handleAddPoint = async () => {
+    if (!routes[currentRouteIndex]) return;
+
+    const currentRoute = routes[currentRouteIndex];
+    
+    try {
+      // Call API to add a new point
+      const response = await fetch("/api/add-point", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentLocations: currentRoute.plannedLocations,
+          eventDescription: currentRoute.eventDescription,
+          startingLocation: currentRoute.startingLocation,
+          radius: currentRoute.radius,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.newLocation) {
+        // Add the new location to the route
+        const updatedLocations = [...(currentRoute.plannedLocations || []), result.newLocation];
+        
+        handleRouteLocationsChange(updatedLocations);
+      }
+    } catch (error) {
+      console.error("Error adding point:", error);
+    }
+  };
+
+  // Convert planned locations to the format expected by RouteEditor
+  const currentRouteLocations = routes[currentRouteIndex]?.plannedLocations?.map(location => ({
+    id: location.id,
+    name: location.name,
+    location: location.location,
+    tags: location.tags || [],
+    type: location.type,
+    formatted_address: location.address,
+    rating: location.rating,
+    user_rating_total: location.user_rating_total,
+    price_level: location.price_level,
+    order: location.order || 0,
+  })) || [];
+
   return (
     <main className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex-1 relative">
         <MapView />
+        
+        {/* Route Editor at top */}
+        {currentRouteLocations.length > 0 && (
+          <div className="absolute top-4 left-0 right-0 z-30">
+            <RouteEditor
+              locations={currentRouteLocations}
+              onLocationsChange={handleRouteLocationsChange}
+              onRegeneratePoint={handleRegeneratePoint}
+              onAddPoint={handleAddPoint}
+            />
+          </div>
+        )}
+        
         {/* Route Carousel at bottom */}
         {routes.length > 0 && (
           <div className="absolute bottom-16 left-0 right-0 z-20">
