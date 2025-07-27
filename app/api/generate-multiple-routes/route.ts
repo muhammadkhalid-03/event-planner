@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
-// Available place types from Google Places API
+
 const AVAILABLE_PLACE_TYPES = [
   'accounting', 'airport', 'amusement_park', 'aquarium', 'art_gallery', 'atm', 'bakery', 'bank', 'bar', 'beauty_salon',
   'bicycle_store', 'book_store', 'bowling_alley', 'bus_station', 'cafe', 'campground', 'car_dealer', 'car_rental',
@@ -31,10 +31,10 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
       eventDescription,
-      numberOfRoutes = 3 // Default to 3 routes
+      numberOfRoutes = 3
     } = await request.json();
 
-    console.log("📍 Received multiple routes request:", {
+    console.log("Received multiple routes request:", {
       startingLocation,
       hourRange,
       numberOfPeople,
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       numberOfRoutes,
     });
 
-    // Validate required inputs
+
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
         { success: false, error: "Starting location is required" },
@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
       console.log(`🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(', ')}`);
     } catch (error) {
-      console.warn("❌ Failed to select place types with Gemini, using defaults:", error);
-      selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"];
+      console.warn("Failed to select place types with Gemini, using defaults:", error);
+      selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"]; // it should be all types of places not just these three selectplacetypes should depend on user input and smartly choosr based on age range, budget starttime endtime and date what type of locations to generate.
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
@@ -594,10 +594,10 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
 
 async function selectPlaceTypesWithGemini(eventDescription: string): Promise<string[]> {
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
-  
+
   if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
-    return ["restaurant", "park", "tourist_attraction"]; // Default to common types
+    return ["restaurant", "park", "tourist_attraction"];
   }
 
   if (!eventDescription || eventDescription.trim().length === 0) {
@@ -614,32 +614,22 @@ AVAILABLE PLACE TYPES:
 ${AVAILABLE_PLACE_TYPES.join(', ')}
 
 SELECTION RULES:
-1. Choose 3-5 place types that best match the event theme and activities
-2. Consider the event's purpose, target audience, and typical activities
-3. For dining events: include "restaurant", "cafe", "bar" as appropriate
-4. For cultural events: include "museum", "art_gallery", "library", "tourist_attraction"
-5. For entertainment: include "amusement_park", "bowling_alley", "movie_theater", "night_club"
-6. For outdoor activities: include "park", "zoo", "stadium", "campground"
-7. For shopping: include "shopping_mall", "store", "book_store", "clothing_store"
-8. For wellness: include "spa", "gym", "beauty_salon"
-9. For family events: avoid adult-only venues like "night_club", "bar", "casino"
-10. For business events: include "restaurant", "hotel", "conference_center" type venues
+1. Choose 3-5 place types that best match the event theme and activities.
+2. Consider event purpose, age range, budget, and timing.
+3. Avoid adult-only places if event mentions children (e.g., avoid "bar", "casino", "night_club").
+4. Always return a JSON array of strings without extra commentary.
 
-EXAMPLES:
+Examples:
 - "romantic date night" → ["restaurant", "park", "art_gallery", "movie_theater", "bar"]
 - "kids birthday party" → ["amusement_park", "restaurant", "park", "zoo", "bowling_alley"]
-- "business networking" → ["restaurant", "bar", "art_gallery", "museum"]
-- "family day out" → ["park", "zoo", "restaurant", "museum", "amusement_park"]
-- "cultural exploration" → ["museum", "art_gallery", "tourist_attraction", "library", "restaurant"]
 
-Return ONLY a JSON array of place type strings. No explanation needed.
-Example format: ["restaurant", "park", "museum"]
+Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
 `;
 
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     console.log("🔄 Calling Gemini API for place type selection...");
-    
+
     const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
@@ -654,7 +644,7 @@ Example format: ["restaurant", "park", "museum"]
             ],
             generationConfig: {
               maxOutputTokens: 100,
-              temperature: 0.3, // Lower temperature for more consistent results
+              temperature: 0.3,
             },
           }),
         }
@@ -666,47 +656,46 @@ Example format: ["restaurant", "park", "museum"]
       throw new Error(`Gemini place type selection failed: ${response.status}`);
     }
 
-  const result = await response.json();
-  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    const result = await response.json();
+    const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    console.log("📥 Raw Gemini place type output:", rawText);
 
-  let selectedTypes: string[];
-  try {
-    const parsed = JSON.parse(rawText);
-    // Validate that it's an array of strings
-    if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-      selectedTypes = parsed;
-    } else {
-      console.warn("Gemini returned invalid format for place types:", rawText);
-      selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+    // Clean code block markers like ```json ... ```
+    const cleanedText = rawText.replace(/```json|```/g, "").trim();
+    console.log("🧹 Cleaned Gemini JSON string:", cleanedText);
+
+    let selectedTypes: string[];
+    try {
+      const parsed = JSON.parse(cleanedText);
+      if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+        selectedTypes = parsed;
+      } else {
+        console.warn("Gemini returned invalid format for place types:", cleanedText);
+        selectedTypes = ["restaurant", "park", "night_club"];
+      }
+    } catch (e) {
+      console.warn("Gemini returned non-JSON output for place types:", cleanedText);
+      selectedTypes = ["restaurant", "park", "night_club"];
     }
-  } catch (e) {
-    console.warn("Gemini returned non-JSON output for place types:", rawText);
-    selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
-  }
 
-  // Validate and filter selected types
-  const validSelectedTypes = selectedTypes.filter(type => 
-    AVAILABLE_PLACE_TYPES.includes(type)
-  );
-  
-  if (validSelectedTypes.length === 0) {
-    console.warn("No valid place types selected by Gemini, using defaults");
-    return ["restaurant", "park", "tourist_attraction"];
-  }
+    // Filter to ensure only valid Google Place types
+    const validSelectedTypes = selectedTypes.filter(type =>
+        AVAILABLE_PLACE_TYPES.includes(type)
+    );
 
-  // Ensure we only have up to 5 unique types
-  const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
-  if (uniqueSelectedTypes.length > 5) {
-    console.warn(`Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes.slice(0, 5).join(', ')}`);
-    return uniqueSelectedTypes.slice(0, 5);
-  }
+    if (validSelectedTypes.length === 0) {
+      console.warn("No valid place types selected by Gemini, using defaults");
+      return ["restaurant", "park", "tourist_attraction"];
+    }
 
-  console.log(`✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(', ')}`);
-  return uniqueSelectedTypes;
-  
+    // Limit to 5 unique types max
+    const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes)).slice(0, 5);
+
+    console.log(`✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(', ')}`);
+    return uniqueSelectedTypes;
+
   } catch (error) {
     console.error("❌ Error in place type selection:", error);
-    // Return default types on any error
     return ["restaurant", "park", "tourist_attraction"];
   }
 }

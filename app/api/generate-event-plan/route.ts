@@ -1,105 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile } from 'fs/promises';
+import path from 'path';
 
 // Available place types from Google Places API
 const AVAILABLE_PLACE_TYPES = [
-  "accounting",
-  "airport",
-  "amusement_park",
-  "aquarium",
-  "art_gallery",
-  "atm",
-  "bakery",
-  "bank",
-  "bar",
-  "beauty_salon",
-  "bicycle_store",
-  "book_store",
-  "bowling_alley",
-  "bus_station",
-  "cafe",
-  "campground",
-  "car_dealer",
-  "car_rental",
-  "car_repair",
-  "car_wash",
-  "casino",
-  "cemetery",
-  "church",
-  "city_hall",
-  "clothing_store",
-  "convenience_store",
-  "courthouse",
-  "dentist",
-  "department_store",
-  "doctor",
-  "drugstore",
-  "electrician",
-  "electronics_store",
-  "embassy",
-  "fire_station",
-  "florist",
-  "funeral_home",
-  "furniture_store",
-  "gas_station",
-  "gym",
-  "hair_care",
-  "hardware_store",
-  "hindu_temple",
-  "home_goods_store",
-  "hospital",
-  "insurance_agency",
-  "jewelry_store",
-  "laundry",
-  "lawyer",
-  "library",
-  "light_rail_station",
-  "liquor_store",
-  "local_government_office",
-  "locksmith",
-  "lodging",
-  "meal_delivery",
-  "meal_takeaway",
-  "mosque",
-  "movie_rental",
-  "movie_theater",
-  "moving_company",
-  "museum",
-  "night_club",
-  "painter",
-  "park",
-  "parking",
-  "pet_store",
-  "pharmacy",
-  "physiotherapist",
-  "plumber",
-  "police",
-  "post_office",
-  "primary_school",
-  "real_estate_agency",
-  "restaurant",
-  "roofing_contractor",
-  "rv_park",
-  "school",
-  "secondary_school",
-  "shoe_store",
-  "shopping_mall",
-  "spa",
-  "stadium",
-  "storage",
-  "store",
-  "subway_station",
-  "supermarket",
-  "synagogue",
-  "taxi_stand",
-  "tourist_attraction",
-  "train_station",
-  "transit_station",
-  "travel_agency",
-  "university",
-  "veterinary_care",
-  "zoo",
+  'accounting', 'airport', 'amusement_park', 'aquarium', 'art_gallery', 'atm', 'bakery', 'bank', 'bar', 'beauty_salon',
+  'bicycle_store', 'book_store', 'bowling_alley', 'bus_station', 'cafe', 'campground', 'car_dealer', 'car_rental',
+  'car_repair', 'car_wash', 'casino', 'cemetery', 'church', 'city_hall', 'clothing_store', 'convenience_store',
+  'courthouse', 'dentist', 'department_store', 'doctor', 'drugstore', 'electrician', 'electronics_store', 'embassy',
+  'fire_station', 'florist', 'funeral_home', 'furniture_store', 'gas_station', 'gym', 'hair_care', 'hardware_store',
+  'hindu_temple', 'home_goods_store', 'hospital', 'insurance_agency', 'jewelry_store', 'laundry', 'lawyer', 'library',
+  'light_rail_station', 'liquor_store', 'local_government_office', 'locksmith', 'lodging', 'meal_delivery',
+  'meal_takeaway', 'mosque', 'movie_rental', 'movie_theater', 'moving_company', 'museum', 'night_club', 'painter',
+  'park', 'parking', 'pet_store', 'pharmacy', 'physiotherapist', 'plumber', 'police', 'post_office', 'primary_school',
+  'real_estate_agency', 'restaurant', 'roofing_contractor', 'rv_park', 'school', 'secondary_school', 'shoe_store',
+  'shopping_mall', 'spa', 'stadium', 'storage', 'store', 'subway_station', 'supermarket', 'synagogue', 'taxi_stand',
+  'tourist_attraction', 'train_station', 'transit_station', 'travel_agency', 'university', 'veterinary_care', 'zoo'
 ];
 
 export async function POST(request: NextRequest) {
@@ -114,7 +30,7 @@ export async function POST(request: NextRequest) {
       eventDate,
       startTime,
       endTime,
-      eventDescription,
+      eventDescription
     } = await request.json();
 
     console.log("📍 Received request:", {
@@ -133,8 +49,8 @@ export async function POST(request: NextRequest) {
     // Validate required inputs
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
-        { success: false, error: "Starting location is required" },
-        { status: 400 }
+          { success: false, error: "Starting location is required" },
+          { status: 400 }
       );
     }
 
@@ -144,14 +60,9 @@ export async function POST(request: NextRequest) {
     let selectedPlaceTypes: string[];
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
-      console.log(
-        `🤖 Gemini selected place types: ${selectedPlaceTypes.join(", ")}`
-      );
+      console.log(`🤖 Gemini selected place types: ${selectedPlaceTypes.join(', ')}`);
     } catch (error) {
-      console.warn(
-        "❌ Failed to select place types with Gemini, using defaults:",
-        error
-      );
+      console.warn("❌ Failed to select place types with Gemini, using defaults:", error);
       selectedPlaceTypes = ["restaurant", "park", "tourist_attraction"];
     }
 
@@ -165,12 +76,13 @@ export async function POST(request: NextRequest) {
 
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No places found in the specified area" },
-        { status: 404 }
+          { success: false, error: "No places found in the specified area" },
+          { status: 404 }
       );
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
+
 
     // Step 2: Save places data to JSON file
     const timestamp = Date.now();
@@ -179,7 +91,7 @@ export async function POST(request: NextRequest) {
       timestamp,
       searchLocation: startingLocation.location,
       searchRadius: radius,
-      placeType: "event-planning",
+      placeType: 'event-planning',
       eventParameters: {
         hourRange,
         numberOfPeople,
@@ -189,7 +101,7 @@ export async function POST(request: NextRequest) {
         startTime,
         endTime,
         eventDescription,
-        startingLocation,
+        startingLocation
       },
       searchMetadata: {
         totalFound: placesData.length,
@@ -203,6 +115,10 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, JSON.stringify(placeDataStructure, null, 2));
 
     console.log(`💾 Saved places data to ${fileName}`);
+
+    console.log(`📊 Original places data: ${placesData.length} places`);
+    console.log(`📝 Sample places:`, placesData.slice(0, 3).map(p => ({ name: p.displayName, type: p.placeType })));
+
     const filteredPlaces = await filterPlacesWithGemini({
       places: placesData,
       eventDescription,
@@ -213,15 +129,11 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
     });
-    console.log(
-      `🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`
-    );
+    console.log(`🔍 Gemini filtered ${filteredPlaces.length} places from ${placesData.length}`);
 
     let eventPlan;
     if (filteredPlaces.length === 0) {
-      console.warn(
-        "⚠️ No places passed the Gemini filter, using original places for event planning"
-      );
+      console.warn("⚠️ No places passed the Gemini filter, using original places for event planning");
       // Use original places if filtering removed everything
       eventPlan = await generateEventPlanWithGemini({
         places: placesData.slice(0, 8), // Use first 8 places as fallback
@@ -239,6 +151,11 @@ export async function POST(request: NextRequest) {
         startingLocation,
       });
     }
+
+
+
+
+
 
     console.log("🤖 Generated event plan with Gemini");
 
@@ -270,12 +187,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ Error in event plan generation:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to generate event plan. Please try again.",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
+        {
+          success: false,
+          error: "Failed to generate event plan. Please try again.",
+          details: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 500 }
     );
   }
 }
@@ -316,31 +233,31 @@ async function searchNearbyPlaces(params: {
 
         if (data.results && data.results.length > 0) {
           const formattedPlaces = data.results
-            .filter((place: any) => place.place_id && place.geometry)
-            .map((place: any) => {
-              // Determine the primary place type for display
-              let primaryType = "restaurant";
-              if (placeType === "park") primaryType = "park";
-              if (placeType === "night_club") primaryType = "club";
+              .filter((place: any) => place.place_id && place.geometry)
+              .map((place: any) => {
+                // Determine the primary place type for display
+                let primaryType = "restaurant";
+                if (placeType === "park") primaryType = "park";
+                if (placeType === "night_club") primaryType = "club";
 
-              return {
-                id: place.place_id,
-                displayName: place.name || `Unknown ${primaryType}`,
-                formattedAddress: place.vicinity || place.formatted_address,
-                location: {
-                  lat: place.geometry.location.lat,
-                  lng: place.geometry.location.lng,
-                },
-                rating: place.rating,
-                userRatingCount: place.user_ratings_total,
-                priceLevel: place.price_level,
-                types: place.types || [],
-                placeType: primaryType,
-                businessStatus: place.business_status,
-                photos: place.photos,
-                detailsFetchedAt: new Date().toISOString(),
-              };
-            });
+                return {
+                  id: place.place_id,
+                  displayName: place.name || `Unknown ${primaryType}`,
+                  formattedAddress: place.vicinity || place.formatted_address,
+                  location: {
+                    lat: place.geometry.location.lat,
+                    lng: place.geometry.location.lng,
+                  },
+                  rating: place.rating,
+                  userRatingCount: place.user_ratings_total,
+                  priceLevel: place.price_level,
+                  types: place.types || [],
+                  placeType: primaryType,
+                  businessStatus: place.business_status,
+                  photos: place.photos,
+                  detailsFetchedAt: new Date().toISOString(),
+                };
+              });
 
           allPlaces.push(...formattedPlaces);
         }
@@ -354,7 +271,7 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+        (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
@@ -364,6 +281,8 @@ async function searchNearbyPlaces(params: {
     throw new Error("Failed to search for nearby places");
   }
 }
+
+
 
 async function filterPlacesWithGemini(params: {
   places: any[];
@@ -375,26 +294,13 @@ async function filterPlacesWithGemini(params: {
   startTime: string;
   endTime: string;
 }) {
-  const {
-    places,
-    eventDescription,
-    location,
-    ageRange,
-    budget,
-    eventDate,
-    startTime,
-    endTime,
-  } = params;
+  const { places, eventDescription, location, ageRange, budget, eventDate, startTime, endTime } = params;
 
   console.log(`🔍 Starting Gemini filtering with ${places.length} places`);
-  console.log(
-    `📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`
-  );
+  console.log(`📋 Filter criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, event: "${eventDescription}"`);
 
   if (!process.env.GEMINI_API_KEY) {
-    console.warn(
-      "⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places"
-    );
+    console.warn("⚠️ GEMINI_API_KEY not found, skipping filtering - returning all places");
     return places;
   }
 
@@ -424,27 +330,26 @@ Return JSON array of IDs like:
 
   const apiKey = process.env.GEMINI_API_KEY;
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: filterPrompt }],
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: filterPrompt }],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: 500,
+            temperature: 0.4,
           },
-        ],
-        generationConfig: {
-          maxOutputTokens: 500,
-          temperature: 0.4,
-        },
-      }),
-    }
+        }),
+      }
   );
 
-  if (!response.ok)
-    throw new Error(`Gemini filtering failed: ${response.status}`);
+  if (!response.ok) throw new Error(`Gemini filtering failed: ${response.status}`);
 
   const result = await response.json();
   const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
@@ -460,16 +365,13 @@ Return JSON array of IDs like:
   const allowedIds = new Set(filtered.map((p: any) => p.id));
   const filteredPlaces = places.filter((p) => allowedIds.has(p.id));
 
-  console.log(
-    `✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`
-  );
-  console.log(
-    `📍 Selected places:`,
-    filteredPlaces.map((p) => ({ name: p.displayName, type: p.placeType }))
-  );
+  console.log(`✅ Gemini filtering complete: ${filteredPlaces.length} places selected from ${places.length}`);
+  console.log(`📍 Selected places:`, filteredPlaces.map(p => ({ name: p.displayName, type: p.placeType })));
 
   return filteredPlaces;
 }
+
+
 
 // Helper function to generate event plan with Gemini
 async function generateEventPlanWithGemini(params: {
@@ -480,8 +382,16 @@ async function generateEventPlanWithGemini(params: {
   startingLocation: any;
 }) {
   try {
+    console.log(`🤖 Starting Gemini event plan generation with ${params.places.length} places`);
+    console.log(`📍 Places being sent to AI:`, params.places.map(p => ({
+      name: p.displayName,
+      type: p.placeType,
+      rating: p.rating,
+      address: p.formattedAddress
+    })));
+
     if (!process.env.GEMINI_API_KEY) {
-      console.error("❌ GEMINI API key not found in environment variables");
+      console.error('❌ GEMINI API key not found in environment variables');
       // Return a fallback plan instead of failing
       return generateFallbackPlan(params);
     }
@@ -494,7 +404,7 @@ EVENT REQUIREMENTS:
 - Group Size: ${params.numberOfPeople} people
 - Event Description: ${params.eventDescription}
 - Starting Location: ${params.startingLocation.location.lat}, ${
-      params.startingLocation.location.lng
+        params.startingLocation.location.lng
     }
 
 AVAILABLE PLACES DATA:
@@ -527,57 +437,57 @@ REQUIREMENTS:
 - Mention venue names clearly and exactly as they appear in the data
 - Create a realistic timeline that accounts for travel between locations
 - Make the plan engaging and tailored to the event description: "${
-      params.eventDescription
+        params.eventDescription
     }"
 - NO hashtags, asterisks, dashes, or any markdown formatting
 `;
 
-    console.log("🤖 Calling Gemini API...", eventPlanPrompt);
+    console.log("🤖 Calling Gemini API...");
 
     const apiKey = process.env.GEMINI_API_KEY;
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [
+                {
+                  text: "You are an expert event planner with deep knowledge of creating memorable experiences using specific venues and logistics.",
+                },
+              ],
+            },
+            contents: [
               {
-                text: "You are an expert event planner with deep knowledge of creating memorable experiences using specific venues and logistics.",
+                role: "user",
+                parts: [{ text: eventPlanPrompt }],
               },
             ],
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: eventPlanPrompt }],
+            generationConfig: {
+              maxOutputTokens: 3000,
+              temperature: 0.7,
             },
-          ],
-          generationConfig: {
-            maxOutputTokens: 3000,
-            temperature: 0.7,
-          },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_NONE",
-            },
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_NONE",
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_NONE",
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_NONE",
-            },
-          ],
-        }),
-      }
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_NONE",
+              },
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_NONE",
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_NONE",
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_NONE",
+              },
+            ],
+          }),
+        }
     );
 
     if (!response.ok) {
@@ -597,10 +507,7 @@ REQUIREMENTS:
     }
 
     const result = await response.json();
-    console.log(
-      `📥 Gemini API response received. Response structure:`,
-      Object.keys(result)
-    );
+    console.log(`📥 Gemini API response received. Response structure:`, Object.keys(result));
 
     // Extract response text from Gemini's structure
     const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -612,20 +519,18 @@ REQUIREMENTS:
     }
 
     console.log("✅ Gemini API call successful");
-    console.log(
-      `📄 Generated event plan preview: ${responseText.substring(0, 200)}...`
-    );
+    console.log(`📄 Generated event plan preview: ${responseText.substring(0, 200)}...`);
     return responseText;
   } catch (error) {
     console.error("❌ Error in Gemini API call:", error);
 
     // If network error, provide fallback plan
     if (
-      error instanceof Error &&
-      (error.message.includes("fetch") ||
-        error.message.includes("network") ||
-        error.message.includes("ENOTFOUND") ||
-        error.message.includes("timeout"))
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+            error.message.includes("network") ||
+            error.message.includes("ENOTFOUND") ||
+            error.message.includes("timeout"))
     ) {
       console.log("🔄 Network error detected, providing fallback plan");
       return generateFallbackPlan(params);
@@ -645,18 +550,18 @@ function generateFallbackPlan(params: {
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
-  const { places, hourRange, numberOfPeople, eventDescription } = params;
+  const { places, hourRange, numberOfPeople, eventDescription,  } = params;
 
   // Sort places by rating (if available) and type diversity
   const restaurants = places
-    .filter((p) => p.placeType === "restaurant")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      .filter((p) => p.placeType === "restaurant")
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0));
   const parks = places
-    .filter((p) => p.placeType === "park")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      .filter((p) => p.placeType === "park")
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0));
   const clubs = places
-    .filter((p) => p.placeType === "club")
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      .filter((p) => p.placeType === "club")
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
   const selectedPlaces = [];
 
@@ -671,27 +576,23 @@ function generateFallbackPlan(params: {
     selectedPlaces.push(places[0]);
   }
 
-  return `Here's your ${hourRange}-hour ${
-    eventDescription || "event"
-  } plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
+  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.
 
 ${selectedPlaces
-  .map(
-    (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
-      place.formattedAddress || place.address || "Address not available"
-    }
-   ${
-     place.rating
-       ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities`
-       : `Selected ${place.placeType} venue based on location and type`
-   }
+      .map(
+          (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
+              place.formattedAddress || place.address || "Address not available"
+          }
+   ${place.rating
+              ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities`
+              : `Selected ${place.placeType} venue based on location and type`}
    Estimated time: ${Math.floor(
-     hourRange / Math.max(selectedPlaces.length, 1)
-   )} hour(s)
+              hourRange / Math.max(selectedPlaces.length, 1)
+          )} hour(s)
 
 `
-  )
-  .join("")}You can choose to edit your plan or make another one!`;
+      )
+      .join("")}You can choose to edit your plan or make another one!`;
 }
 
 // Helper function to extract locations from the generated plan with ordering
@@ -744,81 +645,68 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
   }
 }
 
-async function selectPlaceTypesWithGemini(
-  eventDescription: string
-): Promise<string[]> {
+
+async function selectPlaceTypesWithGemini(params: {
+  eventDescription: string;
+  ageRange: [number, number];
+  budget: number;
+  eventDate: string;
+  startTime: string;
+  endTime: string;
+}): Promise<string[]> {
+  const { eventDescription, ageRange, budget, eventDate, startTime, endTime } = params;
+
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
+  console.log(`📋 Criteria: age ${ageRange[0]}-${ageRange[1]}, budget $${budget}, date ${eventDate}, time ${startTime}-${endTime}`);
 
   if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY not found, using default place types");
-    return ["restaurant", "park", "tourist_attraction"]; // Default to common types
-  }
-
-  if (!eventDescription || eventDescription.trim().length === 0) {
-    console.warn("⚠️ Empty event description, using default place types");
     return ["restaurant", "park", "tourist_attraction"];
   }
 
   const prompt = `
-You are an expert event planner. Analyze this event description and select the most relevant place types.
+You are an intelligent event assistant. Based on the event details, pick 3–8 relevant Google Places API place types from the list below.
 
-EVENT DESCRIPTION: "${eventDescription}"
+Event Details:
+- Age Range: ${ageRange[0]}-${ageRange[1]} years
+- Budget: up to $${budget}
+- Event Date: ${eventDate}
+- Time: ${startTime} - ${endTime}
+- Description: "${eventDescription}"
 
-AVAILABLE PLACE TYPES:
-${AVAILABLE_PLACE_TYPES.join(", ")}
+Rules:
+- Avoid adult-only venues (e.g., bars, casinos, night_clubs) if the age range includes children < 18.
+- Include dining-related places ("restaurant", "cafe", "bakery") if the event suggests eating out.
+- Include entertainment (e.g., "movie_theater", "bowling_alley", "amusement_park") for fun events.
+- Include cultural locations (e.g., "museum", "art_gallery", "library") if the event mentions culture or history.
+- Include outdoor places (e.g., "park", "zoo") for family or nature events.
+- Choose types that are realistic for the given budget.
+- Select 3–8 relevant types, ensuring diversity.
 
-SELECTION RULES:
-1. Choose 3-5 place types that best match the event theme and activities
-2. Consider the event's purpose, target audience, and typical activities
-3. For dining events: include "restaurant", "cafe", "bar" as appropriate
-4. For cultural events: include "museum", "art_gallery", "library", "tourist_attraction"
-5. For entertainment: include "amusement_park", "bowling_alley", "movie_theater", "night_club"
-6. For outdoor activities: include "park", "zoo", "stadium", "campground"
-7. For shopping: include "shopping_mall", "store", "book_store", "clothing_store"
-8. For wellness: include "spa", "gym", "beauty_salon"
-9. For family events: avoid adult-only venues like "night_club", "bar", "casino"
-10. For business events: include "restaurant", "hotel", "conference_center" type venues
+Available Google Place Types:
+${AVAILABLE_PLACE_TYPES.join(', ')}
 
-EXAMPLES:
-- "romantic date night" → ["restaurant", "park", "art_gallery", "movie_theater", "bar"]
-- "kids birthday party" → ["amusement_park", "restaurant", "park", "zoo", "bowling_alley"]
-- "business networking" → ["restaurant", "bar", "art_gallery", "museum"]
-- "family day out" → ["park", "zoo", "restaurant", "museum", "amusement_park"]
-- "cultural exploration" → ["museum", "art_gallery", "tourist_attraction", "library", "restaurant"]
-
-Return ONLY a JSON array of place type strings. No explanation needed.
-Example format: ["restaurant", "park", "museum"]
+Return a JSON array of place type strings, for example:
+["restaurant", "park", "museum"]
 `;
 
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    console.log("🔄 Calling Gemini API for place type selection...");
-
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 100,
-            temperature: 0.3, // Lower temperature for more consistent results
-          },
-        }),
-      }
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 150, temperature: 0.4 },
+          }),
+        }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(
-        `❌ Gemini API error for place types: ${response.status} - ${errorText}`
-      );
+      console.error(`Gemini API error: ${response.status} - ${errorText}`);
       throw new Error(`Gemini place type selection failed: ${response.status}`);
     }
 
@@ -827,55 +715,32 @@ Example format: ["restaurant", "park", "museum"]
 
     let selectedTypes: string[];
     try {
-      const parsed = JSON.parse(rawText);
-      // Validate that it's an array of strings
-      if (
-        Array.isArray(parsed) &&
-        parsed.every((item) => typeof item === "string")
-      ) {
-        selectedTypes = parsed;
-      } else {
-        console.warn(
-          "Gemini returned invalid format for place types:",
-          rawText
-        );
-        selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
-      }
+      selectedTypes = JSON.parse(rawText);
+      if (!Array.isArray(selectedTypes)) throw new Error("Invalid format");
     } catch (e) {
-      console.warn("Gemini returned non-JSON output for place types:", rawText);
-      selectedTypes = ["restaurant", "park", "night_club"]; // Fallback to default
+      console.warn("Gemini returned invalid or non-JSON output:", rawText);
+      selectedTypes = ["restaurant", "park", "tourist_attraction"];
     }
 
-    // Validate and filter selected types
-    const validSelectedTypes = selectedTypes.filter((type) =>
-      AVAILABLE_PLACE_TYPES.includes(type)
+    // Filter invalid types
+    const validSelectedTypes = selectedTypes.filter(type =>
+        AVAILABLE_PLACE_TYPES.includes(type)
     );
 
     if (validSelectedTypes.length === 0) {
-      console.warn("No valid place types selected by Gemini, using defaults");
+      console.warn("Gemini returned no valid types, using defaults");
       return ["restaurant", "park", "tourist_attraction"];
     }
 
-    // Ensure we only have up to 5 unique types
-    const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
-    if (uniqueSelectedTypes.length > 5) {
-      console.warn(
-        `Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes
-          .slice(0, 5)
-          .join(", ")}`
-      );
-      return uniqueSelectedTypes.slice(0, 5);
-    }
+    // Ensure max 8 types
+    const uniqueTypes = Array.from(new Set(validSelectedTypes)).slice(0, 8);
 
-    console.log(
-      `✅ Gemini selected ${
-        uniqueSelectedTypes.length
-      } valid place types: ${uniqueSelectedTypes.join(", ")}`
-    );
-    return uniqueSelectedTypes;
+    console.log(`Gemini selected place types: ${uniqueTypes.join(', ')}`);
+    return uniqueTypes;
+
   } catch (error) {
-    console.error("❌ Error in place type selection:", error);
-    // Return default types on any error
+    console.error("Error in place type selection:", error);
     return ["restaurant", "park", "tourist_attraction"];
   }
 }
+
