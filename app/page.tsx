@@ -117,7 +117,7 @@ export default function Home() {
   const [currentRouteIndex, setCurrentRouteIndex] = useState(0);
 
   const handleEventPlanSubmit = (data: EventPlanData) => {
-    // If we have multiple routes from the new API, add them all to the carousel
+    // If we have multiple routes from the new API, replace the carousel
     if (data.allRoutes && data.allRoutes.length > 0) {
       // Convert the route data to the expected format
       const newRoutes = data.allRoutes.map((route, index) => ({
@@ -136,18 +136,16 @@ export default function Home() {
         routeNumber: route.routeNumber,
         routeName: route.routeName,
       }));
-      
-      setRoutes(prev => [...prev, ...newRoutes]);
-      setCurrentRouteIndex(routes.length); // Set to the first new route
+      setRoutes(newRoutes); // REPLACE instead of append
+      setCurrentRouteIndex(0); // Always start at the first new route
       setEventPlanData(newRoutes[0]); // Set the first route as current
-      
       console.log(
-        `📍 Added ${newRoutes.length} new route options to carousel. Total routes: ${routes.length + newRoutes.length}`
+        `📍 Replaced with ${newRoutes.length} new route options in carousel.`
       );
     } else {
       // Fallback to single route behavior
-      setRoutes(prev => [...prev, data]);
-      setCurrentRouteIndex(routes.length);
+      setRoutes([data]);
+      setCurrentRouteIndex(0);
       setEventPlanData(data);
     }
 

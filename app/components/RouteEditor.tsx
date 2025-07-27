@@ -19,7 +19,6 @@ export default function RouteEditor({
   onAddPoint,
   compact = false, // Default to false
 }: RouteEditorProps) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const handleDelete = (index: number) => {
