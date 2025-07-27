@@ -53,6 +53,7 @@ interface EventPlanData {
       ageRange?: [number, number];
       budget?: number;
     };
+    selectedPlaceTypes?: string[];
   };
   routeNumber?: number;
   routeName?: string;
@@ -96,6 +97,7 @@ interface EventPlanData {
         budget?: number;
       };
       filterStrategy: number;
+      selectedPlaceTypes?: string[];
     };
   }>;
 }
@@ -221,10 +223,12 @@ export default function Home() {
         },
         body: JSON.stringify({
           currentLocation,
+          allCurrentLocations: currentRoute.plannedLocations || [],
           eventDescription: currentRoute.eventDescription,
           startingLocation: currentRoute.startingLocation,
           radius: currentRoute.radius,
           index,
+          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || ["restaurant", "park", "night_club"],
         }),
       });
 
@@ -259,6 +263,7 @@ export default function Home() {
           eventDescription: currentRoute.eventDescription,
           startingLocation: currentRoute.startingLocation,
           radius: currentRoute.radius,
+          selectedPlaceTypes: currentRoute.metadata?.selectedPlaceTypes || ["restaurant", "park", "night_club"],
         }),
       });
 

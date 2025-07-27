@@ -20,7 +20,14 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Fixed Dynamic Place Type Implementation (Latest)
+### Removed "Select a Business" Popup (Latest)
+- **🚫 Cleaner Interface**: Removed the persistent "Select a Business" popup that appeared at the bottom of the screen
+- ✅ **Conditional Rendering**: RouteSelector component now only appears when a business/location is actually selected
+- ✅ **Removed Persistent Bar**: Eliminated the always-visible summary bar asking users to "Select a location to view more information"
+- ✅ **Simplified User Experience**: Users no longer see empty popup prompts when no location is selected
+- ✅ **Cleaner Code**: Removed unnecessary conditional checks since component only renders with valid selected locations
+
+### Fixed Dynamic Place Type Implementation
 - **🔧 Critical Bug Fix**: Fixed hardcoded place type limitation that was ignoring Gemini's AI selections
 - ✅ **True Dynamic Categorization**: Places stored in API logs now reflect the actual place types selected by Gemini AI
 - ✅ **Eliminated Hardcoded Restrictions**: Removed forced categorization into only "restaurant", "park", and "club"
@@ -32,6 +39,30 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 - ✅ **Fixed All Fallback Scenarios**: Removed restaurant-heavy defaults from all error handling scenarios
 - ✅ **Better Error Logging**: Enhanced debugging to identify exactly when and why fallbacks occur
 - ✅ **Diverse Default Types**: Changed all fallback defaults to use tourist_attraction/park/museum for more balanced results
+
+### Enhanced Route Editing with Massive Variety & Smart Selection (Latest)
+- **🚀 Comprehensive Overhaul**: Route regeneration now provides extensive variety instead of cycling between 2 locations
+- ✅ **Intelligent Candidate Selection**: Multi-tier selection system prioritizes same type → related types → highly-rated alternatives
+- ✅ **Randomized Top Picks**: Randomly selects from top 5-10 candidates instead of always picking highest rated
+- ✅ **Expanded Search Pool**: Automatically tries API logs when <15 alternatives found instead of waiting for zero
+- ✅ **Broader Fallback Search**: Doubles search radius and includes common venue types when options are limited
+- ✅ **Enhanced API Logs Mining**: Checks 10 recent files (up from 5) and finds up to 25 alternatives (up from 10)
+- ✅ **Flexible Type Matching**: Accepts exact matches, highly-rated places (4+ stars), OR common venue types
+- ✅ **Distance Expansion**: API logs fallback searches up to 3x original radius for maximum variety
+- ✅ **Smart Add-Point Logic**: Prioritizes underrepresented place types to balance route composition
+- ✅ **Comprehensive Deduplication**: Prevents ALL route duplicates while maintaining extensive alternative pools
+- ✅ **Performance Balanced**: Optimized to provide variety without overwhelming API calls
+
+### Fixed Route Editing to Respect AI Place Type Selection
+- **🔧 Critical Bug Fix**: Route regeneration and add point features now respect Gemini's initial place type selections
+- ✅ **Consistent Categorization**: Regenerate button now searches within the same AI-selected venue categories
+- ✅ **Smart New Point Addition**: Add point feature uses the original event-specific place types selected by Gemini
+- ✅ **Eliminated Hardcoded Defaults**: Removed hardcoded "restaurant, park, night_club" fallbacks in editing features
+- ✅ **Enhanced Type Safety**: Updated TypeScript interfaces to include selectedPlaceTypes in route metadata
+- ✅ **Frontend-Backend Consistency**: API calls now pass original place type selections from frontend to backend
+- ✅ **Intelligent Fallbacks**: Graceful handling when selectedPlaceTypes are unavailable with appropriate defaults
+- ✅ **Improved Debugging**: Added logging to show which place types are being used for regeneration/addition
+- ✅ **Complete Route Integrity**: All route modifications maintain the event's original theme and venue categories
 
 ### Multiple Routes Generation with AI Place Type Selection
 - **🛣️ Multiple Route Options**: Generate 3 different route plans with varying strategies for the same event

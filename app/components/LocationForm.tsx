@@ -50,6 +50,7 @@ interface EventPlanData {
       startTime: string;
       endTime: string;
     };
+    selectedPlaceTypes?: string[];
   };
   allRoutes?: Array<{
     startingLocation: LocationData;
@@ -91,6 +92,7 @@ interface EventPlanData {
         budget?: number;
       };
       filterStrategy: number;
+      selectedPlaceTypes?: string[];
     };
   }>;
 }
