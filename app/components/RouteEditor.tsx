@@ -60,7 +60,7 @@ export default function RouteEditor({
   }
 
   return (
-    <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} ${
+    <div className={`bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-lg ${compact ? 'p-2' : 'p-4'} mx-auto ${compact ? 'mb-1' : 'mb-2'} min-w-[515px] ${
       locations.length <= 3 
         ? 'w-fit max-w-md min-w-[400px]' // Very small width for 3 or fewer locations with min-width
         : locations.length <= 5 
@@ -85,6 +85,8 @@ export default function RouteEditor({
       </div>
 
       <div className={`flex items-center gap-4 pb-1 ${
+        locations.length <= 3 ? 'justify-center' : ''
+      } ${
         locations.length > 5 ? 'overflow-x-auto' : 'overflow-visible'
       } ${
         locations.length === 2 || 1 ? 'justify-center' : ''
@@ -107,9 +109,9 @@ export default function RouteEditor({
 
             {/* Route point card */}
             <div className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all ${
-              compact ? 'p-1 w-32' : 'p-3 w-40' // Standard width for all cases
+              compact ? 'p-1 w-32 h-24' : 'p-3 w-40 h-32'
             }`}>
-                <div className="space-y-1">
+                <div className="h-full flex flex-col justify-between">
                   {/* Order badge */}
                   <div className="flex items-center justify-between">
                     <div className={`${compact ? 'w-5 h-5 text-[10px]' : 'w-6 h-6 text-xs'} bg-blue-600 text-white rounded-full flex items-center justify-center font-bold`}>
@@ -136,42 +138,54 @@ export default function RouteEditor({
                   </div>
 
                   {/* Location info */}
-                  <div className={compact ? 'mt-0.5' : ''}>
+                  <div className="flex-1">
                     <h4 className={`font-medium text-gray-900 truncate ${compact ? 'text-xs' : 'text-sm'}`}>
                       {location.name}
                     </h4>
                     <p className={`text-gray-500 truncate ${compact ? 'text-[10px]' : 'text-xs'}`}>
                       {location.formatted_address || location.type}
                     </p>
-                    {location.rating && (
-                      <div className="flex items-center gap-0.5 mt-0.5">
-                        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-yellow-600`}>⭐</span>
-                        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-600`}>
-                          {location.rating}
-                          {location.user_rating_total && ` (${location.user_rating_total})`}
-                        </span>
+                    
+                    {/* Rating section - fixed height */}
+                    <div className={`flex items-center gap-0.5 mt-0.5 ${compact ? 'h-3' : 'h-4'}`}>
+                      {location.rating ? (
+                        <>
+                          <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-yellow-600`}>⭐</span>
+                          <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-600`}>
+                            {location.rating}
+                            {location.user_rating_total && ` (${location.user_rating_total})`}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-400`}>No rating</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tags - fixed height container */}
+                  <div className={`${compact ? 'h-4' : 'h-5'} overflow-hidden`}>
+                    {location.tags && location.tags.length > 0 && (
+                      <div className="flex items-center gap-0.5">
+                        {location.tags.slice(0, 1).map((tag, tagIndex) => {
+                          const displayTag = tag.length > 8 ? tag.substring(0, 8) + '...' : tag;
+                          return (
+                            <span
+                              key={tagIndex}
+                              className={`px-0.5 ${compact ? 'py-0 text-[9px]' : 'py-0.5 text-[10px]'} bg-gray-100 text-gray-600 rounded truncate`}
+                              title={tag}
+                            >
+                              {displayTag}
+                            </span>
+                          );
+                        })}
+                        {location.tags.length > 1 && (
+                          <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} text-gray-500 flex-shrink-0`}>
+                            +{location.tags.length - 1}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
-
-                  {/* Tags */}
-                  {location.tags && location.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-0.5 mt-1">
-                      {location.tags.slice(0, 1).map((tag, tagIndex) => (
-                        <span
-                          key={tagIndex}
-                          className={`px-0.5 ${compact ? 'py-0 text-[9px]' : 'py-0.5 text-[10px]'} bg-gray-100 text-gray-600 rounded`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {location.tags.length > 1 && (
-                        <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} text-gray-500`}>
-                          +{location.tags.length - 1}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
             </div>
           </div>

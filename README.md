@@ -20,7 +20,27 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Enhanced AI Event Planning with Structured JSON Output (Latest)
+### Improved Route Carousel UI and Naming (Latest)
+- **🎨 Reduced Whitespace**: Minimized excessive padding throughout the route carousel for a cleaner, more compact design
+- ✅ **Centered Layout**: Improved centering of route options with `justify-center` layout for better visual balance
+- ✅ **Updated Route Names**: Changed "Option" to "Planned Route" for clearer, more descriptive route naming
+- ✅ **Compact Design**: Reduced padding from `p-3` to `p-2` on route buttons and overall container padding
+- ✅ **Better Button Sizing**: Reduced minimum width from 180px to 160px for more efficient space usage
+- ✅ **Improved Text Alignment**: Added explicit `text-center` classes for consistent text centering
+- ✅ **API Consistency**: Updated all route generation endpoints to use "Planned Route" terminology
+- ✅ **Removed Navigation Arrows**: Eliminated left/right chevron arrows for a cleaner, simpler interface
+- ✅ **Simplified Layout**: Direct button selection without navigation controls for streamlined user experience
+- ✅ **Eliminated All Whitespace**: Changed container from `w-full max-w-4xl` to `w-fit` and removed centering to eliminate all side whitespace
+- ✅ **Perfect Spacing**: Added exactly 3px horizontal padding (`px-[3px]`) for optimal visual spacing
+- ✅ **Route Editor Single-Line Text**: Added minimum width of 515px to ensure "Drag cards..." instructions stay on one line
+- ✅ **Consistent Card Heights**: Fixed route editor cards to have uniform heights regardless of content length or missing ratings
+- ✅ **Rating Placeholder**: Added "No rating" placeholder to maintain consistent spacing when ratings are missing
+- ✅ **Tag Truncation**: Long tags are now truncated at 8 characters to prevent card height variations
+- ✅ **Fixed Layout Structure**: Used flexbox with fixed heights to ensure all cards maintain identical dimensions
+- ✅ **Consistent Card Width**: Removed special case that made 2-location cards wider - all cards now have uniform dimensions regardless of route length
+- ✅ **Centered Short Routes**: When there are 3 or fewer locations, cards are now centered in the Route Editor for better visual balance
+
+### Enhanced AI Event Planning with Structured JSON Output
 - **🤖 Advanced Gemini Integration**: Completely redesigned event plan generation with sophisticated travel planning expertise
 - ✅ **Structured JSON Response**: AI now returns structured data with budget estimates, travel times, and detailed itineraries
 - ✅ **Professional System Instructions**: Added travel planning specialization context for more practical, feasible recommendations
