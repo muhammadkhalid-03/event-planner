@@ -106,7 +106,7 @@ export default function Home() {
   const { locations, drawerOpen, setDrawerOpen, setLocations } =
     usePlacesStore();
   const [eventPlanData, setEventPlanData] = useState<EventPlanData | null>(
-    null,
+    null
   );
   useEffect(() => {
     if (locations.length > 0) {
@@ -143,7 +143,7 @@ export default function Home() {
       setEventPlanData(newRoutes[0]); // Set the first route as current
 
       console.log(
-        `📍 Replaced with ${newRoutes.length} new route options in carousel.`,
+        `📍 Replaced with ${newRoutes.length} new route options in carousel.`
       );
     } else {
       // Fallback to single route behavior
@@ -154,7 +154,7 @@ export default function Home() {
 
     if (data.plannedLocations && data.plannedLocations.length > 0) {
       console.log(
-        `📍 Displaying ${data.plannedLocations.length} planned locations on map`,
+        `📍 Displaying ${data.plannedLocations.length} planned locations on map`
       );
     }
 
@@ -331,7 +331,7 @@ export default function Home() {
         )}
 
         {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center space-y-3 pb-4">
+        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center space-y-3">
           {/* Route Carousel with padding */}
           {routes.length > 0 && (
             <div className="w-full max-w-4xl px-2 mb-4">

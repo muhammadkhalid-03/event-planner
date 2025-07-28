@@ -54,7 +54,7 @@ export default function MapView() {
       if (mapRef) {
         // Instead of centering exactly on the marker, offset it slightly upward
         // so the InfoWindow is visible
-        const offsetLat = waypoint.location.lat + 0.001; // Offset by ~200 meters north
+        const offsetLat = waypoint.location.lat + 0.003; // Offset by ~200 meters north
         mapRef.panTo({ lat: offsetLat, lng: waypoint.location.lng });
 
         // Use a more reasonable zoom level (14 instead of 16)

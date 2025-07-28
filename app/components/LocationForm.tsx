@@ -129,6 +129,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [planError, setPlanError] = useState<string | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [generationProgress, setGenerationProgress] = useState<number>(0);
 
   // Set initial starting location in store when component mounts
   useEffect(() => {
@@ -158,17 +159,22 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     const end = new Date(`${eventDate} ${endTime}`);
     const hourRange = Math.max(
       Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)),
-      0,
+      0
     );
 
     setIsGeneratingPlan(true);
+    setGenerationProgress(0);
     setPlanError(null);
     setSuggestedPlan(
-      "🔍 Searching for nearby places...\n🤖 Generating multiple route options...",
+      "🔍 Searching for nearby places...\n🤖 Generating multiple route options..."
     );
 
     try {
       console.log("📍 Starting multiple routes generation workflow...");
+
+      // Initializing request
+      setGenerationProgress(20);
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const response = await fetch("/api/generate-multiple-routes", {
         method: "POST",
@@ -190,11 +196,28 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         }),
       });
 
+      setGenerationProgress(70);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       const result = await response.json();
 
+      // Data processed
+      setGenerationProgress(80);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       if (result.success) {
-        // Display the first route's plan as the main suggestion
+        // Processing routes
+        setGenerationProgress(90);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         const firstRoute = result.routes[0];
+
+        // Finalizing
+        setGenerationProgress(95);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // Complete progress
+        setGenerationProgress(100);
         setSuggestedPlan(firstRoute.suggestedPlan);
         setLocations(firstRoute.plannedLocations);
         onSubmit({
@@ -216,22 +239,23 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         });
 
         console.log(
-          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`,
+          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
         );
       } else {
         setPlanError(result.error || "Failed to generate route options");
         setSuggestedPlan(
-          "❌ Failed to generate route options. Please try again.",
+          "❌ Failed to generate route options. Please try again."
         );
       }
     } catch (error) {
       console.error("Error generating route options:", error);
       setPlanError(
-        "Network error. Please check your connection and try again.",
+        "Network error. Please check your connection and try again."
       );
       setSuggestedPlan("❌ Network error occurred. Please try again.");
     } finally {
       setIsGeneratingPlan(false);
+      setGenerationProgress(0);
     }
   };
 
@@ -479,7 +503,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
             value={suggestedPlan}
             readOnly
             rows={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 resize-none"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 resize-none"
             placeholder="Your suggested plan will appear here after clicking Plan..."
           />
         </div>
@@ -501,6 +525,20 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         >
           {isGeneratingPlan ? "🔄 Generating Plan..." : "Plan"}
         </button>
+
+        {isGeneratingPlan && (
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${generationProgress}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500 mt-1 text-center">
+              {generationProgress}% complete
+            </div>
+          </div>
+        )}
 
         <div>
           <label
