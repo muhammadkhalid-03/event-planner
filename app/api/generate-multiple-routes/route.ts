@@ -494,14 +494,36 @@ async function generateEventPlanWithGemini(params: {
     // Filter out bars if age range includes people below 21
     let filteredPlaces = params.places;
     const ageRangeText = String(params.ageRange || "");
-    const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
-                          ageRangeText.toLowerCase().includes("18-20") ||
-                          ageRangeText.toLowerCase().includes("16-20") ||
-                          ageRangeText.toLowerCase().includes("all ages") ||
-                          ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                          ageRangeText.toLowerCase().includes("children") ||
-                          ageRangeText.toLowerCase().includes("kids") ||
-                          ageRangeText.toLowerCase().includes("family");
+    
+    // Enhanced age detection to handle ranges like "15-60", "18-25", etc.
+    const includesMinors = (() => {
+      const lowerText = ageRangeText.toLowerCase();
+      
+      // Check for explicit keywords
+      if (lowerText.includes("under 21") || 
+          lowerText.includes("children") ||
+          lowerText.includes("kids") ||
+          lowerText.includes("family") ||
+          lowerText.includes("all ages")) {
+        return true;
+      }
+      
+      // Extract all numbers from the age range text
+      const numbers = ageRangeText.match(/\b\d+\b/g);
+      if (numbers) {
+        // Convert to integers and check if any age is under 21
+        const ages = numbers.map(num => parseInt(num, 10));
+        const minAge = Math.min(...ages);
+        
+        // If the minimum age in the range is under 21, exclude bars
+        if (minAge < 21) {
+          return true;
+        }
+      }
+      
+      // Additional specific range patterns to catch edge cases
+      return lowerText.match(/\b(1[0-9]|20)\b/) !== null; // matches 10-20 as fallback
+    })();
 
     if (includesMinors) {
       filteredPlaces = params.places.filter(place => {
@@ -798,14 +820,36 @@ function generateFallbackPlan(params: {
 
   // Filter out bars if age range includes people below 21
   const ageRangeText = String(ageRange || "");
-  const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
-                        ageRangeText.toLowerCase().includes("18-20") ||
-                        ageRangeText.toLowerCase().includes("16-20") ||
-                        ageRangeText.toLowerCase().includes("all ages") ||
-                        ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                        ageRangeText.toLowerCase().includes("children") ||
-                        ageRangeText.toLowerCase().includes("kids") ||
-                        ageRangeText.toLowerCase().includes("family");
+  
+  // Enhanced age detection to handle ranges like "15-60", "18-25", etc.
+  const includesMinors = (() => {
+    const lowerText = ageRangeText.toLowerCase();
+    
+    // Check for explicit keywords
+    if (lowerText.includes("under 21") || 
+        lowerText.includes("children") ||
+        lowerText.includes("kids") ||
+        lowerText.includes("family") ||
+        lowerText.includes("all ages")) {
+      return true;
+    }
+    
+    // Extract all numbers from the age range text
+    const numbers = ageRangeText.match(/\b\d+\b/g);
+    if (numbers) {
+      // Convert to integers and check if any age is under 21
+      const ages = numbers.map(num => parseInt(num, 10));
+      const minAge = Math.min(...ages);
+      
+      // If the minimum age in the range is under 21, exclude bars
+      if (minAge < 21) {
+        return true;
+      }
+    }
+    
+    // Additional specific range patterns to catch edge cases
+    return lowerText.match(/\b(1[0-9]|20)\b/) !== null; // matches 10-20 as fallback
+  })();
 
   let filteredPlaces = places;
   if (includesMinors) {
