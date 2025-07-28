@@ -20,9 +20,21 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Enhanced AI Event Planning with Structured JSON Output (Latest)
+### Enhanced AI Event Planning with Age-Appropriate Venue Selection & Time Validation (Latest)
 
 - **🤖 Advanced Gemini Integration**: Completely redesigned event plan generation with sophisticated travel planning expertise
+- ✅ **Time Range Validation**: Hard-coded requirement that all event plans must be at least 1 hour long
+  - Validates hourRange parameter before processing any route generation
+  - Returns clear error message if time range is less than 1 hour
+  - Ensures meaningful event planning with sufficient time for activities
+- ✅ **Enhanced Age-Appropriate Venue Selection**: AI now considers age range and automatically excludes inappropriate venues
+  - **🔒 Robust Range Detection**: Enhanced age detection logic handles complex ranges like "15-60", "18-25", etc.
+  - **⚡ Smart Minimum Age Parsing**: Extracts all numbers from age ranges and uses the minimum age for filtering
+  - **🛡️ Complete Under-21 Protection**: Excludes bars and night clubs if ANY person in the group is under 21
+  - Age range information passed to Gemini AI for intelligent venue filtering
+  - Smart detection of family groups, children, kids, and various under-21 age ranges
+  - Both AI planning and fallback systems respect age restrictions with enhanced logic
+  - Clear messaging when venues are filtered for age appropriateness
 - ✅ **Structured JSON Response**: AI now returns structured data with budget estimates, travel times, and detailed itineraries
 - ✅ **Professional System Instructions**: Added travel planning specialization context for more practical, feasible recommendations
 - ✅ **Budget Consciousness**: AI analyzes venue price levels and provides realistic cost estimates per person
