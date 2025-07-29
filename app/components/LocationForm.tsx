@@ -99,9 +99,13 @@ interface EventPlanData {
 
 interface LocationFormProps {
   onSubmit: (data: EventPlanData) => void;
+  currentSuggestedPlan?: string;
 }
 
-export default function LocationForm({ onSubmit }: LocationFormProps) {
+export default function LocationForm({
+  onSubmit,
+  currentSuggestedPlan,
+}: LocationFormProps) {
   const defaultLocation = { lat: 40.7128, lng: -74.006 };
 
   const [startingLocation, setStartingLocation] = useState<LocationData>({
@@ -131,6 +135,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
   const [userEmail, setUserEmail] = useState<string>("");
   const [generationProgress, setGenerationProgress] = useState<number>(0);
 
+  const displayedSuggestedPlan = currentSuggestedPlan || suggestedPlan;
   // Set initial starting location in store when component mounts
   useEffect(() => {
     setStoreStartingLocation(defaultLocation);
@@ -261,7 +266,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
         setGenerationProgress(90);
         setSuggestedPlan("📊 Organizing route options...");
         await new Promise((resolve) => setTimeout(resolve, 300));
-
+        console.log("Routes:", result);
         const firstRoute = result.routes[0];
 
         // Step 7: Finalizing
@@ -553,7 +558,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           <textarea
             id="suggestedPlan"
             name="suggestedPlan"
-            value={suggestedPlan}
+            value={displayedSuggestedPlan}
             readOnly
             rows={6}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 resize-none"
