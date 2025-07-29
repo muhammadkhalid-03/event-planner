@@ -418,7 +418,7 @@ export const PlacesSearch: React.FC = () => {
               id="radius"
               type="number"
               min="1"
-              max="5000"
+              max="20000"
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
