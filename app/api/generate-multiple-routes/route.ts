@@ -330,9 +330,17 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
 
+    // Add debugging after each line to find exactly where it fails
+    console.log("✅ Debug point 1 - About to create timestamp");
+
     // Step 2: Save places data to S3 JSON file
     const timestamp = Date.now();
+    console.log("✅ Debug point 2 - Timestamp created:", timestamp);
+
     const fileName = `multiple-routes-places-${timestamp}.json`;
+    console.log("✅ Debug point 3 - Filename created:", fileName);
+
+    console.log("✅ Debug point 4 - About to create placeDataStructure");
     const placeDataStructure = {
       timestamp,
       searchLocation: startingLocation.location,
@@ -356,6 +364,7 @@ export async function POST(request: NextRequest) {
       },
       places: placesData,
     };
+    console.log("✅ Debug point 5 - placeDataStructure created");
 
     // ADD THIS: Debug S3 configuration at the start
     console.log("🔧 S3 Configuration Debug:");
