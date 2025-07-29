@@ -162,10 +162,15 @@ export default function LocationForm({
 
     const start = new Date(`${eventDate} ${startTime}`);
     const end = new Date(`${eventDate} ${endTime}`);
-    const hourRange = Math.max(
-      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)),
-      0
-    );
+    let hourRange = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60));
+    if (end <= start) {
+      setPlanError("End time must be after start time.");
+      return;
+    }
+    if (hourRange < 1) {
+      setPlanError("Minimum event duration is 1 hour.");
+      return;
+    }
 
     setIsGeneratingPlan(true);
     setGenerationProgress(0);
@@ -434,6 +439,7 @@ export default function LocationForm({
             type="date"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
@@ -476,10 +482,14 @@ export default function LocationForm({
           </label>
           <input
             type="number"
+            step="1"
             id="numberOfPeople"
             name="numberOfPeople"
             value={numberOfPeople}
-            onChange={(e) => setNumberOfPeople(parseInt(e.target.value) || 0)}
+            onChange={(e) => {
+              const value = Math.max( parseInt(e.target.value.replace(/^0+/, "")) || 0);
+              setNumberOfPeople(value);
+            }}
             min="1"
             max="100"
             required
@@ -518,7 +528,7 @@ export default function LocationForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Budget (USD): ${budget}
+            Budget (USD per person): ${budget}
           </label>
           <Slider
             min={0}

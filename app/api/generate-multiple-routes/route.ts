@@ -508,7 +508,7 @@ async function generateEventPlanWithGemini(params: {
     }
 
     const routeName = `Planned Route ${params.routeNumber}`;
-    
+
     // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
     const systemInstruction = {
       parts: [
@@ -527,25 +527,30 @@ async function generateEventPlanWithGemini(params: {
     // Filter out bars if age range includes people below 21
     let filteredPlaces = params.places;
     const ageRangeText = String(params.ageRange || "");
-    const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
-                          ageRangeText.toLowerCase().includes("18-20") ||
-                          ageRangeText.toLowerCase().includes("16-20") ||
-                          ageRangeText.toLowerCase().includes("all ages") ||
-                          ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                          ageRangeText.toLowerCase().includes("children") ||
-                          ageRangeText.toLowerCase().includes("kids") ||
-                          ageRangeText.toLowerCase().includes("family");
+    const includesMinors =
+      ageRangeText.toLowerCase().includes("under 21") ||
+      ageRangeText.toLowerCase().includes("18-20") ||
+      ageRangeText.toLowerCase().includes("16-20") ||
+      ageRangeText.toLowerCase().includes("all ages") ||
+      ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
+      ageRangeText.toLowerCase().includes("children") ||
+      ageRangeText.toLowerCase().includes("kids") ||
+      ageRangeText.toLowerCase().includes("family");
 
     if (includesMinors) {
-      filteredPlaces = params.places.filter(place => {
+      filteredPlaces = params.places.filter((place) => {
         const placeTypes = place.types || [];
         const placeType = place.placeType || "";
-        return !placeTypes.includes("bar") && 
-               !placeTypes.includes("night_club") &&
-               placeType !== "bar" &&
-               placeType !== "night_club";
+        return (
+          !placeTypes.includes("bar") &&
+          !placeTypes.includes("night_club") &&
+          placeType !== "bar" &&
+          placeType !== "night_club"
+        );
       });
-      console.log(`🔒 Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`);
+      console.log(
+        `🔒 Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`,
+      );
     }
 
     const eventPlanPrompt = `
@@ -795,7 +800,8 @@ function convertJsonPlanToText(parsedPlan: any): string {
     if (parsedPlan.conclusion) {
       textPlan += parsedPlan.conclusion;
     } else {
-      textPlan += 'I have created 3 different planned routes and you can edit each one. I can generate additional plans if needed.';
+      textPlan +=
+        "I have created 3 different planned routes and you can edit each one. I can generate additional plans if needed.";
     }
 
     return textPlan;
@@ -831,26 +837,31 @@ function generateFallbackPlan(params: {
 
   // Filter out bars if age range includes people below 21
   const ageRangeText = String(ageRange || "");
-  const includesMinors = ageRangeText.toLowerCase().includes("under 21") || 
-                        ageRangeText.toLowerCase().includes("18-20") ||
-                        ageRangeText.toLowerCase().includes("16-20") ||
-                        ageRangeText.toLowerCase().includes("all ages") ||
-                        ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-                        ageRangeText.toLowerCase().includes("children") ||
-                        ageRangeText.toLowerCase().includes("kids") ||
-                        ageRangeText.toLowerCase().includes("family");
+  const includesMinors =
+    ageRangeText.toLowerCase().includes("under 21") ||
+    ageRangeText.toLowerCase().includes("18-20") ||
+    ageRangeText.toLowerCase().includes("16-20") ||
+    ageRangeText.toLowerCase().includes("all ages") ||
+    ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
+    ageRangeText.toLowerCase().includes("children") ||
+    ageRangeText.toLowerCase().includes("kids") ||
+    ageRangeText.toLowerCase().includes("family");
 
   let filteredPlaces = places;
   if (includesMinors) {
-    filteredPlaces = places.filter(place => {
+    filteredPlaces = places.filter((place) => {
       const placeTypes = place.types || [];
       const placeType = place.placeType || "";
-      return !placeTypes.includes("bar") && 
-             !placeTypes.includes("night_club") &&
-             placeType !== "bar" &&
-             placeType !== "night_club";
+      return (
+        !placeTypes.includes("bar") &&
+        !placeTypes.includes("night_club") &&
+        placeType !== "bar" &&
+        placeType !== "night_club"
+      );
     });
-    console.log(`🔒 Fallback: Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`);
+    console.log(
+      `🔒 Fallback: Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`,
+    );
   }
   const routeName = `Planned Route ${routeNumber}`;
 
@@ -1032,14 +1043,14 @@ AVAILABLE PLACE TYPES:
 ${AVAILABLE_PLACE_TYPES.join(", ")}
 
 SELECTION RULES:
-1. Choose 3-5 place types that best match the event theme and activities.
-2. Consider event purpose, age range, budget, and timing.
-3. Avoid adult-only places if event mentions children (e.g., avoid "bar", "casino", "night_club").
-4. Always return a JSON array of strings without extra commentary.
-
-Examples:
-- "romantic date night" → ["restaurant", "park", "art_gallery", "movie_theater", "bar"]
-- "kids birthday party" → ["amusement_park", "restaurant", "park", "zoo", "bowling_alley"]
+1. Choose 3–5 place types that best match the event theme and activities.
+2. Strongly consider the budget level when selecting place types:
+   - If budget is below $25 per person, prioritize budget-friendly types (e.g., "cafe", "park", "convenience_store", "supermarket", "museum", "free attractions").
+   - If budget is between $25–75 per person, include moderately priced types (e.g., "restaurant", "movie_theater", "amusement_park").
+   - If budget is above $75 per person, allow for premium types (e.g., "art_gallery", "fine dining", "spa", "tourist_attraction", "stadium", "zoo").
+3. Avoid expensive categories like "casino", "night_club", or "bar" for low-budget events.
+4. Avoid adult-only types if event includes minors.
+5. Return ONLY a JSON array of valid Google Place types (no explanations).
 
 Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
 `;
