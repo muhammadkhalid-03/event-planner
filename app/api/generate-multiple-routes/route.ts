@@ -359,17 +359,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Upload to S3 instead of local file system
-    const s3Key = `api_logs/${fileName}`;
-    const putCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: s3Key,
-      Body: JSON.stringify(placeDataStructure, null, 2),
-      ContentType: "application/json",
-    });
+    try {
+      const s3Key = `api_logs/${fileName}`;
+      const putCommand = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: s3Key,
+        Body: JSON.stringify(placeDataStructure, null, 2),
+        ContentType: "application/json",
+      });
 
-    await s3Client.send(putCommand);
-
-    console.log(`💾 Saved places data to S3: ${s3Key}`);
+      await s3Client.send(putCommand);
+      console.log(`💾 Saved places data to S3: ${s3Key}`);
+    } catch (s3Error) {
+      console.error("❌ Failed to upload to S3:", s3Error);
+      // Don't fallback to local file system - just log the error
+      console.warn("⚠️ Continuing without saving places data due to S3 error");
+    }
 
     console.log(`📊 Original places data: ${placesData.length} places`);
     console.log(
