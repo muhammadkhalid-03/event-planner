@@ -564,6 +564,15 @@ Before creating the itinerary, analyze:
 - Select venues that are suitable and accessible for the specified age range
 - Consider age-related preferences and restrictions when planning activities
 
+### 5. ITINERARY LENGTH BASED ON DURATION
+- If hourRange < 3 hours: suggest only 2–3 locations, keep travel time short.
+- If 3 ≤ hourRange < 6 hours: suggest 4–5 venues, balanced pacing.
+- If 6 ≤ hourRange ≤ 10 hours: suggest 5–7 venues including meals/rest stops.
+- If hourRange > 10 hours: suggest 7–9+ venues with a mix of food, activity, and rest.
+- Make sure pacing feels reasonable for a group of ${params.numberOfPeople}.
+
+
+
 ## OUTPUT FORMAT
 Respond ONLY with a JSON object following this exact structure:
 
