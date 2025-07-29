@@ -2,7 +2,7 @@ export async function sendEmail(data: {
   plan: string;
   email: string;
 }): Promise<void> {
-  const apiEndpoint = "/api/send-email";
+  const apiEndpoint = "/api/email";
 
   try {
     const response = await fetch(apiEndpoint, {

@@ -172,11 +172,21 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     try {
       console.log("📍 Starting multiple routes generation workflow...");
 
-      // Initializing request
-      setGenerationProgress(20);
+      // Step 1: Initializing request
+      setGenerationProgress(10);
+      setSuggestedPlan("🔄 Initializing request...");
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const response = await fetch("/api/generate-multiple-routes", {
+      // Step 2: Preparing data
+      setGenerationProgress(20);
+      setSuggestedPlan("📋 Preparing event data...");
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Step 3: Start API call with simulated progress
+      setSuggestedPlan("🌐 Connecting to route planning service...");
+
+      // Create a promise for the API call
+      const apiCallPromise = fetch("/api/generate-multiple-routes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,31 +202,74 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           eventDate,
           startTime,
           endTime,
-          numberOfRoutes: 3, // Generate 3 different route options
+          numberOfRoutes: 3,
         }),
       });
 
+      // Simulate gradual progress during API call with slight randomness
+      const progressInterval = setInterval(() => {
+        setGenerationProgress((prev) => {
+          const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2 multiplier
+
+          if (prev < 60) {
+            return Math.round(Math.min(prev + 2 * randomFactor, 60));
+          } else if (prev < 68) {
+            return Math.round(Math.min(prev + 0.5 * randomFactor, 68));
+          }
+          return prev;
+        });
+      }, 300); // Update every 300ms
+
+      // Update status messages during the wait
+      setTimeout(
+        () => setSuggestedPlan("🔍 Searching for nearby places..."),
+        1000
+      );
+      setTimeout(
+        () => setSuggestedPlan("🏢 Finding restaurants and attractions..."),
+        2000
+      );
+      setTimeout(
+        () => setSuggestedPlan("🗺️ Calculating optimal routes..."),
+        3000
+      );
+      setTimeout(
+        () => setSuggestedPlan("🤖 Generating route options..."),
+        4000
+      );
+
+      // Wait for API call to complete
+      const response = await apiCallPromise;
+
+      // Clear the progress interval
+      clearInterval(progressInterval);
+
+      // Step 4: API call completed
       setGenerationProgress(70);
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      setSuggestedPlan("✅ Route data received, processing...");
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       const result = await response.json();
 
-      // Data processed
+      // Step 5: Processing results
       setGenerationProgress(80);
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      setSuggestedPlan("🔄 Processing route data...");
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       if (result.success) {
-        // Processing routes
+        // Step 6: Organizing routes
         setGenerationProgress(90);
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        setSuggestedPlan("📊 Organizing route options...");
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         const firstRoute = result.routes[0];
 
-        // Finalizing
+        // Step 7: Finalizing
         setGenerationProgress(95);
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        setSuggestedPlan("🎯 Finalizing recommendations...");
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Complete progress
+        // Step 8: Complete
         setGenerationProgress(100);
         setSuggestedPlan(firstRoute.suggestedPlan);
         setLocations(firstRoute.plannedLocations);
@@ -235,7 +288,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
           plannedLocations: firstRoute.plannedLocations,
           placesFound: result.placesFound,
           metadata: result.metadata,
-          allRoutes: result.routes, // Pass all generated routes
+          allRoutes: result.routes,
         });
 
         console.log(
