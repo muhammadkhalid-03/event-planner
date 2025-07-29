@@ -86,12 +86,12 @@ export default function RouteEditor({
         compact ? "p-2" : "p-4"
       } mx-auto ${
         compact ? "mb-1" : "mb-2"
-      } min-w-[515px] transition-all duration-300 ease-in-out ${
+      } transition-all duration-300 ease-in-out ${
         locations.length <= 3
-          ? "w-fit max-w-md min-w-[400px]" // Very small width for 3 or fewer locations with min-width
+          ? "w-fit max-w-md min-w-[400px]" // Very small width for 3 or fewer locations
           : locations.length <= 5
-            ? "w-fit min-w-[500px]" // Small width for 4-5 locations with min-width
-            : "w-full max-w-6xl" // Full width with scroll for 6+ locations
+            ? "w-fit min-w-[500px]" // Small width for 4-5 locations
+            : "w-full max-w-6xl" // Full width for 6+ locations with proper scrolling
       }`}
     >
       <div
@@ -124,8 +124,10 @@ export default function RouteEditor({
       <div
         className={`flex items-center gap-4 pb-1 ${
           locations.length <= 3 ? "justify-center" : ""
-        } ${locations.length > 5 ? "overflow-x-auto" : "overflow-visible"} ${
-          locations.length === 2 || 1 ? "justify-center" : ""
+        } ${
+          locations.length > 5 
+            ? "overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+            : "overflow-visible"
         }`}
       >
         {locations.map((location, index) => (
