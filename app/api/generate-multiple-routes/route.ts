@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
+
+// Initialize S3 client
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "your-api-logs-bucket";
 
 const AVAILABLE_PLACE_TYPES = [
   "accounting",
@@ -212,7 +223,7 @@ export async function POST(request: NextRequest) {
     if (!startingLocation?.location?.lat || !startingLocation?.location?.lng) {
       return NextResponse.json(
         { success: false, error: "Starting location is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -220,7 +231,7 @@ export async function POST(request: NextRequest) {
     if (!hourRange || hourRange < 1) {
       return NextResponse.json(
         { success: false, error: "Time range must be at least 1 hour long" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -231,56 +242,76 @@ export async function POST(request: NextRequest) {
     try {
       selectedPlaceTypes = await selectPlaceTypesWithGemini(eventDescription);
       console.log(
-        `🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(", ")}`,
+        `🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(
+          ", "
+        )}`
       );
-      
+
       // Prominent logging for the main endpoint
-      console.log("🚀 ════════════════════════════════════════════════════════");
+      console.log(
+        "🚀 ════════════════════════════════════════════════════════"
+      );
       console.log("🚀 FINAL GEMINI CATEGORIES FOR ROUTE GENERATION");
-      console.log("🚀 ════════════════════════════════════════════════════════");
+      console.log(
+        "🚀 ════════════════════════════════════════════════════════"
+      );
       console.log(`📍 Event: "${eventDescription}"`);
       console.log("🏷️  Categories to search:");
       selectedPlaceTypes.forEach((type, index) => {
         console.log(`     • ${type.toUpperCase()}`);
       });
-      console.log("🚀 ════════════════════════════════════════════════════════");
+      console.log(
+        "🚀 ════════════════════════════════════════════════════════"
+      );
 
       // Additional validation - ensure no empty results
       if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
         console.warn(
-          "⚠️ Gemini returned empty place types array, using generic defaults",
+          "⚠️ Gemini returned empty place types array, using generic defaults"
         );
         selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
-        
+
         // Prominent empty result logging
-        console.log("⚠️  ═══════════════════════════════════════════════════════");
+        console.log(
+          "⚠️  ═══════════════════════════════════════════════════════"
+        );
         console.log("⚠️  EMPTY GEMINI RESPONSE - USING DEFAULTS");
-        console.log("⚠️  ═══════════════════════════════════════════════════════");
+        console.log(
+          "⚠️  ═══════════════════════════════════════════════════════"
+        );
         console.log(`📍 Event: "${eventDescription}"`);
         console.log("🏷️  Default Categories:");
         selectedPlaceTypes.forEach((type, index) => {
           console.log(`     • ${type.toUpperCase()}`);
         });
-        console.log("⚠️  ═══════════════════════════════════════════════════════");
+        console.log(
+          "⚠️  ═══════════════════════════════════════════════════════"
+        );
       }
     } catch (error) {
       console.error("❌ Failed to select place types with Gemini:", error);
       // Use more diverse defaults instead of restaurant-heavy ones
       selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
       console.log(
-        `🔄 Using fallback place types: ${selectedPlaceTypes.join(", ")}`,
+        `🔄 Using fallback place types: ${selectedPlaceTypes.join(", ")}`
       );
-      
+
       // Prominent fallback logging
-      console.log("⚠️  ═══════════════════════════════════════════════════════");
+      console.log(
+        "⚠️  ═══════════════════════════════════════════════════════"
+      );
       console.log("⚠️  FALLBACK CATEGORIES (GEMINI UNAVAILABLE)");
-      console.log("⚠️  ═══════════════════════════════════════════════════════");
+      console.log(
+        "⚠️  ═══════════════════════════════════════════════════════"
+      );
       console.log(`📍 Event: "${eventDescription}"`);
       console.log("🏷️  Default Categories:");
       selectedPlaceTypes.forEach((type, index) => {
         console.log(`     • ${type.toUpperCase()}`);
       });
-      console.log("⚠️  ═══════════════════════════════════════════════════════");
+      console.log(
+        "⚠️  ═══════════════════════════════════════════════════════"
+      );
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
@@ -294,13 +325,13 @@ export async function POST(request: NextRequest) {
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
         { success: false, error: "No places found in the specified area" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     console.log(`🔍 Found ${placesData.length} places in the area`);
 
-    // Step 2: Save places data to JSON file
+    // Step 2: Save places data to S3 JSON file
     const timestamp = Date.now();
     const fileName = `multiple-routes-places-${timestamp}.json`;
     const placeDataStructure = {
@@ -327,22 +358,30 @@ export async function POST(request: NextRequest) {
       places: placesData,
     };
 
-    const filePath = path.join(process.cwd(), "api_logs", fileName);
-    await writeFile(filePath, JSON.stringify(placeDataStructure, null, 2));
+    // Upload to S3 instead of local file system
+    const s3Key = `api_logs/${fileName}`;
+    const putCommand = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: s3Key,
+      Body: JSON.stringify(placeDataStructure, null, 2),
+      ContentType: "application/json",
+    });
 
-    console.log(`💾 Saved places data to ${fileName}`);
+    await s3Client.send(putCommand);
+
+    console.log(`💾 Saved places data to S3: ${s3Key}`);
 
     console.log(`📊 Original places data: ${placesData.length} places`);
     console.log(
       `📝 Sample places:`,
       placesData
         .slice(0, 3)
-        .map((p) => ({ name: p.displayName, type: p.placeType })),
+        .map((p) => ({ name: p.displayName, type: p.placeType }))
     );
 
     // Age analysis and filtering
     console.log("[generate-multiple-routes] Received ageRange:", ageRange);
-    
+
     // Parse age range - handle both array [min, max] and string formats
     const parseAgeRange = (ageRange: [number, number] | string | undefined) => {
       if (Array.isArray(ageRange) && ageRange.length === 2) {
@@ -351,13 +390,13 @@ export async function POST(request: NextRequest) {
           includesBelow21: minAge < 21,
           isAllBelow21: maxAge < 21,
           minAge,
-          maxAge
+          maxAge,
         };
       }
-      
+
       // Handle string format as fallback
       const ageRangeText = String(ageRange || "");
-      const includesBelow21 = 
+      const includesBelow21 =
         ageRangeText.toLowerCase().includes("under 21") ||
         ageRangeText.toLowerCase().includes("18-20") ||
         ageRangeText.toLowerCase().includes("16-20") ||
@@ -366,17 +405,17 @@ export async function POST(request: NextRequest) {
         ageRangeText.toLowerCase().includes("children") ||
         ageRangeText.toLowerCase().includes("kids") ||
         ageRangeText.toLowerCase().includes("family");
-      
-      const isAllBelow21 = 
+
+      const isAllBelow21 =
         ageRangeText.toLowerCase().includes("under 21") ||
         ageRangeText.toLowerCase().includes("16-20") ||
         ageRangeText.match(/\b(1[0-9])\b/); // matches 10-19
-      
+
       return {
         includesBelow21,
         isAllBelow21,
         minAge: 0,
-        maxAge: 100
+        maxAge: 100,
       };
     };
 
@@ -384,17 +423,30 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 Age range analysis:`, ageAnalysis);
 
     // Check for alcohol mentions in event description
-    const alcoholKeywords = ['alcohol', 'drink', 'bar', 'pub', 'wine', 'beer', 'cocktail', 'liquor', 'brewery', 'winery', 'drinking'];
-    const hasAlcoholMention = alcoholKeywords.some(keyword => 
+    const alcoholKeywords = [
+      "alcohol",
+      "drink",
+      "bar",
+      "pub",
+      "wine",
+      "beer",
+      "cocktail",
+      "liquor",
+      "brewery",
+      "winery",
+      "drinking",
+    ];
+    const hasAlcoholMention = alcoholKeywords.some((keyword) =>
       eventDescription.toLowerCase().includes(keyword)
     );
 
     // Error case: All people under 21 AND alcohol mentioned
     if (ageAnalysis.isAllBelow21 && hasAlcoholMention) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: "Your event description mentions alcohol but includes people under 21. Please remove alcohol references or adjust the age range and try again." 
+        {
+          success: false,
+          error:
+            "Your event description mentions alcohol but includes people under 21. Please remove alcohol references or adjust the age range and try again.",
         },
         { status: 400 }
       );
@@ -403,17 +455,21 @@ export async function POST(request: NextRequest) {
     // Filter alcohol venues if minors are included
     let filteredPlacesData = placesData;
     if (ageAnalysis.includesBelow21) {
-      filteredPlacesData = placesData.filter(place => {
+      filteredPlacesData = placesData.filter((place) => {
         const placeTypes = place.types || [];
         const placeType = place.placeType || "";
-        return !placeTypes.includes("bar") && 
-               !placeTypes.includes("night_club") &&
-               !placeTypes.includes("liquor_store") &&
-               placeType !== "bar" &&
-               placeType !== "night_club" &&
-               placeType !== "liquor_store";
+        return (
+          !placeTypes.includes("bar") &&
+          !placeTypes.includes("night_club") &&
+          !placeTypes.includes("liquor_store") &&
+          placeType !== "bar" &&
+          placeType !== "night_club" &&
+          placeType !== "liquor_store"
+        );
       });
-      console.log(`🔒 Filtered out bars/night clubs/liquor stores due to age range including people under 21: ${ageRange}. Remaining venues: ${filteredPlacesData.length}`);
+      console.log(
+        `🔒 Filtered out bars/night clubs/liquor stores due to age range including people under 21: ${ageRange}. Remaining venues: ${filteredPlacesData.length}`
+      );
     }
 
     // Step 3: Generate multiple different route options using the same criteria
@@ -442,7 +498,7 @@ export async function POST(request: NextRequest) {
       // CRITICAL: Remove any duplicates from filtered places based on place ID
       filteredPlaces = filteredPlaces.filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id),
+          index === self.findIndex((p) => p.id === place.id)
       );
 
       // If we don't have enough places, add more from the original data
@@ -456,12 +512,14 @@ export async function POST(request: NextRequest) {
         // Final deduplication after adding additional places
         filteredPlaces = filteredPlaces.filter(
           (place, index, self) =>
-            index === self.findIndex((p) => p.id === place.id),
+            index === self.findIndex((p) => p.id === place.id)
         );
       }
 
       console.log(
-        `✅ Selected ${filteredPlaces.length} unique venues for route option ${i + 1}`,
+        `✅ Selected ${filteredPlaces.length} unique venues for route option ${
+          i + 1
+        }`
       );
 
       // Generate event plan for this route
@@ -554,7 +612,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to generate multiple routes. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -627,8 +685,7 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) =>
-        index === self.findIndex((p) => p.id === place.id),
+      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
@@ -653,7 +710,7 @@ async function generateEventPlanWithGemini(params: {
 }) {
   try {
     console.log(
-      `🤖 Starting Gemini event plan generation for route ${params.routeNumber}/${params.totalRoutes}`,
+      `🤖 Starting Gemini event plan generation for route ${params.routeNumber}/${params.totalRoutes}`
     );
 
     if (!process.env.GEMINI_API_KEY) {
@@ -662,7 +719,7 @@ async function generateEventPlanWithGemini(params: {
     }
 
     const routeName = `Planned Route ${params.routeNumber}`;
-    
+
     // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
     const systemInstruction = {
       parts: [
@@ -690,10 +747,22 @@ async function generateEventPlanWithGemini(params: {
 ## INPUT PARAMETERS
 - **Duration**: ${params.hourRange} hours total
 - **Group Size**: ${params.numberOfPeople} people  
-- **Age Range**: ${Array.isArray(params.ageRange) ? `${params.ageRange[0]} to ${params.ageRange[1]}` : params.ageRange || "Not specified"}
+- **Age Range**: ${
+      Array.isArray(params.ageRange)
+        ? `${params.ageRange[0]} to ${params.ageRange[1]}`
+        : params.ageRange || "Not specified"
+    }
 - **Event Type**: ${params.eventDescription}
-- **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : "Budget not specified - provide cost estimates"}
-- **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
+- **Budget**: ${
+      params.budget
+        ? `$${params.budget} USD per person (total budget: $${
+            params.budget * params.numberOfPeople
+          } for ${params.numberOfPeople} people)`
+        : "Budget not specified - provide cost estimates"
+    }
+- **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${
+      params.startingLocation.location.lng
+    }
 - **Available Locations**: 
 ${JSON.stringify(filteredPlaces, null, 2)}
 
@@ -713,13 +782,35 @@ Before creating the itinerary, analyze:
 - Plan for group coordination needs
 
 ### 3. BUDGET CONSCIOUSNESS
-- Prioritize venues with appropriate price points for the ${params.budget ? `$${params.budget} per person budget` : "specified budget range"}
-- ${params.budget ? `Ensure estimated costs stay within $${params.budget} per person (total group budget: $${params.budget * params.numberOfPeople})` : "Suggest cost-effective alternatives when available"}
-- Consider group discounts but maintain per-person budget of ${params.budget ? `$${params.budget}` : "specified amount"}
-- ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : "Estimate total approximate costs per person"}
+- Prioritize venues with appropriate price points for the ${
+      params.budget
+        ? `$${params.budget} per person budget`
+        : "specified budget range"
+    }
+- ${
+      params.budget
+        ? `Ensure estimated costs stay within $${
+            params.budget
+          } per person (total group budget: $${
+            params.budget * params.numberOfPeople
+          })`
+        : "Suggest cost-effective alternatives when available"
+    }
+- Consider group discounts but maintain per-person budget of ${
+      params.budget ? `$${params.budget}` : "specified amount"
+    }
+- ${
+      params.budget
+        ? `Calculate costs per person to stay within the $${params.budget} individual budget`
+        : "Estimate total approximate costs per person"
+    }
 
 ### 4. AGE-APPROPRIATE VENUE SELECTION
-- **Age Range Consideration**: ${Array.isArray(params.ageRange) ? `${params.ageRange[0]} to ${params.ageRange[1]}` : params.ageRange || "Not specified"}
+- **Age Range Consideration**: ${
+      Array.isArray(params.ageRange)
+        ? `${params.ageRange[0]} to ${params.ageRange[1]}`
+        : params.ageRange || "Not specified"
+    }
 - ${
       Array.isArray(params.ageRange) && params.ageRange[0] < 21
         ? "**IMPORTANT**: This group includes people under 21 - DO NOT suggest bars, night clubs, or alcohol-focused venues"
@@ -834,7 +925,7 @@ Begin analysis and create the JSON response now.`;
             },
           ],
         }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -881,8 +972,12 @@ function convertJsonPlanToText(parsedPlan: any): string {
 
     // Add budget and travel info if available
     if (parsedPlan.estimatedBudgetPerPerson || parsedPlan.totalTravelTime) {
-      textPlan += `Budget estimate: ${parsedPlan.estimatedBudgetPerPerson || "Not specified"} per person\n`;
-      textPlan += `Total travel time: ${parsedPlan.totalTravelTime || "Not specified"}\n\n`;
+      textPlan += `Budget estimate: ${
+        parsedPlan.estimatedBudgetPerPerson || "Not specified"
+      } per person\n`;
+      textPlan += `Total travel time: ${
+        parsedPlan.totalTravelTime || "Not specified"
+      }\n\n`;
     }
 
     // Add itinerary with duplicate detection and removal
@@ -890,11 +985,12 @@ function convertJsonPlanToText(parsedPlan: any): string {
       // Remove any duplicate venues from the itinerary as a safety check
       const seenVenues = new Set<string>();
       const uniqueItinerary = parsedPlan.itinerary.filter((item: any) => {
-        const venueKey =
-          `${item.venueName || "Unknown"}-${item.address || ""}`.toLowerCase();
+        const venueKey = `${item.venueName || "Unknown"}-${
+          item.address || ""
+        }`.toLowerCase();
         if (seenVenues.has(venueKey)) {
           console.warn(
-            `🚨 Duplicate venue detected and removed from itinerary: ${item.venueName}`,
+            `🚨 Duplicate venue detected and removed from itinerary: ${item.venueName}`
           );
           return false;
         }
@@ -914,7 +1010,9 @@ function convertJsonPlanToText(parsedPlan: any): string {
         }
 
         if (item.duration || item.estimatedCost) {
-          textPlan += `   Duration: ${item.duration || "Not specified"} minutes`;
+          textPlan += `   Duration: ${
+            item.duration || "Not specified"
+          } minutes`;
           if (item.estimatedCost) {
             textPlan += ` | Cost: ${item.estimatedCost}`;
           }
@@ -926,7 +1024,9 @@ function convertJsonPlanToText(parsedPlan: any): string {
 
       if (uniqueItinerary.length !== parsedPlan.itinerary.length) {
         console.log(
-          `✅ Removed ${parsedPlan.itinerary.length - uniqueItinerary.length} duplicate venues from itinerary`,
+          `✅ Removed ${
+            parsedPlan.itinerary.length - uniqueItinerary.length
+          } duplicate venues from itinerary`
         );
       }
     }
@@ -996,7 +1096,9 @@ function generateFallbackPlan(params: {
 
   // Sort places within each type by rating
   Object.keys(placesByType).forEach((type) => {
-    placesByType[type].sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
+    placesByType[type].sort(
+      (a: any, b: any) => (b.rating || 0) - (a.rating || 0)
+    );
   });
 
   const selectedPlaces: any[] = [];
@@ -1007,7 +1109,7 @@ function generateFallbackPlan(params: {
     // For longer events, try to include variety from different types
     const placesPerType = Math.max(
       1,
-      Math.floor(Math.min(8, hourRange) / availableTypes.length),
+      Math.floor(Math.min(8, hourRange) / availableTypes.length)
     );
 
     availableTypes.forEach((type) => {
@@ -1033,13 +1135,19 @@ function generateFallbackPlan(params: {
   // Limit to reasonable number of places based on time available
   const finalPlaces = selectedPlaces.slice(
     0,
-    Math.min(8, Math.max(2, hourRange)),
+    Math.min(8, Math.max(2, hourRange))
   );
 
   return `Here's your ${hourRange}-hour ${
     eventDescription || "event"
   } plan for ${numberOfPeople} people${
-    ageRange ? ` (age range: ${Array.isArray(ageRange) ? `${ageRange[0]} to ${ageRange[1]}` : ageRange})` : ""
+    ageRange
+      ? ` (age range: ${
+          Array.isArray(ageRange)
+            ? `${ageRange[0]} to ${ageRange[1]}`
+            : ageRange
+        })`
+      : ""
   }${
     params.budget ? ` with a $${params.budget} per person budget` : ""
   }. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.${
@@ -1050,31 +1158,35 @@ function generateFallbackPlan(params: {
 
 ${
   params.budget
-    ? `Budget Overview: With $${params.budget} per person budget, that's a total of $${params.budget * numberOfPeople} for your group of ${numberOfPeople} people for this ${hourRange}-hour experience.
+    ? `Budget Overview: With $${
+        params.budget
+      } per person budget, that's a total of $${
+        params.budget * numberOfPeople
+      } for your group of ${numberOfPeople} people for this ${hourRange}-hour experience.
 
 `
     : ""
 }${finalPlaces
     .map(
-      (place: any, index: number) => `${index + 1}. ${place.displayName || place.name} - ${
-        place.formattedAddress || place.address || "Address not available"
-      }
+      (place: any, index: number) => `${index + 1}. ${
+        place.displayName || place.name
+      } - ${place.formattedAddress || place.address || "Address not available"}
    ${
      place.rating
        ? `Highly rated venue (${place.rating} stars) perfect for ${place.placeType} activities`
        : `Selected ${place.placeType} venue based on location and type`
    }
    Estimated time: ${Math.floor(
-     hourRange / Math.max(finalPlaces.length, 1),
+     hourRange / Math.max(finalPlaces.length, 1)
    )} hour(s)
 
-`,
+`
     )
     .join("")}You can choose to edit your plan or make another one!`;
 }
 
 async function selectPlaceTypesWithGemini(
-  eventDescription: string,
+  eventDescription: string
 ): Promise<string[]> {
   console.log(`🤖 Selecting place types for event: "${eventDescription}"`);
 
@@ -1130,13 +1242,13 @@ Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
             temperature: 0.3, // Lower temperature for more consistent results
           },
         }),
-      },
+      }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(
-        `❌ Gemini API error for place types: ${response.status} - ${errorText}`,
+        `❌ Gemini API error for place types: ${response.status} - ${errorText}`
       );
       throw new Error(`Gemini place type selection failed: ${response.status}`);
     }
@@ -1167,12 +1279,12 @@ Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
         selectedTypes = parsed;
         console.log(
           "✅ Successfully parsed Gemini place types:",
-          selectedTypes,
+          selectedTypes
         );
       } else {
         console.warn(
           "Gemini returned invalid format for place types:",
-          rawText,
+          rawText
         );
         selectedTypes = ["tourist_attraction", "park", "museum"]; // Fallback to generic types
       }
@@ -1184,7 +1296,7 @@ Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
 
     // Validate and filter selected types
     const validSelectedTypes = selectedTypes.filter((type) =>
-      AVAILABLE_PLACE_TYPES.includes(type),
+      AVAILABLE_PLACE_TYPES.includes(type)
     );
 
     if (validSelectedTypes.length === 0) {
@@ -1196,26 +1308,36 @@ Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
     const uniqueSelectedTypes = Array.from(new Set(validSelectedTypes));
     if (uniqueSelectedTypes.length > 5) {
       console.warn(
-        `Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes.slice(0, 5).join(", ")}`,
+        `Gemini selected more than 5 types, truncating to 5: ${uniqueSelectedTypes
+          .slice(0, 5)
+          .join(", ")}`
       );
       return uniqueSelectedTypes.slice(0, 5);
     }
 
     console.log(
-      `✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(", ")}`,
+      `✅ Gemini selected ${
+        uniqueSelectedTypes.length
+      } valid place types: ${uniqueSelectedTypes.join(", ")}`
     );
-    
+
     // Enhanced logging with category breakdown
-    console.log("🎯 ═══════════════════════════════════════════════════════════");
+    console.log(
+      "🎯 ═══════════════════════════════════════════════════════════"
+    );
     console.log(`🎯 GEMINI PLACE TYPE SELECTION RESULTS`);
-    console.log("🎯 ═══════════════════════════════════════════════════════════");
+    console.log(
+      "🎯 ═══════════════════════════════════════════════════════════"
+    );
     console.log(`📝 Event Description: "${eventDescription}"`);
     console.log(`🎯 Selected Categories (${uniqueSelectedTypes.length}):`);
     uniqueSelectedTypes.forEach((type, index) => {
       console.log(`   ${index + 1}. ${type.toUpperCase()}`);
     });
-    console.log("🎯 ═══════════════════════════════════════════════════════════");
-    
+    console.log(
+      "🎯 ═══════════════════════════════════════════════════════════"
+    );
+
     return uniqueSelectedTypes;
   } catch (error) {
     console.error("❌ Error in place type selection:", error);

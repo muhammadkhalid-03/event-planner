@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readdir, readFile } from "fs/promises";
+import {
+  S3Client,
+  ListObjectsV2Command,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import path from "path";
+
+// Initialize S3 client
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "your-api-logs-bucket";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +30,12 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     console.log(
-      `🔄 Regenerating point ${index} for event: ${eventDescription}`,
+      `🔄 Regenerating point ${index} for event: ${eventDescription}`
     );
     console.log(
-      `🎯 Using selected place types: ${selectedPlaceTypes?.join(", ") || "fallback types"}`,
+      `🎯 Using selected place types: ${
+        selectedPlaceTypes?.join(", ") || "fallback types"
+      }`
     );
 
     // Use the originally selected place types from Gemini, with fallback
@@ -38,43 +55,45 @@ export async function POST(request: NextRequest) {
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
         { success: false, error: "No places found in the specified area" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     // Filter out ALL current locations in the route to avoid duplicates
     const existingIds = new Set<string>(
-      (allCurrentLocations || []).map((loc: any) => String(loc.id)),
+      (allCurrentLocations || []).map((loc: any) => String(loc.id))
     );
     let availablePlaces = placesData.filter(
-      (place) => !existingIds.has(String(place.id)),
+      (place) => !existingIds.has(String(place.id))
     );
 
     console.log(
-      `🔍 Filtered out ${placesData.length - availablePlaces.length} existing locations from ${placesData.length} found places`,
+      `🔍 Filtered out ${
+        placesData.length - availablePlaces.length
+      } existing locations from ${placesData.length} found places`
     );
 
     // Always try api_logs for more variety, not just when we have zero alternatives
     if (availablePlaces.length < 15) {
       console.log(
-        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`,
+        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`
       );
       const additionalPlaces = await getPlacesFromApiLogs(
         startingLocation,
         radius,
         placeTypesToUse,
-        existingIds,
+        existingIds
       );
       availablePlaces.push(...additionalPlaces);
 
       // Remove duplicates after combining
       availablePlaces = availablePlaces.filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id),
+          index === self.findIndex((p) => p.id === place.id)
       );
 
       console.log(
-        `📈 Expanded to ${availablePlaces.length} total alternatives`,
+        `📈 Expanded to ${availablePlaces.length} total alternatives`
       );
     }
 
@@ -99,12 +118,12 @@ export async function POST(request: NextRequest) {
       const newBroaderPlaces = broaderPlaces.filter(
         (place) =>
           !existingIds.has(String(place.id)) &&
-          !availablePlaces.find((existing) => existing.id === place.id),
+          !availablePlaces.find((existing) => existing.id === place.id)
       );
 
       availablePlaces.push(...newBroaderPlaces);
       console.log(
-        `🌐 Added ${newBroaderPlaces.length} places from broader search`,
+        `🌐 Added ${newBroaderPlaces.length} places from broader search`
       );
     }
 
@@ -114,7 +133,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "No alternative places found even after checking saved data",
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -123,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Try same type places first
     const sameTypePlaces = availablePlaces.filter(
-      (place) => place.placeType === currentLocation.type,
+      (place) => place.placeType === currentLocation.type
     );
 
     // Step 2: If same type places are limited, expand to related types
@@ -133,7 +152,7 @@ export async function POST(request: NextRequest) {
       const relatedPlaces = availablePlaces.filter(
         (place) =>
           placeTypesToUse.includes(place.placeType) &&
-          place.placeType !== currentLocation.type,
+          place.placeType !== currentLocation.type
       );
       candidatePlaces.push(...relatedPlaces);
     }
@@ -148,8 +167,7 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Remove duplicates and sort
     candidatePlaces = candidatePlaces.filter(
-      (place, index, self) =>
-        index === self.findIndex((p) => p.id === place.id),
+      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     if (candidatePlaces.length === 0) {
@@ -163,15 +181,15 @@ export async function POST(request: NextRequest) {
 
     // Add randomization to avoid always picking the same top place
     const randomIndex = Math.floor(
-      Math.random() * Math.min(5, topRatedPlaces.length),
+      Math.random() * Math.min(5, topRatedPlaces.length)
     ); // Random from top 5
     newLocation = topRatedPlaces[randomIndex];
 
     console.log(
-      `🎲 Selected from ${candidatePlaces.length} candidates (${sameTypePlaces.length} same type, ${topRatedPlaces.length} top-rated)`,
+      `🎲 Selected from ${candidatePlaces.length} candidates (${sameTypePlaces.length} same type, ${topRatedPlaces.length} top-rated)`
     );
     console.log(
-      `🎯 Picked: ${newLocation.displayName} (${newLocation.placeType}, rating: ${newLocation.rating})`,
+      `🎯 Picked: ${newLocation.displayName} (${newLocation.placeType}, rating: ${newLocation.rating})`
     );
 
     // Convert to the expected format
@@ -202,46 +220,67 @@ export async function POST(request: NextRequest) {
         error: "Failed to regenerate point. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
-// Helper function to get additional places from api_logs when current search is insufficient
+// Helper function to get additional places from S3 api_logs when current search is insufficient
 async function getPlacesFromApiLogs(
   startingLocation: any,
   radius: number,
   placeTypes: string[],
-  existingIds: Set<string>,
+  existingIds: Set<string>
 ): Promise<any[]> {
   try {
-    console.log("📂 Searching api_logs for additional places...");
+    console.log("📂 Searching S3 api_logs for additional places...");
 
-    const logsDirectory = path.join(process.cwd(), "api_logs");
-    const files = await readdir(logsDirectory);
+    // List files in S3 bucket
+    const listCommand = new ListObjectsV2Command({
+      Bucket: BUCKET_NAME,
+      Prefix: "api_logs/",
+    });
 
-    // Look for relevant JSON files (event plan files and multiple routes files)
-    const relevantFiles = files
-      .filter(
-        (file) =>
-          (file.startsWith("event-plan-places-") ||
-            file.startsWith("multiple-routes-places-")) &&
-          file.endsWith(".json"),
-      )
+    const listResponse = await s3Client.send(listCommand);
+    const s3Objects = listResponse.Contents || [];
+
+    // Filter for relevant JSON files (event plan files and multiple routes files)
+    const relevantFiles = s3Objects
+      .filter((obj) => {
+        const key = obj.Key || "";
+        const fileName = key.split("/").pop() || "";
+        return (
+          (fileName.startsWith("event-plan-places-") ||
+            fileName.startsWith("multiple-routes-places-")) &&
+          fileName.endsWith(".json")
+        );
+      })
       .sort((a, b) => {
         // Sort by timestamp (newest first)
-        const timestampA = parseInt(a.match(/(\d+)\.json$/)?.[1] || "0");
-        const timestampB = parseInt(b.match(/(\d+)\.json$/)?.[1] || "0");
+        const timestampA = parseInt(
+          (a.Key || "").match(/(\d+)\.json$/)?.[1] || "0"
+        );
+        const timestampB = parseInt(
+          (b.Key || "").match(/(\d+)\.json$/)?.[1] || "0"
+        );
         return timestampB - timestampA;
       });
 
     const additionalPlaces: any[] = [];
 
     // Check more files for better variety (limit to 10 for expanded options)
-    for (const file of relevantFiles.slice(0, 10)) {
+    for (const s3Object of relevantFiles.slice(0, 10)) {
       try {
-        const filePath = path.join(logsDirectory, file);
-        const content = await readFile(filePath, "utf-8");
+        const getCommand = new GetObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: s3Object.Key,
+        });
+
+        const response = await s3Client.send(getCommand);
+        const content = await response.Body?.transformToString();
+
+        if (!content) continue;
+
         const data = JSON.parse(content);
 
         if (!data.places || !Array.isArray(data.places)) continue;
@@ -278,7 +317,7 @@ async function getPlacesFromApiLogs(
               startingLocation.location.lat,
               startingLocation.location.lng,
               place.location.lat,
-              place.location.lng,
+              place.location.lng
             );
             // Allow places within 3x the original radius for API logs fallback
             if (distance > radius * 3) return false;
@@ -292,7 +331,7 @@ async function getPlacesFromApiLogs(
         // Stop if we have enough alternatives for good variety
         if (additionalPlaces.length >= 25) break;
       } catch (fileError) {
-        console.warn(`⚠️ Error reading ${file}:`, fileError);
+        console.warn(`⚠️ Error reading S3 object ${s3Object.Key}:`, fileError);
       }
     }
 
@@ -300,16 +339,16 @@ async function getPlacesFromApiLogs(
     const uniquePlaces = additionalPlaces
       .filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id),
+          index === self.findIndex((p) => p.id === place.id)
       )
       .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
     console.log(
-      `📂 Found ${uniquePlaces.length} additional places from api_logs`,
+      `📂 Found ${uniquePlaces.length} additional places from S3 api_logs`
     );
     return uniquePlaces;
   } catch (error) {
-    console.error("❌ Error reading api_logs:", error);
+    console.error("❌ Error reading S3 api_logs:", error);
     return [];
   }
 }
@@ -319,7 +358,7 @@ function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number,
+  lng2: number
 ): number {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
@@ -404,8 +443,7 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) =>
-        index === self.findIndex((p) => p.id === place.id),
+      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
