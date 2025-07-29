@@ -31,6 +31,16 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if Google Maps API key is available
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey || apiKey === "your_google_maps_api_key_here") {
+      setLoadError(
+        "Google Maps API key is missing or not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env.local file.",
+      );
+      return;
+    }
+
     // Check if Google Maps is already loaded
     if (window.google && window.google.maps) {
       setIsLoaded(true);
@@ -39,61 +49,33 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 
     // Check if script is already being loaded
     const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]'
+      'script[src*="maps.googleapis.com"]',
     );
     if (existingScript) {
       existingScript.addEventListener("load", () => setIsLoaded(true));
       existingScript.addEventListener("error", () =>
-        setLoadError("Failed to load Google Maps")
+        setLoadError("Failed to load Google Maps"),
       );
       return;
     }
 
-    // Fetch the secure script URL from our API endpoint
-    const loadGoogleMapsScript = async () => {
-      try {
-        const response = await fetch(
-          "/api/google-maps-script?libraries=places,marker,geometry"
-        );
+    // Load the Google Maps JavaScript API script
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker,geometry`;
+    script.async = true;
+    script.defer = true;
 
-        if (!response.ok) {
-          throw new Error(`Failed to get script URL: ${response.status}`);
-        }
-
-        const { scriptUrl } = await response.json();
-
-        if (!scriptUrl) {
-          throw new Error("No script URL received from server");
-        }
-
-        // Load the Google Maps JavaScript API script
-        const script = document.createElement("script");
-        script.src = scriptUrl;
-        script.async = true;
-        script.defer = true;
-
-        script.onload = () => {
-          setIsLoaded(true);
-        };
-
-        script.onerror = () => {
-          setLoadError(
-            "Failed to load Google Maps. Please check your API key and ensure the Maps JavaScript API is enabled."
-          );
-        };
-
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error("Error loading Google Maps script:", error);
-        setLoadError(
-          `Failed to load Google Maps script: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`
-        );
-      }
+    script.onload = () => {
+      setIsLoaded(true);
     };
 
-    loadGoogleMapsScript();
+    script.onerror = () => {
+      setLoadError(
+        "Failed to load Google Maps. Please check your API key and ensure the Maps JavaScript API is enabled.",
+      );
+    };
+
+    document.head.appendChild(script);
 
     return () => {
       // Cleanup is handled by checking existing script

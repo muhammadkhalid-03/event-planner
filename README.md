@@ -52,7 +52,6 @@ To access the Event Planner app, you'll need to enter the special access code wh
 #### Technical Implementation
 
 The authentication system includes:
-
 - **Firebase Auth Integration**: Uses Firebase Authentication with email/password sign-in
 - **AuthContext Provider**: React context for managing authentication state across the app
 - **AuthPopup Component**: Clean, centered modal for password entry with loading states
@@ -278,7 +277,7 @@ The authentication system includes:
 5. Create a `.env.local` file in the root directory and add your API key:
 
 ```bash
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
@@ -298,7 +297,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 If you encounter "no place data provided" errors:
 
-1. **Check API Keys**: Ensure both `GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY` are configured in `.env.local`
+1. **Check API Keys**: Ensure both `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY` are configured in `.env.local`
 2. **Check Console Logs**: Look for detailed debugging output in both browser console and terminal
 3. **Verify Location**: Ensure the starting location has nearby venues within the specified radius
 4. **Restart Server**: After updating `.env.local`, restart with `npm run dev`
@@ -446,7 +445,7 @@ When you click the "Plan" button, the system performs the following automated st
 
 The application requires two API keys configured in `.env.local`:
 
-- `GOOGLE_MAPS_API_KEY`: For Google Maps, Places, and Geocoding APIs (server-side only for security)
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: For Google Maps, Places, and Geocoding APIs
 - `GEMINI_API_KEY`: For AI-powered restaurant analysis and event planning
 
 ## Technologies Used

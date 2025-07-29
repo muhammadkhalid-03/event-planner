@@ -14,9 +14,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`➕ Adding new point to route for event: ${eventDescription}`);
     console.log(
-      `🎯 Using selected place types: ${
-        selectedPlaceTypes?.join(", ") || "fallback types"
-      }`
+      `🎯 Using selected place types: ${selectedPlaceTypes?.join(", ") || "fallback types"}`,
     );
 
     // Use the originally selected place types from Gemini, with fallback
@@ -36,52 +34,50 @@ export async function POST(request: NextRequest) {
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
         { success: false, error: "No places found in the specified area" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Filter out existing locations to avoid duplicates
     const existingIds = new Set<string>(
-      currentLocations.map((loc: any) => String(loc.id))
+      currentLocations.map((loc: any) => String(loc.id)),
     );
     let availablePlaces = placesData.filter(
-      (place) => !existingIds.has(String(place.id))
+      (place) => !existingIds.has(String(place.id)),
     );
 
     console.log(
-      `🔍 Filtered out ${
-        placesData.length - availablePlaces.length
-      } existing locations from ${placesData.length} found places`
+      `🔍 Filtered out ${placesData.length - availablePlaces.length} existing locations from ${placesData.length} found places`,
     );
 
     // Always try api_logs for more variety when we have limited options
     if (availablePlaces.length < 15) {
       console.log(
-        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`
+        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`,
       );
       const additionalPlaces = await getPlacesFromApiLogs(
         startingLocation,
         radius,
         placeTypesToUse,
-        existingIds
+        existingIds,
       );
       availablePlaces.push(...additionalPlaces);
 
       // Remove duplicates after combining
       availablePlaces = availablePlaces.filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id)
+          index === self.findIndex((p) => p.id === place.id),
       );
 
       console.log(
-        `📈 Expanded to ${availablePlaces.length} total alternatives for adding`
+        `📈 Expanded to ${availablePlaces.length} total alternatives for adding`,
       );
     }
 
     // If still limited, try a broader search
     if (availablePlaces.length < 10) {
       console.log(
-        "🔍 Still limited alternatives for adding, trying broader search..."
+        "🔍 Still limited alternatives for adding, trying broader search...",
       );
       const broaderPlaces = await searchNearbyPlaces({
         latitude: startingLocation.location.lat,
@@ -101,12 +97,12 @@ export async function POST(request: NextRequest) {
       const newBroaderPlaces = broaderPlaces.filter(
         (place) =>
           !existingIds.has(String(place.id)) &&
-          !availablePlaces.find((existing) => existing.id === place.id)
+          !availablePlaces.find((existing) => existing.id === place.id),
       );
 
       availablePlaces.push(...newBroaderPlaces);
       console.log(
-        `🌐 Added ${newBroaderPlaces.length} places from broader search for adding`
+        `🌐 Added ${newBroaderPlaces.length} places from broader search for adding`,
       );
     }
 
@@ -116,7 +112,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "No additional places found even after checking saved data",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -135,20 +131,18 @@ export async function POST(request: NextRequest) {
 
     // Prioritize types that are underrepresented in current route
     const underrepresentedTypes = placeTypesToUse.filter(
-      (type: string) => (typeCounts[type] || 0) < 2 // Less than 2 of this type
+      (type: string) => (typeCounts[type] || 0) < 2, // Less than 2 of this type
     );
 
     if (underrepresentedTypes.length > 0) {
       const underrepresentedPlaces = candidatePlaces.filter((place) =>
-        underrepresentedTypes.includes(place.placeType)
+        underrepresentedTypes.includes(place.placeType),
       );
 
       if (underrepresentedPlaces.length > 0) {
         candidatePlaces = underrepresentedPlaces; // Prefer underrepresented types
         console.log(
-          `🎯 Prioritizing underrepresented types: ${underrepresentedTypes.join(
-            ", "
-          )}`
+          `🎯 Prioritizing underrepresented types: ${underrepresentedTypes.join(", ")}`,
         );
       }
     }
@@ -156,7 +150,7 @@ export async function POST(request: NextRequest) {
     // If we still have too few options, expand the candidate pool
     if (candidatePlaces.length < 5) {
       candidatePlaces = availablePlaces.filter(
-        (place) => (place.rating || 0) >= 3.5 // Any decent place
+        (place) => (place.rating || 0) >= 3.5, // Any decent place
       );
     }
 
@@ -166,19 +160,19 @@ export async function POST(request: NextRequest) {
 
     // Smart selection with randomization among good choices
     const sortedCandidates = candidatePlaces.sort(
-      (a, b) => (b.rating || 0) - (a.rating || 0)
+      (a, b) => (b.rating || 0) - (a.rating || 0),
     );
 
     // Pick randomly from top candidates to add variety
     const topCandidates = sortedCandidates.slice(
       0,
-      Math.min(8, candidatePlaces.length)
+      Math.min(8, candidatePlaces.length),
     );
     const randomIndex = Math.floor(Math.random() * topCandidates.length);
     newLocation = topCandidates[randomIndex];
 
     console.log(
-      `➕ Selected from ${candidatePlaces.length} candidates, picked: ${newLocation.displayName} (${newLocation.placeType})`
+      `➕ Selected from ${candidatePlaces.length} candidates, picked: ${newLocation.displayName} (${newLocation.placeType})`,
     );
 
     // Convert to the expected format
@@ -196,7 +190,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(
-      `✅ Added new point: ${formattedLocation.name} (${formattedLocation.type})`
+      `✅ Added new point: ${formattedLocation.name} (${formattedLocation.type})`,
     );
 
     return NextResponse.json({
@@ -211,7 +205,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to add point. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -221,7 +215,7 @@ async function getPlacesFromApiLogs(
   startingLocation: any,
   radius: number,
   placeTypes: string[],
-  existingIds: Set<string>
+  existingIds: Set<string>,
 ): Promise<any[]> {
   try {
     console.log("📂 Searching api_logs for additional places...");
@@ -235,7 +229,7 @@ async function getPlacesFromApiLogs(
         (file) =>
           (file.startsWith("event-plan-places-") ||
             file.startsWith("multiple-routes-places-")) &&
-          file.endsWith(".json")
+          file.endsWith(".json"),
       )
       .sort((a, b) => {
         // Sort by timestamp (newest first)
@@ -284,7 +278,7 @@ async function getPlacesFromApiLogs(
               startingLocation.location.lat,
               startingLocation.location.lng,
               place.location.lat,
-              place.location.lng
+              place.location.lng,
             );
             // Allow places within 3x the original radius
             if (distance > radius * 3) return false;
@@ -306,12 +300,12 @@ async function getPlacesFromApiLogs(
     const uniquePlaces = additionalPlaces
       .filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id)
+          index === self.findIndex((p) => p.id === place.id),
       )
       .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
     console.log(
-      `📂 Found ${uniquePlaces.length} additional places from api_logs`
+      `📂 Found ${uniquePlaces.length} additional places from api_logs`,
     );
     return uniquePlaces;
   } catch (error) {
@@ -325,7 +319,7 @@ function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
@@ -351,7 +345,7 @@ async function searchNearbyPlaces(params: {
   try {
     console.log("🔍 Searching for nearby places using Google Places API...");
 
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       throw new Error("Google Maps API key not configured");
     }
@@ -410,7 +404,8 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
+      (place, index, self) =>
+        index === self.findIndex((p) => p.id === place.id),
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);

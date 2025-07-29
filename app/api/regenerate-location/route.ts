@@ -8,18 +8,14 @@ export async function POST(req: NextRequest) {
     console.log("♻️ Regenerating location for:", currentLocation);
 
     const nearbyPlaces = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${
-        currentLocation.location.lat
-      },${currentLocation.location.lng}&radius=${
-        metadata?.radius || 1000
-      }&type=${currentLocation.type}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${currentLocation.location.lat},${currentLocation.location.lng}&radius=${metadata?.radius || 1000}&type=${currentLocation.type}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`,
     ).then((res) => res.json());
 
     const candidates = (nearbyPlaces.results || [])
       .filter(
         (place: any) =>
           place.place_id !== currentLocation.id &&
-          !routeLocations.some((loc: any) => loc.id === place.place_id)
+          !routeLocations.some((loc: any) => loc.id === place.place_id),
       )
       .map((place: any) => ({
         id: place.place_id,
@@ -35,7 +31,7 @@ export async function POST(req: NextRequest) {
     if (candidates.length === 0) {
       return NextResponse.json(
         { error: "No replacement found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -47,7 +43,7 @@ export async function POST(req: NextRequest) {
     console.error("❌ Error regenerating location:", error);
     return NextResponse.json(
       { error: "Failed to regenerate" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
