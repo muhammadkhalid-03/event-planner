@@ -5,13 +5,15 @@ import { PlannedLocation } from "../stores/placesStore";
 
 const headers = {
   "Content-Type": "application/json",
-  "X-Goog-Api-Key": process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  "X-Goog-Api-Key":
+    process.env.GOOGLE_MAPS_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   "X-Goog-FieldMask":
     "routes.duration,routes.distanceMeters,routes.legs,routes.polyline.encodedPolyline",
 };
 export async function getRoute(
   sourceData: LatLng,
-  waypoints: PlannedLocation[],
+  waypoints: PlannedLocation[]
 ) {
   const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
@@ -56,7 +58,7 @@ export async function getRoute(
   try {
     const response = await axios.post(url, data, { headers });
     const decodedPolyline = decode(
-      response.data.routes[0].polyline.encodedPolyline,
+      response.data.routes[0].polyline.encodedPolyline
     ); // returns an array of [lat, lng] tuples
     const path = decodedPolyline.map(([lat, lng]) => ({ lat, lng }));
     return path;
