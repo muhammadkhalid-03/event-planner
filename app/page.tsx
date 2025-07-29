@@ -357,7 +357,12 @@ export default function Home() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {apiIsLoaded && <LocationForm onSubmit={handleEventPlanSubmit} />}
+          {apiIsLoaded && (
+            <LocationForm
+              currentSuggestedPlan={eventPlanData?.suggestedPlan}
+              onSubmit={handleEventPlanSubmit}
+            />
+          )}
         </div>
       </div>
     </main>

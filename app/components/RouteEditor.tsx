@@ -160,15 +160,11 @@ export default function RouteEditor({
                   >
                     {index + 1}
                   </div>
-                  <div
-                    className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
-                      compact ? "scale-90" : ""
-                    }`}
-                  >
+                  <div className={`flex items-center gap-0.5`}>
                     {onRegeneratePoint && (
                       <button
                         onClick={() => onRegeneratePoint(index)}
-                        className="p-0.5 text-gray-500 hover:text-green-600 transition-colors"
+                        className="p-0.5 text-gray-500 hover:text-green-600"
                         title="Regenerate"
                       >
                         <RefreshCw
@@ -178,7 +174,7 @@ export default function RouteEditor({
                     )}
                     <button
                       onClick={() => handleDelete(index)}
-                      className="p-0.5 text-gray-500 hover:text-red-600 transition-colors"
+                      className="p-0.5 text-gray-500 hover:text-red-600"
                       title="Delete"
                     >
                       <Trash2 className={compact ? "w-3 h-3" : "w-3.5 h-3.5"} />
