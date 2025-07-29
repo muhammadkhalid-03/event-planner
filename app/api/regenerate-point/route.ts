@@ -15,10 +15,12 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     console.log(
-      `🔄 Regenerating point ${index} for event: ${eventDescription}`,
+      `🔄 Regenerating point ${index} for event: ${eventDescription}`
     );
     console.log(
-      `🎯 Using selected place types: ${selectedPlaceTypes?.join(", ") || "fallback types"}`,
+      `🎯 Using selected place types: ${
+        selectedPlaceTypes?.join(", ") || "fallback types"
+      }`
     );
 
     // Use the originally selected place types from Gemini, with fallback
@@ -38,43 +40,45 @@ export async function POST(request: NextRequest) {
     if (!placesData || placesData.length === 0) {
       return NextResponse.json(
         { success: false, error: "No places found in the specified area" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     // Filter out ALL current locations in the route to avoid duplicates
     const existingIds = new Set<string>(
-      (allCurrentLocations || []).map((loc: any) => String(loc.id)),
+      (allCurrentLocations || []).map((loc: any) => String(loc.id))
     );
     let availablePlaces = placesData.filter(
-      (place) => !existingIds.has(String(place.id)),
+      (place) => !existingIds.has(String(place.id))
     );
 
     console.log(
-      `🔍 Filtered out ${placesData.length - availablePlaces.length} existing locations from ${placesData.length} found places`,
+      `🔍 Filtered out ${
+        placesData.length - availablePlaces.length
+      } existing locations from ${placesData.length} found places`
     );
 
     // Always try api_logs for more variety, not just when we have zero alternatives
     if (availablePlaces.length < 15) {
       console.log(
-        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`,
+        `🔄 Only ${availablePlaces.length} alternatives found, expanding with api_logs...`
       );
       const additionalPlaces = await getPlacesFromApiLogs(
         startingLocation,
         radius,
         placeTypesToUse,
-        existingIds,
+        existingIds
       );
       availablePlaces.push(...additionalPlaces);
 
       // Remove duplicates after combining
       availablePlaces = availablePlaces.filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id),
+          index === self.findIndex((p) => p.id === place.id)
       );
 
       console.log(
-        `📈 Expanded to ${availablePlaces.length} total alternatives`,
+        `📈 Expanded to ${availablePlaces.length} total alternatives`
       );
     }
 
@@ -99,12 +103,12 @@ export async function POST(request: NextRequest) {
       const newBroaderPlaces = broaderPlaces.filter(
         (place) =>
           !existingIds.has(String(place.id)) &&
-          !availablePlaces.find((existing) => existing.id === place.id),
+          !availablePlaces.find((existing) => existing.id === place.id)
       );
 
       availablePlaces.push(...newBroaderPlaces);
       console.log(
-        `🌐 Added ${newBroaderPlaces.length} places from broader search`,
+        `🌐 Added ${newBroaderPlaces.length} places from broader search`
       );
     }
 
@@ -114,7 +118,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "No alternative places found even after checking saved data",
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Try same type places first
     const sameTypePlaces = availablePlaces.filter(
-      (place) => place.placeType === currentLocation.type,
+      (place) => place.placeType === currentLocation.type
     );
 
     // Step 2: If same type places are limited, expand to related types
@@ -133,7 +137,7 @@ export async function POST(request: NextRequest) {
       const relatedPlaces = availablePlaces.filter(
         (place) =>
           placeTypesToUse.includes(place.placeType) &&
-          place.placeType !== currentLocation.type,
+          place.placeType !== currentLocation.type
       );
       candidatePlaces.push(...relatedPlaces);
     }
@@ -148,8 +152,7 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Remove duplicates and sort
     candidatePlaces = candidatePlaces.filter(
-      (place, index, self) =>
-        index === self.findIndex((p) => p.id === place.id),
+      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     if (candidatePlaces.length === 0) {
@@ -163,15 +166,15 @@ export async function POST(request: NextRequest) {
 
     // Add randomization to avoid always picking the same top place
     const randomIndex = Math.floor(
-      Math.random() * Math.min(5, topRatedPlaces.length),
+      Math.random() * Math.min(5, topRatedPlaces.length)
     ); // Random from top 5
     newLocation = topRatedPlaces[randomIndex];
 
     console.log(
-      `🎲 Selected from ${candidatePlaces.length} candidates (${sameTypePlaces.length} same type, ${topRatedPlaces.length} top-rated)`,
+      `🎲 Selected from ${candidatePlaces.length} candidates (${sameTypePlaces.length} same type, ${topRatedPlaces.length} top-rated)`
     );
     console.log(
-      `🎯 Picked: ${newLocation.displayName} (${newLocation.placeType}, rating: ${newLocation.rating})`,
+      `🎯 Picked: ${newLocation.displayName} (${newLocation.placeType}, rating: ${newLocation.rating})`
     );
 
     // Convert to the expected format
@@ -202,7 +205,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to regenerate point. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -212,7 +215,7 @@ async function getPlacesFromApiLogs(
   startingLocation: any,
   radius: number,
   placeTypes: string[],
-  existingIds: Set<string>,
+  existingIds: Set<string>
 ): Promise<any[]> {
   try {
     console.log("📂 Searching api_logs for additional places...");
@@ -226,7 +229,7 @@ async function getPlacesFromApiLogs(
         (file) =>
           (file.startsWith("event-plan-places-") ||
             file.startsWith("multiple-routes-places-")) &&
-          file.endsWith(".json"),
+          file.endsWith(".json")
       )
       .sort((a, b) => {
         // Sort by timestamp (newest first)
@@ -278,7 +281,7 @@ async function getPlacesFromApiLogs(
               startingLocation.location.lat,
               startingLocation.location.lng,
               place.location.lat,
-              place.location.lng,
+              place.location.lng
             );
             // Allow places within 3x the original radius for API logs fallback
             if (distance > radius * 3) return false;
@@ -300,12 +303,12 @@ async function getPlacesFromApiLogs(
     const uniquePlaces = additionalPlaces
       .filter(
         (place, index, self) =>
-          index === self.findIndex((p) => p.id === place.id),
+          index === self.findIndex((p) => p.id === place.id)
       )
       .sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
     console.log(
-      `📂 Found ${uniquePlaces.length} additional places from api_logs`,
+      `📂 Found ${uniquePlaces.length} additional places from api_logs`
     );
     return uniquePlaces;
   } catch (error) {
@@ -319,7 +322,7 @@ function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number,
+  lng2: number
 ): number {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
@@ -345,7 +348,7 @@ async function searchNearbyPlaces(params: {
   try {
     console.log("🔍 Searching for nearby places using Google Places API...");
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       throw new Error("Google Maps API key not configured");
     }
@@ -404,8 +407,7 @@ async function searchNearbyPlaces(params: {
 
     // Remove duplicates based on place ID
     const uniquePlaces = allPlaces.filter(
-      (place, index, self) =>
-        index === self.findIndex((p) => p.id === place.id),
+      (place, index, self) => index === self.findIndex((p) => p.id === place.id)
     );
 
     console.log(`🔍 Found ${uniquePlaces.length} unique places`);
