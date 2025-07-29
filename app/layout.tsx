@@ -6,8 +6,11 @@ import ClientWrapper from "./components/ClientWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Location Finder",
-  description: "Enter your country, city, and location within the city",
+  title: "Event Planner",
+  description: "An intelligent Activity Planner for creating personalized event suggestions",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
