@@ -101,6 +101,84 @@ const AVAILABLE_PLACE_TYPES = [
   "zoo",
 ];
 
+// Helper function to extract locations from the generated plan with ordering
+function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
+  try {
+    // Extract mentioned place names from the plan and match them to the places data
+    const plannedLocations = [];
+    const planLower = eventPlan.toLowerCase();
+
+    // Create array of matches with their position in the plan text
+    const matches = [];
+
+    for (const place of placesData) {
+      const placeNameLower = place.displayName.toLowerCase();
+      const position = planLower.indexOf(placeNameLower);
+
+      if (position !== -1) {
+        matches.push({
+          place,
+          position,
+          data: {
+            id: place.id,
+            name: place.displayName,
+            location: place.location,
+            type: place.placeType,
+            tags: place.types,
+            formatted_address: place.formattedAddress,
+            rating: place.rating,
+            user_rating_total: place.userRatingCount,
+            price_level: place.priceLevel,
+          },
+        });
+      }
+    }
+
+    // Sort by position in the plan text (earliest mention first)
+    matches.sort((a, b) => a.position - b.position);
+
+    // Create a Map to track the highest rated place for each name
+    const bestMatchByName = new Map();
+
+    // First pass: Find the highest rated place for each name
+    matches.forEach((match) => {
+      const existingMatch = bestMatchByName.get(match.place.displayName);
+      if (
+        !existingMatch ||
+        (match.place.rating || 0) > (existingMatch.place.rating || 0)
+      ) {
+        bestMatchByName.set(match.place.displayName, match);
+      }
+    });
+
+    // Second pass: Filter matches to keep only the highest rated place for each name
+    const uniqueMatches = matches.filter(
+      (match) => bestMatchByName.get(match.place.displayName) === match
+    );
+
+    // Add order number to each location
+    const orderedLocations = uniqueMatches.map((match, index) => ({
+      ...match.data,
+      order: index + 1, // 1-based numbering
+    }));
+
+    if (uniqueMatches.length !== matches.length) {
+      console.log(
+        `✅ Removed ${
+          matches.length - uniqueMatches.length
+        } duplicate venue mentions from extracted locations`
+      );
+    }
+
+    console.log("OrderedLocations:", orderedLocations);
+
+    return orderedLocations;
+  } catch (error) {
+    console.error("Error extracting locations from plan:", error);
+    return [];
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -262,16 +340,92 @@ export async function POST(request: NextRequest) {
         .map((p) => ({ name: p.displayName, type: p.placeType })),
     );
 
+    // Age analysis and filtering
+    console.log("[generate-multiple-routes] Received ageRange:", ageRange);
+    
+    // Parse age range - handle both array [min, max] and string formats
+    const parseAgeRange = (ageRange: [number, number] | string | undefined) => {
+      if (Array.isArray(ageRange) && ageRange.length === 2) {
+        const [minAge, maxAge] = ageRange;
+        return {
+          includesBelow21: minAge < 21,
+          isAllBelow21: maxAge < 21,
+          minAge,
+          maxAge
+        };
+      }
+      
+      // Handle string format as fallback
+      const ageRangeText = String(ageRange || "");
+      const includesBelow21 = 
+        ageRangeText.toLowerCase().includes("under 21") ||
+        ageRangeText.toLowerCase().includes("18-20") ||
+        ageRangeText.toLowerCase().includes("16-20") ||
+        ageRangeText.toLowerCase().includes("all ages") ||
+        ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
+        ageRangeText.toLowerCase().includes("children") ||
+        ageRangeText.toLowerCase().includes("kids") ||
+        ageRangeText.toLowerCase().includes("family");
+      
+      const isAllBelow21 = 
+        ageRangeText.toLowerCase().includes("under 21") ||
+        ageRangeText.toLowerCase().includes("16-20") ||
+        ageRangeText.match(/\b(1[0-9])\b/); // matches 10-19
+      
+      return {
+        includesBelow21,
+        isAllBelow21,
+        minAge: 0,
+        maxAge: 100
+      };
+    };
+
+    const ageAnalysis = parseAgeRange(ageRange);
+    console.log(`🔍 Age range analysis:`, ageAnalysis);
+
+    // Check for alcohol mentions in event description
+    const alcoholKeywords = ['alcohol', 'drink', 'bar', 'pub', 'wine', 'beer', 'cocktail', 'liquor', 'brewery', 'winery', 'drinking'];
+    const hasAlcoholMention = alcoholKeywords.some(keyword => 
+      eventDescription.toLowerCase().includes(keyword)
+    );
+
+    // Error case: All people under 21 AND alcohol mentioned
+    if (ageAnalysis.isAllBelow21 && hasAlcoholMention) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Your event description mentions alcohol but includes people under 21. Please remove alcohol references or adjust the age range and try again." 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Filter alcohol venues if minors are included
+    let filteredPlacesData = placesData;
+    if (ageAnalysis.includesBelow21) {
+      filteredPlacesData = placesData.filter(place => {
+        const placeTypes = place.types || [];
+        const placeType = place.placeType || "";
+        return !placeTypes.includes("bar") && 
+               !placeTypes.includes("night_club") &&
+               !placeTypes.includes("liquor_store") &&
+               placeType !== "bar" &&
+               placeType !== "night_club" &&
+               placeType !== "liquor_store";
+      });
+      console.log(`🔒 Filtered out bars/night clubs/liquor stores due to age range including people under 21: ${ageRange}. Remaining venues: ${filteredPlacesData.length}`);
+    }
+
     // Step 3: Generate multiple different route options using the same criteria
     const routes = [];
 
     // Create shuffled versions of the places data for variety while maintaining quality
     const shuffledPlacesVersions = [];
     for (let i = 0; i < numberOfRoutes; i++) {
-      const shuffledPlaces = [...placesData]
+      const shuffledPlaces = [...filteredPlacesData]
         .sort(() => Math.random() - 0.5) // Randomize order
         .sort((a, b) => (b.rating || 0) - (a.rating || 0)) // Still prioritize highly rated places
-        .slice(0, Math.min(12, placesData.length)); // Take top 12 for selection variety
+        .slice(0, Math.min(12, filteredPlacesData.length)); // Take top 12 for selection variety
       shuffledPlacesVersions.push(shuffledPlaces);
     }
 
@@ -495,7 +649,7 @@ async function generateEventPlanWithGemini(params: {
   routeNumber: number;
   totalRoutes: number;
   budget?: number;
-  ageRange?: string;
+  ageRange?: [number, number] | string;
 }) {
   try {
     console.log(
@@ -508,7 +662,7 @@ async function generateEventPlanWithGemini(params: {
     }
 
     const routeName = `Planned Route ${params.routeNumber}`;
-
+    
     // IMPROVED PROMPT WITH SYSTEM INSTRUCTIONS
     const systemInstruction = {
       parts: [
@@ -524,34 +678,7 @@ async function generateEventPlanWithGemini(params: {
       ],
     };
 
-    // Filter out bars if age range includes people below 21
     let filteredPlaces = params.places;
-    const ageRangeText = String(params.ageRange || "");
-    const includesMinors =
-      ageRangeText.toLowerCase().includes("under 21") ||
-      ageRangeText.toLowerCase().includes("18-20") ||
-      ageRangeText.toLowerCase().includes("16-20") ||
-      ageRangeText.toLowerCase().includes("all ages") ||
-      ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-      ageRangeText.toLowerCase().includes("children") ||
-      ageRangeText.toLowerCase().includes("kids") ||
-      ageRangeText.toLowerCase().includes("family");
-
-    if (includesMinors) {
-      filteredPlaces = params.places.filter((place) => {
-        const placeTypes = place.types || [];
-        const placeType = place.placeType || "";
-        return (
-          !placeTypes.includes("bar") &&
-          !placeTypes.includes("night_club") &&
-          placeType !== "bar" &&
-          placeType !== "night_club"
-        );
-      });
-      console.log(
-        `🔒 Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`,
-      );
-    }
 
     const eventPlanPrompt = `
 # TRAVEL PLANNING TASK
@@ -563,7 +690,7 @@ async function generateEventPlanWithGemini(params: {
 ## INPUT PARAMETERS
 - **Duration**: ${params.hourRange} hours total
 - **Group Size**: ${params.numberOfPeople} people  
-- **Age Range**: ${params.ageRange || "Not specified"}
+- **Age Range**: ${Array.isArray(params.ageRange) ? `${params.ageRange[0]} to ${params.ageRange[1]}` : params.ageRange || "Not specified"}
 - **Event Type**: ${params.eventDescription}
 - **Budget**: ${params.budget ? `$${params.budget} USD per person (total budget: $${params.budget * params.numberOfPeople} for ${params.numberOfPeople} people)` : "Budget not specified - provide cost estimates"}
 - **Starting Point**: Coordinates ${params.startingLocation.location.lat}, ${params.startingLocation.location.lng}
@@ -592,8 +719,12 @@ Before creating the itinerary, analyze:
 - ${params.budget ? `Calculate costs per person to stay within the $${params.budget} individual budget` : "Estimate total approximate costs per person"}
 
 ### 4. AGE-APPROPRIATE VENUE SELECTION
-- **Age Range Consideration**: ${params.ageRange || "Not specified"}
-- ${includesMinors ? "**IMPORTANT**: This group includes people under 21 - DO NOT suggest bars, night clubs, or alcohol-focused venues" : "Age range allows for all venue types including bars if appropriate for the event"}
+- **Age Range Consideration**: ${Array.isArray(params.ageRange) ? `${params.ageRange[0]} to ${params.ageRange[1]}` : params.ageRange || "Not specified"}
+- ${
+      Array.isArray(params.ageRange) && params.ageRange[0] < 21
+        ? "**IMPORTANT**: This group includes people under 21 - DO NOT suggest bars, night clubs, or alcohol-focused venues"
+        : "Age range allows for all venue types including bars if appropriate for the event"
+    }
 - Select venues that are suitable and accessible for the specified age range
 - Consider age-related preferences and restrictions when planning activities
 
@@ -644,8 +775,16 @@ Respond ONLY with a JSON object following this exact structure:
 3. Verify venue names and addresses match the provided data exactly
 4. Calculate realistic travel times between locations
 5. Consider ${params.numberOfPeople} people for all logistics and costs
-6. ${params.budget ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person` : "Provide realistic cost estimates for budget planning"}
-7. ${includesMinors ? `**AGE RESTRICTION**: This group includes people under 21 - bars, night clubs, and alcohol-focused venues are STRICTLY PROHIBITED` : "Consider age appropriateness for all venue selections"}
+6. ${
+      params.budget
+        ? `**STAY WITHIN BUDGET**: Estimated costs must not exceed $${params.budget} per person`
+        : "Provide realistic cost estimates for budget planning"
+    }
+7. ${
+      Array.isArray(params.ageRange) && params.ageRange[0] < 21
+        ? `**AGE RESTRICTION**: This group includes people under 21 - bars, night clubs, and alcohol-focused venues are STRICTLY PROHIBITED`
+        : "Consider age appropriateness for all venue selections"
+    }
 8. Create a distinctive and enjoyable route that offers variety from other options
 9. Include practical considerations like bathroom breaks, meal timing, etc.
 10. If there are two locations with the same name, remove the location that is less popular
@@ -830,7 +969,7 @@ function generateFallbackPlan(params: {
   routeNumber: number;
   totalRoutes: number;
   budget?: number;
-  ageRange?: string;
+  ageRange?: [number, number] | string;
 }): string {
   console.log("🔄 Generating fallback event plan...");
 
@@ -844,39 +983,11 @@ function generateFallbackPlan(params: {
     ageRange,
   } = params;
 
-  // Filter out bars if age range includes people below 21
-  const ageRangeText = String(ageRange || "");
-  const includesMinors =
-    ageRangeText.toLowerCase().includes("under 21") ||
-    ageRangeText.toLowerCase().includes("18-20") ||
-    ageRangeText.toLowerCase().includes("16-20") ||
-    ageRangeText.toLowerCase().includes("all ages") ||
-    ageRangeText.match(/\b(1[0-9]|20)\b/) || // matches 10-20
-    ageRangeText.toLowerCase().includes("children") ||
-    ageRangeText.toLowerCase().includes("kids") ||
-    ageRangeText.toLowerCase().includes("family");
-
-  let filteredPlaces = places;
-  if (includesMinors) {
-    filteredPlaces = places.filter((place) => {
-      const placeTypes = place.types || [];
-      const placeType = place.placeType || "";
-      return (
-        !placeTypes.includes("bar") &&
-        !placeTypes.includes("night_club") &&
-        placeType !== "bar" &&
-        placeType !== "night_club"
-      );
-    });
-    console.log(
-      `🔒 Fallback: Filtered out bars/night clubs due to age range: ${ageRangeText}. Remaining venues: ${filteredPlaces.length}`,
-    );
-  }
   const routeName = `Planned Route ${routeNumber}`;
 
   // Group places by their actual types (dynamic, not hardcoded)
   const placesByType: { [key: string]: any[] } = {};
-  filteredPlaces.forEach((place) => {
+  places.forEach((place: any) => {
     if (!placesByType[place.placeType]) {
       placesByType[place.placeType] = [];
     }
@@ -885,7 +996,7 @@ function generateFallbackPlan(params: {
 
   // Sort places within each type by rating
   Object.keys(placesByType).forEach((type) => {
-    placesByType[type].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    placesByType[type].sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
   });
 
   const selectedPlaces: any[] = [];
@@ -910,11 +1021,11 @@ function generateFallbackPlan(params: {
     selectedPlaces.length === 0 ||
     selectedPlaces.length < Math.min(3, hourRange)
   ) {
-    const allPlacesSorted = filteredPlaces.sort(
-      (a, b) => (b.rating || 0) - (a.rating || 0),
+    const allPlacesSorted = places.sort(
+      (a: any, b: any) => (b.rating || 0) - (a.rating || 0)
     );
     const additionalPlaces = allPlacesSorted
-      .filter((p) => !selectedPlaces.find((sp) => sp.id === p.id))
+      .filter((p: any) => !selectedPlaces.find((sp: any) => sp.id === p.id))
       .slice(0, Math.max(3, Math.min(8, hourRange)) - selectedPlaces.length);
     selectedPlaces.push(...additionalPlaces);
   }
@@ -925,7 +1036,17 @@ function generateFallbackPlan(params: {
     Math.min(8, Math.max(2, hourRange)),
   );
 
-  return `Here's your ${hourRange}-hour ${eventDescription || "event"} plan for ${numberOfPeople} people${ageRange ? ` (age range: ${ageRange})` : ""}${params.budget ? ` with a $${params.budget} per person budget` : ""}. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.${includesMinors ? " All venues are age-appropriate and do not include bars or night clubs." : ""}
+  return `Here's your ${hourRange}-hour ${
+    eventDescription || "event"
+  } plan for ${numberOfPeople} people${
+    ageRange ? ` (age range: ${Array.isArray(ageRange) ? `${ageRange[0]} to ${ageRange[1]}` : ageRange})` : ""
+  }${
+    params.budget ? ` with a $${params.budget} per person budget` : ""
+  }. This plan includes the best-rated venues in your area, organized for optimal travel flow. Each location has been selected based on its ratings and suitability for your group.${
+    ageRange && Array.isArray(ageRange) && ageRange[0] < 21
+      ? " All venues are age-appropriate and do not include bars or night clubs."
+      : ""
+  }
 
 ${
   params.budget
@@ -935,7 +1056,7 @@ ${
     : ""
 }${finalPlaces
     .map(
-      (place, index) => `${index + 1}. ${place.displayName || place.name} - ${
+      (place: any, index: number) => `${index + 1}. ${place.displayName || place.name} - ${
         place.formattedAddress || place.address || "Address not available"
       }
    ${
@@ -950,82 +1071,6 @@ ${
 `,
     )
     .join("")}You can choose to edit your plan or make another one!`;
-}
-
-// Helper function to extract locations from the generated plan with ordering
-function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
-  try {
-    // Extract mentioned place names from the plan and match them to the places data
-    const plannedLocations = [];
-    const planLower = eventPlan.toLowerCase();
-
-    // Create array of matches with their position in the plan text
-    const matches = [];
-
-    for (const place of placesData) {
-      const placeNameLower = place.displayName.toLowerCase();
-      const position = planLower.indexOf(placeNameLower);
-
-      if (position !== -1) {
-        matches.push({
-          place,
-          position,
-          data: {
-            id: place.id,
-            name: place.displayName,
-            location: place.location,
-            type: place.placeType,
-            tags: place.types,
-            formatted_address: place.formattedAddress,
-            rating: place.rating,
-            user_rating_total: place.userRatingCount,
-            price_level: place.priceLevel,
-          },
-        });
-      }
-    }
-
-    // Sort by position in the plan text (earliest mention first)
-    matches.sort((a, b) => a.position - b.position);
-
-    // Create a Map to track the highest rated place for each name
-    const bestMatchByName = new Map();
-
-    // First pass: Find the highest rated place for each name
-    matches.forEach((match) => {
-      const existingMatch = bestMatchByName.get(match.place.displayName);
-      if (
-        !existingMatch ||
-        (match.place.rating || 0) > (existingMatch.place.rating || 0)
-      ) {
-        bestMatchByName.set(match.place.displayName, match);
-      }
-    });
-
-    // Second pass: Filter matches to keep only the highest rated place for each name
-    const uniqueMatches = matches.filter(
-      (match) => bestMatchByName.get(match.place.displayName) === match,
-    );
-
-    // Add order number to each location
-    const orderedLocations = uniqueMatches.map((match, index) => ({
-      ...match.data,
-      order: index + 1, // 1-based numbering
-    }));
-
-    if (uniqueMatches.length !== matches.length) {
-      console.log(
-        `✅ Removed ${matches.length - uniqueMatches.length} duplicate venue mentions from extracted locations`,
-      );
-    }
-
-    console.log("OrderedLocations:", orderedLocations);
-
-    return orderedLocations;
-  } catch (error) {
-    console.error("Error extracting locations from plan:", error);
-    return [];
-  }
 }
 
 async function selectPlaceTypesWithGemini(
