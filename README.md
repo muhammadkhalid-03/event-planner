@@ -4,6 +4,7 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Features
 
+- **🔐 Firebase Authentication**: Secure access with special code authentication
 - **Activity Planner**: Intelligent event planning with customizable parameters
 - **Smart Place Type Selection**: AI analyzes event descriptions to select from 96+ venue categories
 - **Google Places Autocomplete**: Real-time location search and validation
@@ -20,7 +21,35 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
-### Enhanced AI Event Planning with Age-Appropriate Venue Selection & Time Validation (Latest)
+### Firebase Authentication Implementation (Latest)
+
+- **🔐 Secure Access Control**: Implemented Firebase authentication with special code access
+- ✅ **Authentication Popup**: Clean, centered popup requesting special access code
+- ✅ **Blurred Background**: Background content is blurred and non-interactive until authenticated
+- ✅ **Single User System**: Configured for single user access (testdemoeventplannerapp@gmail.com)
+- ✅ **Loading States**: Smooth loading experience during authentication process
+- ✅ **Error Handling**: Clear error messages for invalid access codes
+- ✅ **Session Persistence**: Users remain authenticated across browser sessions
+- ✅ **AuthContext Integration**: Centralized authentication state management
+- ✅ **Responsive Design**: Authentication popup works seamlessly on all screen sizes
+- ✅ **Security**: Firebase authentication provides secure access control
+- ✅ **User Experience**: Instant access to app features once authenticated
+
+#### How to Use Authentication
+
+To access the Event Planner app, you'll need to enter the special access code when the authentication popup appears. The app is configured for single-user access with the Firebase user `testdemoeventplannerapp@gmail.com`. Once authenticated, your session will persist across browser refreshes and tabs.
+
+#### Technical Implementation
+
+The authentication system includes:
+- **Firebase Auth Integration**: Uses Firebase Authentication with email/password sign-in
+- **AuthContext Provider**: React context for managing authentication state across the app
+- **AuthPopup Component**: Clean, centered modal for password entry with loading states
+- **Background Blur Effect**: Main app content is blurred and non-interactive until authenticated
+- **Session Persistence**: Firebase handles session management automatically
+- **Complete SSR Support**: All Firebase code uses dynamic imports and client-side initialization to prevent SSR errors
+
+### Enhanced AI Event Planning with Age-Appropriate Venue Selection & Time Validation
 
 - **🤖 Advanced Gemini Integration**: Completely redesigned event plan generation with sophisticated travel planning expertise
 - ✅ **Time Range Validation**: Hard-coded requirement that all event plans must be at least 1 hour long
@@ -271,6 +300,8 @@ If you encounter "no place data provided" errors:
 npm install
 ```
 
+Note: Firebase authentication is already configured in the project. The `firebase` package was installed using `npm install firebase`.
+
 2. Run the development server:
 
 ```bash
@@ -300,7 +331,7 @@ npm start
 │   ├── api/
 │   │   ├── mapServices.ts       # Route computation services
 │   │   ├── analyze-restaurants/ # AI restaurant analysis endpoint
-│   │   ├── create-event-plan/   # Event planning API
+│   │   ├── generate-multiple-routes/ # Multiple route generation API
 │   │   └── save-places/         # Places data management
 │   ├── hooks/
 │   │   └── usePlacesSearch.tsx  # Custom hook for Places API

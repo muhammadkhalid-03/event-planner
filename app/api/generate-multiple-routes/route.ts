@@ -155,6 +155,17 @@ export async function POST(request: NextRequest) {
       console.log(
         `🤖 Gemini selected place types for multiple routes: ${selectedPlaceTypes.join(", ")}`,
       );
+      
+      // Prominent logging for the main endpoint
+      console.log("🚀 ════════════════════════════════════════════════════════");
+      console.log("🚀 FINAL GEMINI CATEGORIES FOR ROUTE GENERATION");
+      console.log("🚀 ════════════════════════════════════════════════════════");
+      console.log(`📍 Event: "${eventDescription}"`);
+      console.log("🏷️  Categories to search:");
+      selectedPlaceTypes.forEach((type, index) => {
+        console.log(`     • ${type.toUpperCase()}`);
+      });
+      console.log("🚀 ════════════════════════════════════════════════════════");
 
       // Additional validation - ensure no empty results
       if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
@@ -162,6 +173,17 @@ export async function POST(request: NextRequest) {
           "⚠️ Gemini returned empty place types array, using generic defaults",
         );
         selectedPlaceTypes = ["tourist_attraction", "park", "museum"];
+        
+        // Prominent empty result logging
+        console.log("⚠️  ═══════════════════════════════════════════════════════");
+        console.log("⚠️  EMPTY GEMINI RESPONSE - USING DEFAULTS");
+        console.log("⚠️  ═══════════════════════════════════════════════════════");
+        console.log(`📍 Event: "${eventDescription}"`);
+        console.log("🏷️  Default Categories:");
+        selectedPlaceTypes.forEach((type, index) => {
+          console.log(`     • ${type.toUpperCase()}`);
+        });
+        console.log("⚠️  ═══════════════════════════════════════════════════════");
       }
     } catch (error) {
       console.error("❌ Failed to select place types with Gemini:", error);
@@ -170,6 +192,17 @@ export async function POST(request: NextRequest) {
       console.log(
         `🔄 Using fallback place types: ${selectedPlaceTypes.join(", ")}`,
       );
+      
+      // Prominent fallback logging
+      console.log("⚠️  ═══════════════════════════════════════════════════════");
+      console.log("⚠️  FALLBACK CATEGORIES (GEMINI UNAVAILABLE)");
+      console.log("⚠️  ═══════════════════════════════════════════════════════");
+      console.log(`📍 Event: "${eventDescription}"`);
+      console.log("🏷️  Default Categories:");
+      selectedPlaceTypes.forEach((type, index) => {
+        console.log(`     • ${type.toUpperCase()}`);
+      });
+      console.log("⚠️  ═══════════════════════════════════════════════════════");
     }
 
     // Step 1 (continued): Search for nearby places using the AI-selected types
@@ -1106,6 +1139,18 @@ Return ONLY a JSON array, e.g.: ["restaurant", "park", "museum"]
     console.log(
       `✅ Gemini selected ${uniqueSelectedTypes.length} valid place types: ${uniqueSelectedTypes.join(", ")}`,
     );
+    
+    // Enhanced logging with category breakdown
+    console.log("🎯 ═══════════════════════════════════════════════════════════");
+    console.log(`🎯 GEMINI PLACE TYPE SELECTION RESULTS`);
+    console.log("🎯 ═══════════════════════════════════════════════════════════");
+    console.log(`📝 Event Description: "${eventDescription}"`);
+    console.log(`🎯 Selected Categories (${uniqueSelectedTypes.length}):`);
+    uniqueSelectedTypes.forEach((type, index) => {
+      console.log(`   ${index + 1}. ${type.toUpperCase()}`);
+    });
+    console.log("🎯 ═══════════════════════════════════════════════════════════");
+    
     return uniqueSelectedTypes;
   } catch (error) {
     console.error("❌ Error in place type selection:", error);

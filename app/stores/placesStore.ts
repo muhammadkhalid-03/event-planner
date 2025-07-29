@@ -61,7 +61,15 @@ interface PlacesStore {
 
 export const usePlacesStore = create<PlacesStore>((set) => ({
   locations: [],
-  setLocations: (locations) => set({ locations }),
+  setLocations: (locations) => 
+    set({ 
+      locations: locations.map(loc => ({
+        ...loc,
+        tags: loc.tags || [],
+        order: loc.order || 0,
+        formatted_address: loc.address
+      }))
+    }),
   plannedLocations: [],
   setPlannedLocations: (plannedLocations) => set({ plannedLocations }),
   selectedLocation: null,
