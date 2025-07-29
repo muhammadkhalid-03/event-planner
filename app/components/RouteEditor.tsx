@@ -90,8 +90,8 @@ export default function RouteEditor({
         locations.length <= 3
           ? "w-fit max-w-md min-w-[400px]" // Very small width for 3 or fewer locations with min-width
           : locations.length <= 5
-          ? "w-fit min-w-[500px]" // Small width for 4-5 locations with min-width
-          : "w-full max-w-6xl" // Full width with scroll for 6+ locations
+            ? "w-fit min-w-[500px]" // Small width for 4-5 locations with min-width
+            : "w-full max-w-6xl" // Full width with scroll for 6+ locations
       }`}
     >
       <div

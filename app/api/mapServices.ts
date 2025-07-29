@@ -9,7 +9,10 @@ const headers = {
   "X-Goog-FieldMask":
     "routes.duration,routes.distanceMeters,routes.legs,routes.polyline.encodedPolyline",
 };
-export async function getRoute(sourceData: LatLng, waypoints: PlannedLocation[]) {
+export async function getRoute(
+  sourceData: LatLng,
+  waypoints: PlannedLocation[],
+) {
   const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
   const data = {
