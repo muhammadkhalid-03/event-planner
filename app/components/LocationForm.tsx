@@ -175,7 +175,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
     );
 
     try {
-      console.log("📍 Starting multiple routes generation workflow...");
+      console.log("Starting multiple routes generation workflow...");
 
       // Initializing request
       setGenerationProgress(20);
@@ -249,7 +249,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       } else {
         setPlanError(result.error || "Failed to generate route options");
         setSuggestedPlan(
-          "❌ Failed to generate route options. Please try again."
+          "Failed to generate route options. Please try again."
         );
       }
     } catch (error) {
@@ -257,7 +257,7 @@ export default function LocationForm({ onSubmit }: LocationFormProps) {
       setPlanError(
         "Network error. Please check your connection and try again."
       );
-      setSuggestedPlan("❌ Network error occurred. Please try again.");
+      setSuggestedPlan("Network error occurred. Please try again.");
     } finally {
       setIsGeneratingPlan(false);
       setGenerationProgress(0);
