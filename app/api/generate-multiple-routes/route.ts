@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import path from "path";
 
 // Initialize S3 client
 const s3Client = new S3Client({
@@ -358,9 +357,38 @@ export async function POST(request: NextRequest) {
       places: placesData,
     };
 
-    // Upload to S3 instead of local file system
+    // ADD THIS: Debug S3 configuration at the start
+    console.log("🔧 S3 Configuration Debug:");
+    console.log("AWS_ACCESS_KEY_ID exists:", !!process.env.AWS_ACCESS_KEY_ID);
+    console.log(
+      "AWS_SECRET_ACCESS_KEY exists:",
+      !!process.env.AWS_SECRET_ACCESS_KEY
+    );
+    console.log("AWS_REGION:", process.env.AWS_REGION);
+    console.log("S3_BUCKET_NAME:", process.env.S3_BUCKET_NAME);
+
+    if (
+      !process.env.AWS_ACCESS_KEY_ID ||
+      !process.env.AWS_SECRET_ACCESS_KEY ||
+      !process.env.S3_BUCKET_NAME
+    ) {
+      console.error("❌ Missing required S3 environment variables");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Server configuration error: Missing S3 credentials",
+        },
+        { status: 500 }
+      );
+    }
+
+    // MODIFY THE S3 UPLOAD SECTION:
+    console.log("💾 Attempting to save to S3...");
     try {
       const s3Key = `api_logs/${fileName}`;
+      console.log("S3 Key:", s3Key);
+      console.log("Bucket:", BUCKET_NAME);
+
       const putCommand = new PutObjectCommand({
         Bucket: BUCKET_NAME,
         Key: s3Key,
@@ -368,12 +396,22 @@ export async function POST(request: NextRequest) {
         ContentType: "application/json",
       });
 
-      await s3Client.send(putCommand);
-      console.log(`💾 Saved places data to S3: ${s3Key}`);
+      const s3Response = await s3Client.send(putCommand);
+      console.log(`✅ Successfully saved to S3: ${s3Key}`, s3Response);
     } catch (s3Error) {
-      console.error("❌ Failed to upload to S3:", s3Error);
-      // Don't fallback to local file system - just log the error
-      console.warn("⚠️ Continuing without saving places data due to S3 error");
+      console.error("❌ S3 upload failed:", s3Error);
+      console.error("Error details:", JSON.stringify(s3Error, null, 2));
+
+      // DO NOT write to local file system - return error instead
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to save data to cloud storage",
+          details:
+            s3Error instanceof Error ? s3Error.message : "Unknown S3 error",
+        },
+        { status: 500 }
+      );
     }
 
     console.log(`📊 Original places data: ${placesData.length} places`);
