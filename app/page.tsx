@@ -106,7 +106,7 @@ export default function Home() {
   const { locations, drawerOpen, setDrawerOpen, setLocations } =
     usePlacesStore();
   const [eventPlanData, setEventPlanData] = useState<EventPlanData | null>(
-    null,
+    null
   );
   useEffect(() => {
     if (locations.length > 0) {
@@ -143,7 +143,7 @@ export default function Home() {
       setEventPlanData(newRoutes[0]); // Set the first route as current
 
       console.log(
-        `📍 Replaced with ${newRoutes.length} new route options in carousel.`,
+        `📍 Replaced with ${newRoutes.length} new route options in carousel.`
       );
     } else {
       // Fallback to single route behavior
@@ -154,7 +154,7 @@ export default function Home() {
 
     if (data.plannedLocations && data.plannedLocations.length > 0) {
       console.log(
-        `📍 Displaying ${data.plannedLocations.length} planned locations on map`,
+        `📍 Displaying ${data.plannedLocations.length} planned locations on map`
       );
     }
 
@@ -350,9 +350,9 @@ export default function Home() {
       {/* Sidebar */}
       <div className="w-80 border-l border-gray-200 bg-white shadow-lg flex flex-col max-h-screen">
         <div className="p-4 pb-0 flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-900">Activity Planner</h1>
+          <h1 className="text-xl font-bold text-gray-900">WhatsInTownAI</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Plan your perfect event with AI assistance
+            Plan your perfect day with AI
           </p>
         </div>
 

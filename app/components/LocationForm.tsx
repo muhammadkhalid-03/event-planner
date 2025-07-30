@@ -162,7 +162,9 @@ export default function LocationForm({
 
     const start = new Date(`${eventDate} ${startTime}`);
     const end = new Date(`${eventDate} ${endTime}`);
-    let hourRange = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60));
+    let hourRange = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+    );
     if (end <= start) {
       setPlanError("End time must be after start time.");
       return;
@@ -306,9 +308,7 @@ export default function LocationForm({
         );
       } else {
         setPlanError(result.error || "Failed to generate route options");
-        setSuggestedPlan(
-          "Failed to generate route options. Please try again."
-        );
+        setSuggestedPlan("Failed to generate route options. Please try again.");
       }
     } catch (error) {
       console.error("Error generating route options:", error);
@@ -487,7 +487,9 @@ export default function LocationForm({
             name="numberOfPeople"
             value={numberOfPeople}
             onChange={(e) => {
-              const value = Math.max( parseInt(e.target.value.replace(/^0+/, "")) || 0);
+              const value = Math.max(
+                parseInt(e.target.value.replace(/^0+/, "")) || 0
+              );
               setNumberOfPeople(value);
             }}
             min="1"
@@ -574,6 +576,9 @@ export default function LocationForm({
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 resize-none"
             placeholder="Your suggested plan will appear here after clicking Plan..."
           />
+          <p className="text-[10px] text-gray-400 mt-0.5 pr-1 text-right">
+            Powered by Gemini
+          </p>
         </div>
 
         {planError && (

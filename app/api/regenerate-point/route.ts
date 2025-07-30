@@ -4,7 +4,6 @@ import {
   ListObjectsV2Command,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
-import path from "path";
 
 // Initialize S3 client
 const s3Client = new S3Client({
