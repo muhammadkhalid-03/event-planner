@@ -915,7 +915,7 @@ Respond ONLY with a JSON object following this exact structure:
 }
 
 ## CRITICAL INSTRUCTIONS
-1. Use ONLY venues from the provided location data
+1. Use ONLY venues from the provided location data. Ensure you pay attention to cultural location types. For example, if the description says "We want to go to chinese restaurants", ensure to have only chinese restaurants in the list. You may analyze restaurant names to determine the type of restaurant.
 2. Ensure total planned time does not exceed ${params.hourRange} hours
 3. Verify venue names and addresses match the provided data exactly
 4. Calculate realistic travel times between locations
@@ -1263,7 +1263,8 @@ AVAILABLE PLACE TYPES:
 ${AVAILABLE_PLACE_TYPES.join(", ")}
 
 SELECTION RULES:
-1. Choose 3–5 place types that best match the event theme and activities.
+1. Choose 1–5 place types that best match the event theme and activities. If the description says "Only", ensure to have only those place types referred to by the user. For example, if the description says "Only museums", ensure to have only museums in the list. If the description insinuates
+ they want one type of location, ensure you output only those location types. For example, if the description says "We want to go to multiple night clubs", ensure to have only night clubs in the list.
 2. Strongly consider the budget level when selecting place types:
    - If budget is below $25 per person, prioritize budget-friendly types (e.g., "cafe", "park", "convenience_store", "supermarket", "museum", "free attractions").
    - If budget is between $25–75 per person, include moderately priced types (e.g., "restaurant", "movie_theater", "amusement_park").

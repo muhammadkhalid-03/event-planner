@@ -509,7 +509,7 @@ export default function LocationForm({
           </label>
           <Slider
             min={10}
-            max={5000}
+            max={20000}
             step={10}
             value={radius}
             onChange={(value) => setRadius(value as number)}

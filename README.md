@@ -21,6 +21,16 @@ A Next.js web application with TailwindCSS that provides an intelligent Activity
 
 ## Recent Updates
 
+### Increased Search Radius to 20KM (Latest)
+
+- **🗺️ Expanded Search Range**: Updated radius slider maximum from 5,000 to 20,000 meters (20 km)
+- ✅ **Enhanced Discovery**: Users can now search for venues in a much larger area around their starting location
+- ✅ **LocationForm Update**: Main event planning form now supports radius up to 20,000 meters
+- ✅ **PlacesSearch Update**: Advanced places search component also supports the expanded 20km radius
+- ✅ **Backend Compatibility**: Existing search functionality already supports the expanded range (Google Places API allows up to 50km)
+- ✅ **Maintained User Control**: Users can still select any radius from 10 meters up to the new 20,000 meter maximum
+- ✅ **Improved Event Planning**: Larger search areas provide more venue options for comprehensive event planning
+
 ### Custom Favicon Implementation (Latest)
 
 - **🎨 Brand Identity**: Implemented custom favicon using the event planner banner image
@@ -361,7 +371,7 @@ The Activity Planner includes the following input fields:
 1. **Starting Location** - Enter your starting location with Google Places autocomplete
 2. **Hour Range** - Specify how many hours you have available for your event (1-24 hours)
 3. **Number of People** - Enter the number of people attending (1-100 people)
-4. **Radius (meters)** - Define the search area around your starting location (100-5000 meters, default: 1000m)
+4. **Radius (meters)** - Define the search area around your starting location (10-20000 meters, default: 5000m)
 5. **Description of Event** - Describe your event theme or preferred activities
 6. **Suggested Plan** - Displays AI-generated event suggestions (read-only)
 
