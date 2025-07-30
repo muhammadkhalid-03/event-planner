@@ -178,7 +178,7 @@ export default function LocationForm({
     setGenerationProgress(0);
     setPlanError(null);
     setSuggestedPlan(
-      "🔍 Searching for nearby places...\n🤖 Generating multiple route options..."
+      "Searching for nearby places...\nGenerating multiple route options..."
     );
 
     try {
@@ -186,16 +186,16 @@ export default function LocationForm({
 
       // Step 1: Initializing request
       setGenerationProgress(10);
-      setSuggestedPlan("🔄 Initializing request...");
+      setSuggestedPlan("Initializing request...");
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Step 2: Preparing data
       setGenerationProgress(20);
-      setSuggestedPlan("📋 Preparing event data...");
+      setSuggestedPlan("Preparing event data...");
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Step 3: Start API call with simulated progress
-      setSuggestedPlan("🌐 Connecting to route planning service...");
+      setSuggestedPlan("Connecting to route planning service...");
 
       // Create a promise for the API call
       const apiCallPromise = fetch("/api/generate-multiple-routes", {
@@ -234,21 +234,15 @@ export default function LocationForm({
 
       // Update status messages during the wait
       setTimeout(
-        () => setSuggestedPlan("🔍 Searching for nearby places..."),
+        () => setSuggestedPlan("Searching for nearby places..."),
         1000
       );
       setTimeout(
-        () => setSuggestedPlan("🏢 Finding restaurants and attractions..."),
+        () => setSuggestedPlan("Finding restaurants and attractions..."),
         2000
       );
-      setTimeout(
-        () => setSuggestedPlan("🗺️ Calculating optimal routes..."),
-        3000
-      );
-      setTimeout(
-        () => setSuggestedPlan("🤖 Generating route options..."),
-        4000
-      );
+      setTimeout(() => setSuggestedPlan("Calculating optimal routes..."), 3000);
+      setTimeout(() => setSuggestedPlan("Generating route options..."), 4000);
 
       // Wait for API call to complete
       const response = await apiCallPromise;
@@ -258,27 +252,27 @@ export default function LocationForm({
 
       // Step 4: API call completed
       setGenerationProgress(70);
-      setSuggestedPlan("✅ Route data received, processing...");
+      setSuggestedPlan("Route data received, processing...");
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       const result = await response.json();
 
       // Step 5: Processing results
       setGenerationProgress(80);
-      setSuggestedPlan("🔄 Processing route data...");
+      setSuggestedPlan("Processing route data...");
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       if (result.success) {
         // Step 6: Organizing routes
         setGenerationProgress(90);
-        setSuggestedPlan("📊 Organizing route options...");
+        setSuggestedPlan("Organizing route options...");
         await new Promise((resolve) => setTimeout(resolve, 300));
         console.log("Routes:", result);
         const firstRoute = result.routes[0];
 
         // Step 7: Finalizing
         setGenerationProgress(95);
-        setSuggestedPlan("🎯 Finalizing recommendations...");
+        setSuggestedPlan("Finalizing recommendations...");
         await new Promise((resolve) => setTimeout(resolve, 300));
 
         // Step 8: Complete
@@ -304,7 +298,7 @@ export default function LocationForm({
         });
 
         console.log(
-          `✅ Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
+          `Generated ${result.routes.length} route options! Found ${result.placesFound} places, first route includes ${firstRoute.plannedLocations.length} locations`
         );
       } else {
         setPlanError(result.error || "Failed to generate route options");
@@ -596,7 +590,7 @@ export default function LocationForm({
               : "bg-indigo-600 text-white hover:bg-indigo-700"
           }`}
         >
-          {isGeneratingPlan ? "🔄 Generating Plan..." : "Plan"}
+          {isGeneratingPlan ? "Generating Plan..." : "Plan"}
         </button>
 
         {isGeneratingPlan && (
@@ -641,7 +635,7 @@ export default function LocationForm({
               : "bg-green-600 text-white hover:bg-green-700"
           }`}
         >
-          {isSendingEmail ? "✉️ Sending Email..." : "Send Plan via Email"}
+          {isSendingEmail ? "Sending Email..." : "Send Plan via Email"}
         </button>
       </form>
     </div>
