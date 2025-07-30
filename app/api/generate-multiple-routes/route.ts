@@ -111,8 +111,83 @@ const AVAILABLE_PLACE_TYPES = [
   "zoo",
 ];
 
+// Helper function to validate that each route has at least one location per category type
+function validateLocationTypeDistribution(
+  extractedLocations: any[],
+  selectedPlaceTypes: string[],
+  availablePlaces: any[]
+): any[] {
+  if (!selectedPlaceTypes || selectedPlaceTypes.length === 0) {
+    return extractedLocations;
+  }
+
+  // Count how many locations we have for each place type
+  const locationsByType: { [key: string]: any[] } = {};
+  selectedPlaceTypes.forEach(type => {
+    locationsByType[type] = [];
+  });
+
+  // Categorize existing locations by their type
+  extractedLocations.forEach(location => {
+    const locationType = location.type;
+    if (selectedPlaceTypes.includes(locationType)) {
+      locationsByType[locationType].push(location);
+    }
+  });
+
+  // Check which types are missing
+  const missingTypes = selectedPlaceTypes.filter(
+    type => locationsByType[type].length === 0
+  );
+
+  console.log(`🔍 Location type distribution:`, locationsByType);
+  console.log(`⚠️ Missing types:`, missingTypes);
+
+  // If we have missing types, try to add one location for each missing type
+  if (missingTypes.length > 0) {
+    const enhancedLocations = [...extractedLocations];
+    
+    missingTypes.forEach(missingType => {
+      // Find available places of this type that aren't already included
+      const existingIds = new Set(enhancedLocations.map(loc => loc.id));
+      const availableForType = availablePlaces.filter(
+        place => place.placeType === missingType && !existingIds.has(place.id)
+      );
+
+      if (availableForType.length > 0) {
+        // Pick the highest rated available place of this type
+        const bestPlace = availableForType.reduce((best, current) => 
+          (current.rating || 0) > (best.rating || 0) ? current : best
+        );
+
+        const newLocation = {
+          id: bestPlace.id,
+          name: bestPlace.displayName,
+          location: bestPlace.location,
+          type: bestPlace.placeType,
+          tags: bestPlace.types,
+          formatted_address: bestPlace.formattedAddress,
+          rating: bestPlace.rating,
+          user_rating_total: bestPlace.userRatingCount,
+          price_level: bestPlace.priceLevel,
+          order: enhancedLocations.length + 1,
+        };
+
+        enhancedLocations.push(newLocation);
+        console.log(`✅ Added ${bestPlace.displayName} to ensure ${missingType} coverage`);
+      } else {
+        console.log(`⚠️ No available ${missingType} venues to add`);
+      }
+    });
+
+    return enhancedLocations;
+  }
+
+  return extractedLocations;
+}
+
 // Helper function to extract locations from the generated plan with ordering
-function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
+function extractLocationsFromPlan(eventPlan: string, placesData: any[], selectedPlaceTypes: string[] = []) {
   try {
     // Extract mentioned place names from the plan and match them to the places data
     const plannedLocations = [];
@@ -180,9 +255,16 @@ function extractLocationsFromPlan(eventPlan: string, placesData: any[]) {
       );
     }
 
-    console.log("OrderedLocations:", orderedLocations);
+    // Validate and ensure we have at least one location per selected place type
+    const validatedLocations = validateLocationTypeDistribution(
+      orderedLocations,
+      selectedPlaceTypes,
+      placesData
+    );
 
-    return orderedLocations;
+    console.log("OrderedLocations:", validatedLocations);
+
+    return validatedLocations;
   } catch (error) {
     console.error("Error extracting locations from plan:", error);
     return [];
@@ -588,7 +670,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Extract planned locations for this route
-      const plannedLocations = extractLocationsFromPlan(eventPlan, placesData);
+      const plannedLocations = extractLocationsFromPlan(eventPlan, placesData, selectedPlaceTypes);
 
       // Create route data
       const routeData = {
@@ -932,7 +1014,7 @@ Respond ONLY with a JSON object following this exact structure:
     }
 8. Create a distinctive and enjoyable route that offers variety from other options
 9. Include practical considerations like bathroom breaks, meal timing, etc.
-10. If there are two locations with the same name, remove the location that is less popular
+10. If there are two locations with the same name, remove the location that is less popular. However, ensure that there's at least one location per location type. For example, if the categories are "restaurant" and "park", ensure each plan has at least one of each.
 11. **NEVER include the same venue twice in the itinerary** - each venue must be unique within the plan
 12. **Each venue name and address must be exactly as provided** - no variations or alternative names
 
