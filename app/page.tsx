@@ -350,7 +350,7 @@ export default function Home() {
       {/* Sidebar */}
       <div className="w-80 border-l border-gray-200 bg-white shadow-lg flex flex-col max-h-screen">
         <div className="p-4 pb-0 flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-900">WhatsInTownAI</h1>
+          <h1 className="text-xl font-bold text-blue-500">What's In Town AI</h1>
           <p className="text-sm text-gray-600 mt-1">
             Plan your perfect day with AI
           </p>
