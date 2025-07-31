@@ -119,7 +119,7 @@ export default function LocationForm({
   const [endTime, setEndTime] = useState<string>("");
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [radius, setRadius] = useState<number>(5000);
-  const [ageRange, setAgeRange] = useState<[number, number]>([1, 80]);
+  const [ageRange, setAgeRange] = useState<[number, number]>([21, 80]);
   const [budget, setBudget] = useState<number>(1000);
 
   const [eventDescription, setEventDescription] = useState<string>("");
