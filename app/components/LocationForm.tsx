@@ -330,7 +330,7 @@ export default function LocationForm({
 
     setIsSendingEmail(true);
     try {
-      await sendEmail({ plan: suggestedPlan, email: userEmail });
+      await sendEmail({ plan: displayedSuggestedPlan, email: userEmail });
     } catch (error) {
       console.error("Error sending email:", error);
     } finally {
@@ -354,10 +354,10 @@ export default function LocationForm({
   const handleStartingLocationInput = (e: any) => {
     const newValue = e.target.value;
     setStartingLocationValue(newValue);
-    
+
     // If user is clearing the input, also clear the selected text
-    if (newValue === '') {
-      setSelectedStartingLocationText('');
+    if (newValue === "") {
+      setSelectedStartingLocationText("");
       setHasSelectedLocation(false);
       // Reset the starting location to default but don't update store immediately
       setStartingLocation({
