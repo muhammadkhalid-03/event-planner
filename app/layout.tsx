@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Event Planner",
+  title: "What's In Town AI",
   description: "An intelligent Activity Planner for creating personalized event suggestions",
   icons: {
     icon: "/favicon.png",
