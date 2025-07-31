@@ -1,6 +1,10 @@
-# Event Planner App
+# What's In Town AI
 
 A Next.js web application with TailwindCSS that provides an intelligent Activity Planner for creating personalized event suggestions. Users can enter their starting location, time constraints, group size, and event preferences to receive AI-powered planning assistance.
+
+## Testing Instructions:
+
+- Use the code `wHQ2:p#$s010` to access the website when prompted
 
 ## Features
 
@@ -62,6 +66,7 @@ To access the Event Planner app, you'll need to enter the special access code wh
 #### Technical Implementation
 
 The authentication system includes:
+
 - **Firebase Auth Integration**: Uses Firebase Authentication with email/password sign-in
 - **AuthContext Provider**: React context for managing authentication state across the app
 - **AuthPopup Component**: Clean, centered modal for password entry with loading states
