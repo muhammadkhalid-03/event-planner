@@ -122,10 +122,32 @@ export default function MapView() {
   // Update map center when starting location changes
   useEffect(() => {
     if (mapRef && startingLocation) {
-      mapRef.panTo(startingLocation);
-      mapRef.setZoom(14);
+      // Only pan if the starting location is not the default NYC location
+      const isDefaultLocation = startingLocation.lat === 40.7128 && startingLocation.lng === -74.006;
+      if (!isDefaultLocation) {
+        // Pan to the selected location when there are no route locations
+        // OR when the starting location has changed significantly from the current route
+        if (locations.length === 0) {
+          mapRef.panTo(startingLocation);
+          mapRef.setZoom(14);
+        } else {
+          // Check if the new starting location is significantly different from the current route's starting point
+          const currentRouteStart = locations[0]?.location;
+          if (currentRouteStart) {
+            const distance = Math.sqrt(
+              Math.pow(startingLocation.lat - currentRouteStart.lat, 2) +
+              Math.pow(startingLocation.lng - currentRouteStart.lng, 2)
+            );
+            // If the new location is more than ~0.01 degrees away (roughly 1km), pan to it
+            if (distance > 0.01) {
+              mapRef.panTo(startingLocation);
+              mapRef.setZoom(14);
+            }
+          }
+        }
+      }
     }
-  }, [mapRef, startingLocation]);
+  }, [mapRef, startingLocation, locations.length]);
 
   return (
     <>

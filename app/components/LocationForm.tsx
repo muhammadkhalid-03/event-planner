@@ -128,6 +128,7 @@ export default function LocationForm({
     usePlacesStore();
   const [selectedStartingLocationText, setSelectedStartingLocationText] =
     useState("");
+  const [hasSelectedLocation, setHasSelectedLocation] = useState(false);
 
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
@@ -351,7 +352,24 @@ export default function LocationForm({
   });
 
   const handleStartingLocationInput = (e: any) => {
-    setStartingLocationValue(e.target.value);
+    const newValue = e.target.value;
+    setStartingLocationValue(newValue);
+    
+    // If user is clearing the input, also clear the selected text
+    if (newValue === '') {
+      setSelectedStartingLocationText('');
+      setHasSelectedLocation(false);
+      // Reset the starting location to default but don't update store immediately
+      setStartingLocation({
+        country: "",
+        city: "",
+        location: defaultLocation,
+      });
+      // Only update store if there was a previously selected location
+      if (selectedStartingLocationText) {
+        setStoreStartingLocation(defaultLocation);
+      }
+    }
   };
 
   const handleStartingLocationSelect =
@@ -369,6 +387,7 @@ export default function LocationForm({
         setSelectedStartingLocationText(description);
         setStartingLocationValue(description, false);
         clearStartingLocationSuggestions();
+        setHasSelectedLocation(true);
 
         // Update the store with the new starting location
         setStoreStartingLocation({ lat, lng });
